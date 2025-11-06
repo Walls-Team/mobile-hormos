@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
-import 'package:genius_hormo/utils/constants.dart';
 import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
 import 'package:genius_hormo/widgets/form/text_input.dart';
 import 'terms_and_conditions.dart';
 
 class RegistrationForm extends StatefulWidget {
+  const RegistrationForm({super.key});
+
   @override
   _RegistrationFormState createState() => _RegistrationFormState();
 }
@@ -20,8 +21,6 @@ class _RegistrationFormState extends State<RegistrationForm> {
       TextEditingController();
 
   bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
 
   @override
@@ -229,11 +228,6 @@ class _RegistrationFormState extends State<RegistrationForm> {
   // NUEVO: Widget de requisitos de contraseña (igual al de reset password)
   Widget _buildPasswordRequirements() {
     final password = _passwordController.text;
-
-    // Solo mostrar si el campo de contraseña tiene texto
-    if (password.isEmpty) {
-      return SizedBox.shrink();
-    }
 
     return Container(
       child: Column(

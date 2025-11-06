@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/home.dart';
+import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
+import 'package:genius_hormo/widgets/form/password_input.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -18,11 +20,10 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   bool _passwordReset = false;
 
   @override
@@ -32,61 +33,66 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
-// En reset_password_screen.dart, actualiza el método _submitForm:
-void _submitForm() async {
-  if (_formKey.currentState!.validate()) {
-    setState(() {
-      _isLoading = true;
-    });
+  // En reset_password_screen.dart, actualiza el método _submitForm:
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
 
-    // Simular proceso de reset de contraseña
-    await Future.delayed(Duration(seconds: 2));
+      // Simular proceso de reset de contraseña
+      await Future.delayed(Duration(seconds: 2));
 
-    setState(() {
-      _isLoading = false;
-      _passwordReset = true;
-    });
+      setState(() {
+        _isLoading = false;
+        _passwordReset = true;
+      });
 
-    // Mostrar mensaje de éxito
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('¡Contraseña restablecida exitosamente!'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-
-    // NUEVO: Redirección automática a Home después de 2 segundos
-    Future.delayed(Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+      // Mostrar mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('¡Contraseña restablecida exitosamente!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
-    });
-  }
-}
 
-// Y actualiza el método _navigateToLogin en la pantalla de éxito:
-void _navigateToLogin() {
-  // Cambiado: Ahora va al Home en lugar del Login
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => HomeScreen()),
-  );
-}
+      // NUEVO: Redirección automática a Home después de 2 segundos
+      Future.delayed(Duration(seconds: 2), () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      });
+    }
+  }
+
+  // Y actualiza el método _navigateToLogin en la pantalla de éxito:
+  void _navigateToLogin() {
+    // Cambiado: Ahora va al Home en lugar del Login
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomeScreen()),
+    );
+  }
+
+  bool _isButtonEnabled() {
+    return _passwordController.text.isNotEmpty &&
+        _confirmPasswordController.text.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Nueva Contraseña'),
       ),
-      body: _passwordReset 
+      body: _passwordReset
           ? _buildSuccessScreen(theme)
           : _buildResetForm(theme),
     );
@@ -98,114 +104,65 @@ void _navigateToLogin() {
       child: Form(
         key: _formKey,
         child: Column(
-          children: [
-            SizedBox(height: 40),
-            _buildHeaderIcon(theme),
-            SizedBox(height: 30),
-            _buildInstructions(),
-            SizedBox(height: 30),
-            _buildPasswordField(),
-            SizedBox(height: 20),
-            _buildConfirmPasswordField(),
-            SizedBox(height: 10),
-            _buildPasswordRequirements(),
-            SizedBox(height: 30),
-            _buildSubmitButton(theme),
-            SizedBox(height: 30),
+          spacing: 20.0,
+          crossAxisAlignment: CrossAxisAlignment.start,
 
+          children: [
+            _buildHormoIcon(),
+
+            _buildInstructions(),
+
+            Text('Password', style: TextStyle(color: Colors.white)),
+            _buildPasswordField(),
+
+            Text('Confirm Password', style: TextStyle(color: Colors.white)),
+            _buildConfirmPasswordField(),
+
+            _buildPasswordRequirements(),
+
+            // _buildSubmitButton(theme),
+            _buildRegisterButton(theme),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeaderIcon(ThemeData theme) {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.lock_outline,
-        size: 50,
-        color: theme.primaryColor,
+  Widget _buildHormoIcon() {
+    return Center(
+      child: Image.asset(
+        'assets/images/logo_2.png', // Asegúrate de tener esta imagen en tus assets
+        // width: 200,
+        // height: 200,
+        fit: BoxFit.contain,
       ),
     );
   }
 
   Widget _buildInstructions() {
-    return Column(
-      children: [
-        Text(
-          'Crear Nueva Contraseña',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          textAlign: TextAlign.center,
+    return Center(
+      child: Text(
+        'New Password',
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
-        SizedBox(height: 15),
-        Text(
-          'Crea una nueva contraseña segura para tu cuenta',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey[400],
-          ),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 10),
-        Container(
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey[800],
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.email, size: 16, color: Colors.grey[400]),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  widget.email,
-                  style: TextStyle(
-                    color: Colors.grey[300],
-                    fontSize: 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+        textAlign: TextAlign.center,
+      ),
     );
   }
 
   Widget _buildPasswordField() {
-    return TextFormField(
+    return InputPassword(
       controller: _passwordController,
-      obscureText: _obscurePassword,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Nueva Contraseña',
-        prefixIcon: Icon(Icons.lock),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword ? Icons.visibility : Icons.visibility_off,
-          ),
-          onPressed: () {
-            setState(() {
-              _obscurePassword = !_obscurePassword;
-            });
-          },
-        ),
-      ),
+      hintText: '********',
+      onChanged: (value) {
+        setState(() {}); // Para actualizar los requisitos en tiempo real
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Por favor ingresa tu nueva contraseña';
+          return 'Por favor ingresa tu contraseña';
         }
         if (value.length < 8) {
           return 'La contraseña debe tener al menos 8 caracteres';
@@ -215,34 +172,88 @@ void _navigateToLogin() {
         }
         return null;
       },
-      onChanged: (value) {
-        setState(() {}); // Para actualizar los requisitos en tiempo real
-      },
+    );
+  }
+
+  Widget _buildPasswordRequirements() {
+    final password = _passwordController.text;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Requisitos de la contraseña:',
+          style: TextStyle(
+            // color: Colors.grey[300],
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+        SizedBox(height: 8),
+        _buildRequirementItem('Al menos 8 caracteres', password.length >= 8),
+        _buildRequirementItem(
+          'Una letra mayúscula',
+          RegExp(r'[A-Z]').hasMatch(password),
+        ),
+        _buildRequirementItem(
+          'Una letra minúscula',
+          RegExp(r'[a-z]').hasMatch(password),
+        ),
+        _buildRequirementItem('Un número', RegExp(r'\d').hasMatch(password)),
+        _buildRequirementItem(
+          'Un carácter especial (!@#\$%^&*)',
+          RegExp(r'[!@#\$%^&*]').hasMatch(password),
+          isRecommended: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRequirementItem(
+    String text,
+    bool isMet, {
+    bool isRecommended = false,
+  }) {
+    Color textColor;
+
+    if (isMet) {
+      textColor = Theme.of(context).colorScheme.primary;
+    } else {
+      textColor = Colors.white;
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 12,
+                fontStyle: isRecommended && !isMet
+                    ? FontStyle.italic
+                    : FontStyle.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildConfirmPasswordField() {
-    return TextFormField(
+    return InputPassword(
       controller: _confirmPasswordController,
-      obscureText: _obscureConfirmPassword,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Confirmar Nueva Contraseña',
-        prefixIcon: Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
-          ),
-          onPressed: () {
-            setState(() {
-              _obscureConfirmPassword = !_obscureConfirmPassword;
-            });
-          },
-        ),
-      ),
+      hintText: '********',
+      onChanged: (value) {
+        setState(() {}); // Para actualizar los requisitos en tiempo real
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Por favor confirma tu nueva contraseña';
+          return 'Por favor confirma tu contraseña';
         }
         if (value != _passwordController.text) {
           return 'Las contraseñas no coinciden';
@@ -252,96 +263,23 @@ void _navigateToLogin() {
     );
   }
 
-  Widget _buildPasswordRequirements() {
-    final password = _passwordController.text;
-    
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Requisitos de la contraseña:',
-            style: TextStyle(
-              color: Colors.grey[300],
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
-          SizedBox(height: 8),
-          _buildRequirementItem(
-            'Al menos 8 caracteres',
-            password.length >= 8,
-          ),
-          _buildRequirementItem(
-            'Una letra mayúscula',
-            RegExp(r'[A-Z]').hasMatch(password),
-          ),
-          _buildRequirementItem(
-            'Una letra minúscula',
-            RegExp(r'[a-z]').hasMatch(password),
-          ),
-          _buildRequirementItem(
-            'Un número',
-            RegExp(r'\d').hasMatch(password),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRequirementItem(String text, bool isMet) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(
-            isMet ? Icons.check_circle : Icons.radio_button_unchecked,
-            size: 16,
-            color: isMet ? Colors.green : Colors.grey[500],
-          ),
-          SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-              color: isMet ? Colors.green : Colors.grey[400],
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton(ThemeData theme) {
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _submitForm,
-        child: _isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
-                ),
-              )
-            : Text(
-                'Restablecer Contraseña',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+  Widget _buildRegisterButton(ThemeData theme) {
+    bool isEnabled = _isButtonEnabled();
+    return CustomElevatedButton(
+      onPressed: isEnabled ? _submitForm : null,
+      child: _isLoading
+          ? SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.onPrimary,
                 ),
               ),
-      ),
+            )
+          : Text('Send', style: TextStyle(fontWeight: FontWeight.bold)),
     );
-    
   }
 
   Widget _buildSuccessScreen(ThemeData theme) {
@@ -358,11 +296,7 @@ void _navigateToLogin() {
                 color: Colors.green.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.check_circle,
-                size: 60,
-                color: Colors.green,
-              ),
+              child: Icon(Icons.check_circle, size: 60, color: Colors.green),
             ),
             SizedBox(height: 30),
             Text(
@@ -392,10 +326,7 @@ void _navigateToLogin() {
                 onPressed: _navigateToLogin,
                 child: Text(
                   'Ir al Inicio de Sesión',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -405,12 +336,7 @@ void _navigateToLogin() {
                 // Opcional: Volver al inicio/welcome
                 Navigator.popUntil(context, (route) => route.isFirst);
               },
-              child: Text(
-                'Volver al Inicio',
-                style: TextStyle(
-                  fontSize: 14,
-                ),
-              ),
+              child: Text('Volver al Inicio', style: TextStyle(fontSize: 14)),
             ),
           ],
         ),
