@@ -9,7 +9,13 @@ class FaqsPage extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(localizations.faqsTitle)),
+      appBar: AppBar(
+        title: Text(localizations.faqsTitle),
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -17,15 +23,19 @@ class FaqsPage extends StatelessWidget {
           children: [
             Text(
               localizations.faqsDescription,
-              style: TextStyle(fontSize: 16),
-              textAlign:
-                  TextAlign.justify, // Justificado como text-wrap: pretty
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+                height: 1.5,
+              ),
+              // textAlign:
+              //     TextAlign.justify, // Justificado como text-wrap: pretty
               softWrap: true, // Habilitar salto de línea suave
               overflow: TextOverflow.visible, // Evitar el truncamiento
               strutStyle: StrutStyle(
-                fontSize: 16,
-                height: 1.0,
-                leading: 0.5, // Espaciado adicional entre líneas
+                // // fontSize: 16,
+                // height: 1.0,
+                // leading: 0.5, // Espaciado adicional entre líneas
               ),
             ),
             // Lista de preguntas frecuentes
@@ -107,11 +117,19 @@ class FaqsPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
               child: Text(
                 faq['answer']!,
-                style: TextStyle(fontSize: 14),
+
+                // style: TextStyle(fontSize: 14),ß
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+
                 textAlign:
                     TextAlign.justify, // Justificado como text-wrap: pretty
                 softWrap: true, // Habilitar salto de línea suave
                 overflow: TextOverflow.visible, // Evitar el truncamiento
+
                 strutStyle: StrutStyle(
                   fontSize: 16,
                   height: 0.5,
