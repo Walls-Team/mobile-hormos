@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/theme/theme.dart';
 import 'package:genius_hormo/views/auth/login.dart';
 import 'package:genius_hormo/views/auth/register.dart';
+import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
+import 'package:genius_hormo/widgets/buttons/outlined_button.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -32,47 +33,33 @@ class WelcomeScreen extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.all(20),
       child: Column(
+        spacing: 20.0,
         children: [
-          // Botón de Registro (Usa ElevatedButton que hereda el tema)
-          ElevatedButton(
+          CustomElevatedButton(
+            borderColor: Colors.transparent,
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => LoginScreen()),
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.black,
-              textStyle: TextStyle(color: Colors.black),
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+            child: Text(
+              'Log in',
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            child: const Text('Log In', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
           ),
 
-          SizedBox(height: 20),
-
-          OutlinedButton(
+          CustomOutlinedButton(
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => RegistrationForm()),
               );
             },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white, // Color del texto
-              side: const BorderSide(color: Colors.white), // Color del borde
-              minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
+            borderColor: Colors.white,
+            child: Text(
               'Register',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ],

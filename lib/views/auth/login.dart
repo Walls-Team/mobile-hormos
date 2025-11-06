@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/theme/colors_pallete.dart';
 import 'package:genius_hormo/views/auth/forgot_password.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/views/auth/register.dart';
+import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
+import 'package:genius_hormo/widgets/buttons/outlined_button.dart';
+import 'package:genius_hormo/widgets/form/password_input.dart';
+import 'package:genius_hormo/widgets/form/text_input.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -70,7 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Form(
           key: _formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // ← Space Between
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween, // ← Space Between
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,32 +89,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
 
-                  TextFormField(
+                  InputText(
                     controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-
-                    decoration: InputDecoration(
-                      hintText: 'you@example.com',
-                      // hintStyle: const TextStyle(color: Colors.grey),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      filled: true,
-                      fillColor: neutral_700,
-
-                      border: InputBorder.none, // Quitamos el borde
-                      enabledBorder: InputBorder
-                          .none, // Quitamos el borde cuando está enabled
-                      focusedBorder: InputBorder
-                          .none, // Quitamos el borde cuando está focused
-                      errorBorder: InputBorder
-                          .none, // Quitamos el borde cuando hay error
-                      focusedErrorBorder: InputBorder
-                          .none, // Quitamos el borde cuando hay error y está focused
-                      disabledBorder: InputBorder
-                          .none, // Quitamos el borde cuando está disabled
-                    ),
+                    hintText: 'you@example.com',
                     validator: (value) {
                       if (value == null || value.isEmpty)
                         return 'Ingresa tu email';
@@ -128,45 +109,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
 
-                  TextFormField(
+                  InputPassword(
                     controller: _passwordController,
-                    obscureText: _obscurePassword,
-
-                    decoration: InputDecoration(
-                      hintText: '********',
-                      // hintStyle: const TextStyle(color: Colors.grey),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      filled: true,
-                      fillColor: neutral_700,
-
-                      border: InputBorder.none, // Quitamos el borde
-                      enabledBorder: InputBorder
-                          .none, // Quitamos el borde cuando está enabled
-                      focusedBorder: InputBorder
-                          .none, // Quitamos el borde cuando está focused
-                      errorBorder: InputBorder
-                          .none, // Quitamos el borde cuando hay error
-                      focusedErrorBorder: InputBorder
-                          .none, // Quitamos el borde cuando hay error y está focused
-                      disabledBorder: InputBorder
-                          .none, // Quitamos el borde cuando está disabled
-
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
+                    hintText: '********',
                     validator: (value) {
                       if (value == null || value.isEmpty)
                         return 'Ingresa tu contraseña';
@@ -174,7 +119,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-
                   _buildRememberMeForgot(theme),
 
                   _buildActionButtons(),
@@ -266,18 +210,8 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       spacing: 10.0,
       children: [
-        ElevatedButton(
-          onPressed: _isLoading ? null : _submitForm,
-
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Colors.black,
-            textStyle: TextStyle(color: Colors.black),
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+        CustomElevatedButton(
+          onPressed: _isLoading ? () {} : _submitForm,
           child: _isLoading
               ? SizedBox(
                   height: 20,
@@ -291,28 +225,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 )
               : const Text(
                   'Log In',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
         ),
 
-        OutlinedButton(
+        CustomOutlinedButton(
+          borderColor: Colors.white,
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => RegistrationForm()),
             );
           },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white, // Color del texto
-            side: const BorderSide(color: Colors.white), // Color del borde
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
           child: const Text(
             'Register',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
       ],

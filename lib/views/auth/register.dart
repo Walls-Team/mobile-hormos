@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
+import 'package:genius_hormo/utils/constants.dart';
+import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
+import 'package:genius_hormo/widgets/form/password_input.dart';
+import 'package:genius_hormo/widgets/form/text_input.dart';
 import 'terms_and_conditions.dart';
 
 class RegistrationForm extends StatefulWidget {
@@ -11,8 +16,9 @@ class _RegistrationFormState extends State<RegistrationForm> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -32,10 +38,10 @@ class _RegistrationFormState extends State<RegistrationForm> {
       context,
       MaterialPageRoute(builder: (context) => TermsAndConditionsScreen()),
     );
-    
+
     if (result == true) {
-      setState(() { 
-        _acceptTerms = true; 
+      setState(() {
+        _acceptTerms = true;
       });
     }
   }
@@ -52,15 +58,15 @@ class _RegistrationFormState extends State<RegistrationForm> {
         return;
       }
 
-      setState(() { 
-        _isLoading = true; 
+      setState(() {
+        _isLoading = true;
       });
 
       // Simular proceso de registro
       await Future.delayed(Duration(seconds: 2));
 
-      setState(() { 
-        _isLoading = false; 
+      setState(() {
+        _isLoading = false;
       });
 
       // Mostrar mensaje de éxito
@@ -81,40 +87,45 @@ class _RegistrationFormState extends State<RegistrationForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final localizations = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Crear Cuenta'),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
+            spacing: 10.0,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 20),
-              _buildRegisterIcon(theme),
-              SizedBox(height: 30),
-              _buildUsernameField(),
-              SizedBox(height: 20),
+              _buildHormoIcon(theme),
+
+              _buildWelcomeMessage(),
+
+              Text('Username', style: TextStyle(color: Colors.white)),
+              _buildUsernameField(context),
+
+              Text('Email', style: TextStyle(color: Colors.white)),
               _buildEmailField(),
-              SizedBox(height: 20),
+
+              Text('Password', style: TextStyle(color: Colors.white)),
               _buildPasswordField(),
-              SizedBox(height: 10),
-              // NUEVO: Widget de requisitos de contraseña
-              _buildPasswordRequirements(),
-              SizedBox(height: 20),
+
+              Text('Confirm Password', style: TextStyle(color: Colors.white)),
               _buildConfirmPasswordField(),
-              SizedBox(height: 20),
+
+              _buildPasswordRequirements(),
+
               _buildTermsAndConditions(theme),
               SizedBox(height: 30),
               _buildRegisterButton(theme),
-              SizedBox(height: 20),
-              _buildLoginLink(),
+              SizedBox(height: 30),
             ],
           ),
         ),
@@ -122,30 +133,46 @@ class _RegistrationFormState extends State<RegistrationForm> {
     );
   }
 
-  Widget _buildRegisterIcon(ThemeData theme) {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.person_add,
-        size: 50,
-        color: theme.primaryColor,
+  Widget _buildHormoIcon(ThemeData theme) {
+    return Center(
+      child: Image.asset(
+        'assets/images/logo_2.png', // Asegúrate de tener esta imagen en tus assets
+        // width: 200,
+        // height: 200,
+        fit: BoxFit.contain,
       ),
     );
   }
 
-  Widget _buildUsernameField() {
-    return TextFormField(
-      controller: _usernameController,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Nombre de usuario',
-        prefixIcon: Icon(Icons.person),
+  Widget _buildWelcomeMessage() {
+    return Center(
+      child: Column(
+        children: [
+          const Text(
+            'Register Genius Testosterone',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              // color: Colors.black,
+            ),
+          ),
+          const Text(
+            'Good to see you.',
+            style: TextStyle(
+              fontSize: 14,
+              // fontWeight: FontWeight.bold,
+              // color: Colors.black,
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildUsernameField(BuildContext context) {
+    return InputText(
+      controller: _usernameController,
+      hintText: 'user',
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Por favor ingresa un nombre de usuario';
@@ -162,14 +189,9 @@ class _RegistrationFormState extends State<RegistrationForm> {
   }
 
   Widget _buildEmailField() {
-    return TextFormField(
+    return InputText(
       controller: _emailController,
-      keyboardType: TextInputType.emailAddress,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Correo electrónico',
-        prefixIcon: Icon(Icons.email),
-      ),
+      hintText: 'you@example.com',
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Por favor ingresa tu email';
@@ -183,24 +205,12 @@ class _RegistrationFormState extends State<RegistrationForm> {
   }
 
   Widget _buildPasswordField() {
-    return TextFormField(
+    return InputPassword(
       controller: _passwordController,
-      obscureText: _obscurePassword,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Contraseña',
-        prefixIcon: Icon(Icons.lock),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword ? Icons.visibility : Icons.visibility_off,
-          ),
-          onPressed: () {
-            setState(() {
-              _obscurePassword = !_obscurePassword;
-            });
-          },
-        ),
-      ),
+      hintText: '********',
+      onChanged: (value) {
+        setState(() {}); // Para actualizar los requisitos en tiempo real
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Por favor ingresa tu contraseña';
@@ -213,43 +223,32 @@ class _RegistrationFormState extends State<RegistrationForm> {
         }
         return null;
       },
-      onChanged: (value) {
-        setState(() {}); // Para actualizar los requisitos en tiempo real
-      },
     );
   }
 
   // NUEVO: Widget de requisitos de contraseña (igual al de reset password)
   Widget _buildPasswordRequirements() {
     final password = _passwordController.text;
-    
+
     // Solo mostrar si el campo de contraseña tiene texto
     if (password.isEmpty) {
       return SizedBox.shrink();
     }
-    
+
     return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(10),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Requisitos de la contraseña:',
             style: TextStyle(
-              color: Colors.grey[300],
+              // color: Colors.grey[300],
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
           ),
           SizedBox(height: 8),
-          _buildRequirementItem(
-            'Al menos 8 caracteres',
-            password.length >= 8,
-          ),
+          _buildRequirementItem('Al menos 8 caracteres', password.length >= 8),
           _buildRequirementItem(
             'Una letra mayúscula',
             RegExp(r'[A-Z]').hasMatch(password),
@@ -258,10 +257,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
             'Una letra minúscula',
             RegExp(r'[a-z]').hasMatch(password),
           ),
-          _buildRequirementItem(
-            'Un número',
-            RegExp(r'\d').hasMatch(password),
-          ),
+          _buildRequirementItem('Un número', RegExp(r'\d').hasMatch(password)),
           _buildRequirementItem(
             'Un carácter especial (!@#\$%^&*)',
             RegExp(r'[!@#\$%^&*]').hasMatch(password),
@@ -272,30 +268,23 @@ class _RegistrationFormState extends State<RegistrationForm> {
     );
   }
 
-  Widget _buildRequirementItem(String text, bool isMet, {bool isRecommended = false}) {
-    Color iconColor;
+  Widget _buildRequirementItem(
+    String text,
+    bool isMet, {
+    bool isRecommended = false,
+  }) {
     Color textColor;
-    
+
     if (isMet) {
-      iconColor = Colors.green;
-      textColor = Colors.green;
-    } else if (isRecommended) {
-      iconColor = Colors.orange;
-      textColor = Colors.orange;
+      textColor = Theme.of(context).colorScheme.primary;
     } else {
-      iconColor = Colors.grey[500]!;
-      textColor = Colors.grey[400]!;
+      textColor = Colors.white;
     }
-    
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(
-            isMet ? Icons.check_circle : Icons.info_outline,
-            size: 16,
-            color: iconColor,
-          ),
           SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -303,7 +292,9 @@ class _RegistrationFormState extends State<RegistrationForm> {
               style: TextStyle(
                 color: textColor,
                 fontSize: 12,
-                fontStyle: isRecommended && !isMet ? FontStyle.italic : FontStyle.normal,
+                fontStyle: isRecommended && !isMet
+                    ? FontStyle.italic
+                    : FontStyle.normal,
               ),
             ),
           ),
@@ -313,24 +304,12 @@ class _RegistrationFormState extends State<RegistrationForm> {
   }
 
   Widget _buildConfirmPasswordField() {
-    return TextFormField(
+    return InputPassword(
       controller: _confirmPasswordController,
-      obscureText: _obscureConfirmPassword,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Confirmar contraseña',
-        prefixIcon: Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
-          ),
-          onPressed: () {
-            setState(() {
-              _obscureConfirmPassword = !_obscureConfirmPassword;
-            });
-          },
-        ),
-      ),
+      hintText: '********',
+      onChanged: (value) {
+        setState(() {}); // Para actualizar los requisitos en tiempo real
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Por favor confirma tu contraseña';
@@ -359,16 +338,13 @@ class _RegistrationFormState extends State<RegistrationForm> {
             Expanded(
               child: Wrap(
                 children: [
-                  Text(
-                    'Acepto los ',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  Text('Acepto los ', style: TextStyle(color: Colors.white)),
                   GestureDetector(
                     onTap: _navigateToTermsAndConditions,
                     child: Text(
                       'términos y condiciones',
                       style: TextStyle(
-                        color: theme.primaryColor,
+                        // color: theme.primaryColor,
                         fontWeight: FontWeight.bold,
                         decoration: TextDecoration.underline,
                       ),
@@ -379,55 +355,27 @@ class _RegistrationFormState extends State<RegistrationForm> {
             ),
           ],
         ),
-
       ],
     );
   }
 
   Widget _buildRegisterButton(ThemeData theme) {
     bool isEnabled = _isButtonEnabled();
-    
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: isEnabled ? _submitForm : null,
-        child: _isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
-                ),
-              )
-            : Text(
-                'Registrarse',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+
+    return CustomElevatedButton(
+      onPressed: isEnabled ? _submitForm : null,
+      child: _isLoading
+          ? SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.onPrimary,
                 ),
               ),
-      ),
-    );
-  }
-
-  Widget _buildLoginLink() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          '¿Ya tienes una cuenta?',
-          style: TextStyle(color: Colors.grey[400]),
-        ),
-        SizedBox(width: 5),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Text('Inicia sesión'),
-        ),
-      ],
+            )
+          : Text('Registrarse', style: TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 }

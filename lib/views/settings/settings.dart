@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/theme/colors_pallete.dart';
 import 'package:genius_hormo/views/auth/welcome.dart';
 import 'package:genius_hormo/views/faqs/faqs.dart';
 import 'package:genius_hormo/widgets/faqs_badge.dart';

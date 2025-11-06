@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/theme/colors_pallete.dart';
-import 'package:genius_hormo/theme/theme.dart';
 import 'package:genius_hormo/views/dashboard/components/rem_chart.dart';
 import 'package:genius_hormo/views/dashboard/components/sleep_interruptions_chart.dart';
 import 'package:genius_hormo/views/dashboard/components/spo_chart.dart';
 import 'package:genius_hormo/views/dashboard/components/stats.dart';
 import 'package:genius_hormo/views/dashboard/components/testosterone_chart.dart';
-import 'package:glassmorphism/glassmorphism.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -19,7 +16,6 @@ class DashboardPage extends StatelessWidget {
         // decoration: BoxDecoration(
         //  gradient: Theme.of(context).extension<AppGradientTheme>()?.backgroundGradient
         // ),
-
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
