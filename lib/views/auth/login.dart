@@ -78,6 +78,8 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+
                 spacing: 12.0,
                 children: [
                   _buildLoginIcon(theme),

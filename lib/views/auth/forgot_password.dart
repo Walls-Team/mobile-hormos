@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/views/auth/verification_code.dart';
+import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
+import 'package:genius_hormo/widgets/form/text_input.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   @override
@@ -19,24 +21,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      setState(() { 
-        _isLoading = true; 
+      setState(() {
+        _isLoading = true;
       });
 
       // Simular envío de email
       await Future.delayed(Duration(seconds: 2));
 
-      setState(() { 
-        _isLoading = false; 
+      setState(() {
+        _isLoading = false;
       });
 
       // Navegar a la pantalla de verificación de código
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => VerificationCodeScreen(
-            email: _emailController.text,
-          ),
+          builder: (context) =>
+              VerificationCodeScreen(email: _emailController.text),
         ),
       );
     }
@@ -45,31 +46,67 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Recuperar Contraseña'),
+      ),
+      body: Container(
+        padding: EdgeInsets.all(20),
+        child: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Form(
+                key: _formKey,
+                child: Column(
+                  spacing: 20.0,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHormoIcon(),
+
+                    _buildMessage(),
+
+                    Text('Email'),
+                    _buildEmailField(),
+
+                    _buildSubmitButton(theme),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
+            spacing: 20.0,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 40),
-              _buildHeaderIcon(theme),
-              SizedBox(height: 30),
-              _buildInstructions(),
-              SizedBox(height: 30),
+              _buildHormoIcon(),
+
+              _buildMessage(),
+
+              Text('Email'),
               _buildEmailField(),
-              SizedBox(height: 30),
+
               _buildSubmitButton(theme),
-              SizedBox(height: 20),
-              _buildHelpText(),
             ],
           ),
         ),
@@ -77,59 +114,39 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildHeaderIcon(ThemeData theme) {
-    return Container(
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.lock_reset,
-        size: 60,
-        color: theme.primaryColor,
+  Widget _buildHormoIcon() {
+    return Center(
+      child: Image.asset(
+        'assets/images/logo_2.png', // Asegúrate de tener esta imagen en tus assets
+        // width: 200,
+        // height: 200,
+        fit: BoxFit.contain,
       ),
     );
   }
 
-  Widget _buildInstructions() {
-    return Column(
-      children: [
-        Text(
-          '¿Olvidaste tu contraseña?',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+  Widget _buildMessage() {
+    return Center(
+      child: Column(
+        children: [
+          const Text(
+            'Forgot Password',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              // color: Colors.black,
+            ),
           ),
-          textAlign: TextAlign.center,
-        ),
-        SizedBox(height: 15),
-        Text(
-          'Ingresa tu dirección de correo electrónico y te enviaremos un código de verificación de 4 dígitos.',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey[400],
-            height: 1.5,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildEmailField() {
-    return TextFormField(
+    return InputText(
       controller: _emailController,
-      keyboardType: TextInputType.emailAddress,
-      style: TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: 'Correo electrónico',
-        prefixIcon: Icon(Icons.email),
-        hintText: 'ejemplo@correo.com',
-        hintStyle: TextStyle(color: Colors.grey[500]),
-      ),
+      hintText: 'your@example.com',
+
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Por favor ingresa tu email';
@@ -143,45 +160,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildSubmitButton(ThemeData theme) {
-    return SizedBox(
-      width: double.infinity,
-      height: 55,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _submitForm,
-        child: _isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
-                ),
-              )
-            : Text(
-                'Enviar Código de Verificación',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+    return CustomElevatedButton(
+      onPressed: _isLoading ? null : _submitForm,
+      child: _isLoading
+          ? SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  theme.colorScheme.onPrimary,
                 ),
               ),
-      ),
-    );
-  }
-
-  Widget _buildHelpText() {
-    return Column(
-      children: [
-        Divider(color: Colors.grey[700]),
-        SizedBox(height: 15),
-        Text(
-          'Revisa tu bandeja de entrada y carpeta de spam',
-          style: TextStyle(
-            color: Colors.grey[400],
-            fontSize: 14,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+            )
+          : Text(
+              'Enviar Código de Verificación',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
     );
   }
 }

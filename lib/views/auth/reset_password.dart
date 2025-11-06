@@ -81,7 +81,7 @@ void _navigateToLogin() {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Nueva Contraseña'),
