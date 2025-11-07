@@ -14,8 +14,21 @@ class AppLocalizations {
 
   AppLocalizations(this.locale);
 
-  static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  // static AppLocalizations of(BuildContext context) {
+  //   return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+  // }
+
+    static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+
+  static AppLocalizations safeOf(BuildContext context) {
+    final localizations = of(context);
+    if (localizations == null) {
+      throw FlutterError('AppLocalizations no encontrado en el contexto. '
+          'Asegúrate de haber configurado las localizations en MaterialApp.');
+    }
+    return localizations;
   }
 
   static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();

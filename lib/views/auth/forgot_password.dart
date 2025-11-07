@@ -4,6 +4,8 @@ import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 import 'package:genius_hormo/widgets/form/text_input.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
+
   @override
   _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();
 }
@@ -77,36 +79,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            spacing: 20.0,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildHormoIcon(),
-
-              _buildMessage(),
-
-              Text('Email'),
-              _buildEmailField(),
-
-              _buildSubmitButton(theme),
             ],
           ),
         ),

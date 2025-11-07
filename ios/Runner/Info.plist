@@ -52,5 +52,29 @@
 		<string>https</string>
 		<string>http</string>
 	</array>
+
+
+	<!-- Para custom URL scheme -->
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLName</key>
+        <string>com.geniushormo.app</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>geniushormo</string>
+        </array>
+    </dict>
+</array>
+
+<!-- Para Universal Links con geniushormo.com -->
+<key>com.apple.developer.associated-domains</key>
+<array>
+    <string>applinks:geniushormo.com</string>
+    <string>applinks:www.geniushormo.com</string>
+    <string>applinks:app.geniushormo.com</string>
+</array>
 </dict>
 </plist>

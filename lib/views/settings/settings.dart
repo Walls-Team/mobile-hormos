@@ -4,8 +4,8 @@ import 'package:genius_hormo/views/faqs/faqs.dart';
 import 'package:genius_hormo/widgets/faqs_badge.dart';
 import 'package:genius_hormo/widgets/profile_form.dart';
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +65,7 @@ Widget _buildFAQs(BuildContext context) {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const FaqsPage()),
+            MaterialPageRoute(builder: (context) => const FaqsScreen()),
           );
         },
       ),
@@ -120,7 +120,7 @@ Widget _buildConnections(context) {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const FaqsPage()),
+            MaterialPageRoute(builder: (context) => const FaqsScreen()),
           );
         },
       ),

@@ -134,10 +134,23 @@
 //   }
 // }
 
+// import 'package:flutter/material.dart';
+// import 'package:genius_hormo/app/app.dart';
+
+// void main() {
+//   runApp(const MyApp());
+// }
+
+
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/app/app.dart';
+import 'app/app.dart';
+import 'core/di/dependency_injection.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar dependencias
+  await setupDependencies();
+  
+  runApp(const GeniusHormoApp());
 }
-

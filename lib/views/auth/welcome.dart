@@ -53,7 +53,7 @@ class WelcomeScreen extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => RegistrationForm()),
+                MaterialPageRoute(builder: (context) => RegisterScreen()),
               );
             },
             borderColor: Colors.white,

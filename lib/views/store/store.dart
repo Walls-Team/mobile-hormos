@@ -8,8 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/cupertino.dart';
 
-class StorePage extends StatelessWidget {
-  const StorePage({super.key});
+class StoreScreen extends StatelessWidget {
+  const StoreScreen({super.key});
 
   Future<void> _launchURL(BuildContext context, String url) async {
     final Uri uri = Uri.parse(url);
@@ -52,6 +52,15 @@ class StorePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+
+        if (localizations == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
 
     return Scaffold(
       body: SingleChildScrollView(

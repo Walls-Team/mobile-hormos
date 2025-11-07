@@ -49,5 +49,47 @@
             <data android:scheme="https" />
         </intent>
     </queries>
+
+
+    <activity
+    android:name=".MainActivity"
+    android:launchMode="singleTop"
+    android:theme="@style/LaunchTheme"
+    android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+    android:hardwareAccelerated="true"
+    android:windowSoftInputMode="adjustResize">
+    
+    <!-- Intent filter para geniushormo.com (HTTP/HTTPS) -->
+    <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data 
+            android:scheme="https"
+            android:host="geniushormo.com" />
+        <data 
+            android:scheme="http"
+            android:host="geniushormo.com" />
+    </intent-filter>
+
+    <!-- Intent filter para subdominios de geniushormo -->
+    <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data 
+            android:scheme="https"
+            android:host="*.geniushormo.com" />
+    </intent-filter>
+    
+    <!-- Custom scheme como respaldo -->
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data 
+            android:scheme="geniushormo" />
+    </intent-filter>
+</activity>
     
 </manifest>

@@ -5,14 +5,14 @@ import 'package:genius_hormo/widgets/form/password_input.dart';
 import 'package:genius_hormo/widgets/form/text_input.dart';
 import 'terms_and_conditions.dart';
 
-class RegistrationForm extends StatefulWidget {
-  const RegistrationForm({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
   _RegistrationFormState createState() => _RegistrationFormState();
 }
 
-class _RegistrationFormState extends State<RegistrationForm> {
+class _RegistrationFormState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();

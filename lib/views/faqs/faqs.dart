@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
 
-class FaqsPage extends StatelessWidget {
-  const FaqsPage({super.key});
+class FaqsScreen extends StatelessWidget {
+  const FaqsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
+    final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
