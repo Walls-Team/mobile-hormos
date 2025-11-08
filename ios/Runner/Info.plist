@@ -76,5 +76,12 @@
     <string>applinks:www.geniushormo.com</string>
     <string>applinks:app.geniushormo.com</string>
 </array>
+
+
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+</dict>
 </dict>
 </plist>

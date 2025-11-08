@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/views/auth/verification_code.dart';
+import 'package:genius_hormo/views/auth/pages/verification_code.dart';
 import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 import 'package:genius_hormo/widgets/form/text_input.dart';
 

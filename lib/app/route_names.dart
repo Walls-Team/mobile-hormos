@@ -12,5 +12,6 @@ class RouteNames {
   static const String register = '/auth/register';
   static const String resetPassword = '/auth/reset_password';
   static const String forgotPassword = '/auth/forgot_password';
-  static const String verificateEmailCode = '/auth/code_validation';
+  static const String verifyEmail = '/auth/verify_email/:email';
+  // static const String verificateEmailCode = '/auth/code_validation/:email';
 }

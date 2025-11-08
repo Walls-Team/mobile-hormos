@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/views/auth/reset_password.dart';
+import 'package:genius_hormo/views/auth/pages/reset_password.dart';
 import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 
 class VerificationCodeScreen extends StatefulWidget {

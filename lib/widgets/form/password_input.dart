@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/theme/colors_pallete.dart';
 
 class InputPassword extends StatefulWidget {
   final TextEditingController controller;
@@ -31,17 +30,6 @@ class _InputPasswordState extends State<InputPassword> {
       obscureText: _obscurePassword,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        contentPadding:
-            widget.contentPadding ??
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        filled: true,
-        fillColor: neutral_600,
-        border: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
-        errorBorder: InputBorder.none,
-        focusedErrorBorder: InputBorder.none,
-        disabledBorder: InputBorder.none,
         suffixIcon: IconButton(
           icon: Icon(
             _obscurePassword ? Icons.visibility : Icons.visibility_off,

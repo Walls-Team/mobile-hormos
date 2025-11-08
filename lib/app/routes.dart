@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/auth/pages/verify_email.dart';
 import 'package:genius_hormo/home.dart';
-import 'package:genius_hormo/views/auth/forgot_password.dart';
-import 'package:genius_hormo/views/auth/login.dart';
-import 'package:genius_hormo/views/auth/register.dart';
+import 'package:genius_hormo/views/auth/pages/forgot_password.dart';
+import 'package:genius_hormo/features/auth/pages/login.dart';
+import 'package:genius_hormo/features/auth/pages/register.dart';
 
-import 'package:genius_hormo/views/auth/terms_and_conditions.dart';
-import 'package:genius_hormo/views/auth/welcome.dart';
+import 'package:genius_hormo/views/terms_and_conditions.dart';
+import 'package:genius_hormo/views/welcome.dart';
 import 'package:genius_hormo/views/faqs/faqs.dart';
 import 'package:genius_hormo/views/settings/settings.dart';
 import 'package:genius_hormo/views/store/store.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:genius_hormo/views/auth/verification_code.dart';
-import 'package:genius_hormo/views/auth/reset_password.dart';
+import 'package:genius_hormo/views/auth/pages/verification_code.dart' hide VerificationCodeScreen;
+import 'package:genius_hormo/views/auth/pages/reset_password.dart';
 import 'route_names.dart';
 
 class AppRouter {
@@ -24,23 +25,44 @@ class AppRouter {
       // HOME
       GoRoute(
         path: RouteNames.home,
-        name: RouteNames.home,
+        name: 'home',
         builder: (context, state) => const WelcomeScreen(),
       ),
 
-      // TERMS AND CONDITIONS
+      //AUTH
+      
       GoRoute(
-        path: RouteNames.termsAndConditions,
-        name: RouteNames.termsAndConditions,
-        builder: (context, state) => const TermsAndConditionsScreen(),
+        path: RouteNames.login,
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
       ),
 
-      // DASHBOARD
       GoRoute(
-        path: RouteNames.dashboard,
-        name: RouteNames.dashboard,
-        builder: (context, state) => const HomeScreen(),
+        path: RouteNames.register,
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
       ),
+
+      GoRoute(
+        path: RouteNames.verifyEmail,
+        name: 'verify_email',
+        builder: (context, state) {
+
+          final email = state.pathParameters['email']!;
+
+          print(email);
+
+          return VerificationCodeScreen(email: email);
+        },
+      ),
+
+      // TERMS AND CONDITIONS
+      // GoRoute(
+      //   path: RouteNames.termsAndConditions,
+      //   name: RouteNames.termsAndConditions,
+      //   builder: (context, state) => const TermsAndConditionsScreen(),
+      // ),
+
 
       // // STATS
       // GoRoute(
@@ -49,65 +71,45 @@ class AppRouter {
       //   builder: (context, state) => const StatsScreen(),
       // ),
 
+      // WELCOME
+      // GoRoute(
+      //   path: RouteNames.dashboard,
+      //   name: RouteNames.dashboard,
+      //   builder: (context, state) => const HomeScreen(),
+      // ),
+
       // STORE
-      GoRoute(
-        path: RouteNames.store,
-        name: RouteNames.store,
-        builder: (context, state) => const StoreScreen(),
-      ),
+      // GoRoute(
+      //   path: RouteNames.store,
+      //   name: RouteNames.store,
+      //   builder: (context, state) => const StoreScreen(),
+      // ),
 
       // SETTINGS
-      GoRoute(
-        path: RouteNames.settings,
-        name: RouteNames.settings,
-        builder: (context, state) => const SettingsScreen(),
-      ),
+      // GoRoute(
+      //   path: RouteNames.settings,
+      //   name: RouteNames.settings,
+      //   builder: (context, state) => const SettingsScreen(),
+      // ),
 
-      // FAQs
-      GoRoute(
-        path: RouteNames.faqs,
-        name: RouteNames.faqs,
-        builder: (context, state) => const FaqsScreen(),
-      ),
+      // // FAQs
+      // GoRoute(
+      //   path: RouteNames.faqs,
+      //   name: RouteNames.faqs,
+      //   builder: (context, state) => const FaqsScreen(),
+      // ),
 
       // AUTH GROUP - Rutas de autenticación
-      GoRoute(
-        path: RouteNames.login,
-        name: RouteNames.login,
-        builder: (context, state) => const LoginScreen(),
-      ),
-
-      GoRoute(
-        path: RouteNames.register,
-        name: RouteNames.register,
-        builder: (context, state) => const RegisterScreen(),
-      ),
 
       // GoRoute(
       //   path: RouteNames.resetPassword,
       //   name: RouteNames.resetPassword,
       //   builder: (context, state) => const ResetPasswordScreen(),
       // ),
-
-      GoRoute(
-        path: RouteNames.forgotPassword,
-        name: RouteNames.forgotPassword,
-        builder: (context, state) => ForgotPasswordScreen(),
-      ),
-
       // GoRoute(
-      //   path: RouteNames.verificateEmailCode,
-      //   name: RouteNames.verificateEmailCode,
-      //   builder: (context, state) {
-      //     final email = state.uri.queryParameters['email'];
-      //     final action = state.uri.queryParameters['action'];
-
-
-      //     return VerificationCodeScreen(
-      //       email: email,
-      //       action: action,
-      //     );
-      //   },
+      //   path: RouteNames.forgotPassword,
+      //   name: RouteNames.forgotPassword,
+      //   builder: (context, state) => ForgotPasswordScreen(),
       // ),
     ],
 
@@ -117,15 +119,15 @@ class AppRouter {
       // Por ejemplo:
       // final isAuthenticated = AuthService.isAuthenticated();
       // final goingToAuth = state.matchedLocation.contains('/auth');
-      
+
       // if (!isAuthenticated && !goingToAuth) {
       //   return RouteNames.login;
       // }
-      
+
       // if (isAuthenticated && goingToAuth) {
       //   return RouteNames.dashboard;
       // }
-      
+
       return null;
     },
 
@@ -134,11 +136,7 @@ class AppRouter {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.grey,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
               'Página no encontrada',

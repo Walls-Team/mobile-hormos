@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 final black = Color(0xFF000000);
 final white = Color(0xFFFFFFFF);
 
+// final surfaces
+
 // Neutral Colors
 final neutral_700 = Color(0xFF141413);
 final neutral_600 = Color(0xFF2A2A2A);
@@ -15,7 +17,8 @@ final neutral_100 = Color(0xFFF5F5F5);
 final neutral_50 = Color(0xFFFAFAFA);
 
 // Primary Colors - Grupo 1
-final primary600 = Color(0xFFEDE564);
+final primary600 = Color(0xFFEDE954);
+
 final primary500 = Color(0xFFFEE44F);
 final primary400 = Color(0xFFFFEC41);
 final primary300 = Color(0xFFFFECCC);

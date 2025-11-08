@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/theme/theme.dart';
 import 'package:genius_hormo/views/dashboard/dashboard.dart';
 import 'package:genius_hormo/views/settings/settings.dart';
 import 'package:genius_hormo/views/stats/stats.dart';
@@ -30,9 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: Theme.of(
-          context,
-        ).extension<AppGradientTheme>()?.backgroundGradient,
+
       ),
       child: Scaffold(
         // Top Bar Personalizada
