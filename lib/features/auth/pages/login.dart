@@ -3,11 +3,12 @@ import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/features/auth/pages/setup_screen.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
-import 'package:genius_hormo/features/spike/providers/spike_providers.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
+import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/views/welcome.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
+import 'package:get_it/get_it.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+
+  final SpikeApiService _spikeService = GetIt.instance<SpikeApiService>();
+  final AuthService _authService = GetIt.instance<AuthService>();
 
   @override
   void dispose() {
@@ -36,11 +40,10 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       try {
-        // Obtener los datos del formulario
         final String email = _emailController.text;
         final String password = _passwordController.text;
 
-        final AuthResponse loginResponse = await AuthService().login(
+        final AuthResponse loginResponse = await _authService.login(
           email,
           password,
         );
@@ -49,17 +52,12 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
 
-        // Login exitoso
-
         if (loginResponse.success) {
-          final profileResponse = await AuthService().getMyProfile();
-          final deviceResponse = await SpikeService().getMyDevices();
+          final profileResponse = await _authService.getMyProfile();
+          final deviceResponse = await _spikeService.getMyDevices();
 
           if (!profileResponse.data!.isProfileComplete ||
               deviceResponse.devices!.isEmpty) {
-
-                print('hola');
-            // - navegar a
 
             if (mounted) {
               Navigator.pushReplacement(

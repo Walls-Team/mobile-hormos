@@ -2,7 +2,7 @@ import 'package:genius_hormo/core/deep_link/genius_hormo_deep_link_service.dart'
 import 'package:genius_hormo/core/navigation/navigation_service.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
-import 'package:genius_hormo/features/spike/providers/spike_providers.dart';
+import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/providers/lang_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -28,5 +28,7 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton<UserStorageService>(() => UserStorageService());
 
 
-  getIt.registerLazySingleton<SpikeService>(() => SpikeService());
+  getIt.registerLazySingleton<SpikeApiService>(() => SpikeApiService(
+    getIt<UserStorageService>(),
+  ));
 }

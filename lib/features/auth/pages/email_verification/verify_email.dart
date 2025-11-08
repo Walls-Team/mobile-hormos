@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/pages/email_verification/email_verified.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:get_it/get_it.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
   final String email;
@@ -23,6 +24,9 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   int _resendCountdown = 30;
   Timer? _countdownTimer;
   bool isButtonEnabled = false;
+
+  final AuthService _authService = GetIt.instance<AuthService>();
+
 
   @override
   void initState() {
@@ -119,7 +123,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       String verificationCode = _getVerificationCodeFromFields();
 
       // Llamar al servicio de verificación de email
-      final result = await AuthService().verifyEmail(
+      final result = await _authService.verifyEmail(
         email: widget.email, // Asumiendo que recibes el email como parámetro
         verificationCode: verificationCode,
       );
@@ -202,7 +206,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
 
     try {
       // // Llamar al servicio para reenviar el OTP
-      final result = await AuthService().resendOtp(
+      final result = await _authService.resendOtp(
         email: widget.email, // Asumiendo que recibes el email como parámetro
       );
 

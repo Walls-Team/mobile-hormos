@@ -3,7 +3,7 @@ import 'package:genius_hormo/features/auth/pages/email_verification/verify_email
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/views/welcome.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
-import 'package:genius_hormo/core/di/dependency_injection.dart';
+import 'package:get_it/get_it.dart';
 import '../../../views/terms_and_conditions.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -21,7 +21,8 @@ class _RegistrationFormState extends State<RegisterScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  final AuthService _authService = getIt<AuthService>();
+  final AuthService _authService = GetIt.instance<AuthService>();
+
 
   bool _isLoading = false;
   bool _acceptTerms = false;

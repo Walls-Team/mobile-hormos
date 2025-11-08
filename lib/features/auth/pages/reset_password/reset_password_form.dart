@@ -5,6 +5,7 @@ import 'package:genius_hormo/features/auth/services/auth_provider.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
+import 'package:get_it/get_it.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -25,6 +26,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _isLoading = false;
   bool _passwordReset = false;
 
+  final AuthService _authService = GetIt.instance<AuthService>();
+
+
   @override
   void dispose() {
     _passwordController.dispose();
@@ -44,7 +48,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         
 
         // Llamar al servicio para confirmar el reset de contraseña
-        final ApiResponse<bool> resetResponse = await AuthService()
+        final ApiResponse<bool> resetResponse = await _authService
             .confirmPasswordReset(
               email: widget.email,
               otp: widget.otp,

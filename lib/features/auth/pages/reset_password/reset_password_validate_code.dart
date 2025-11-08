@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_form.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:get_it/get_it.dart';
 
 class ResetPasswordVerificationCodeScreen extends StatefulWidget {
   final String email;
@@ -24,6 +25,8 @@ class _VerificationCodeScreenState
   int _resendCountdown = 30;
   Timer? _countdownTimer;
   bool isButtonEnabled = false;
+
+  final AuthService _authService = GetIt.instance<AuthService>();
 
   @override
   void initState() {
@@ -120,7 +123,7 @@ class _VerificationCodeScreenState
       String verificationCode = _getVerificationCodeFromFields();
 
       // Llamar al servicio de validación de OTP para reset de contraseña
-      final result = await AuthService().validatePasswordResetOtp(
+      final result = await _authService.validatePasswordResetOtp(
         email: widget.email,
         otp: verificationCode,
       );
@@ -205,7 +208,7 @@ class _VerificationCodeScreenState
 
     try {
       // // Llamar al servicio para reenviar el OTP
-      final result = await AuthService().requestPasswordReset(
+      final result = await _authService.requestPasswordReset(
         email: widget.email, // Asumiendo que recibes el email como parámetro
       );
 
