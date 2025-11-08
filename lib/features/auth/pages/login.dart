@@ -1,207 +1,9 @@
-// import 'package:flutter/material.dart';
-// import 'package:genius_hormo/views/auth/pages/forgot_password.dart';
-// import 'package:genius_hormo/home.dart';
-// import 'package:genius_hormo/features/auth/pages/register.dart';
-// import 'package:genius_hormo/widgets/form/password_input.dart';
-
-// class LoginScreen extends StatefulWidget {
-//   const LoginScreen({super.key});
-
-//   @override
-//   _LoginScreenState createState() => _LoginScreenState();
-// }
-
-// class _LoginScreenState extends State<LoginScreen> {
-//   final _formKey = GlobalKey<FormState>();
-//   final TextEditingController _emailController = TextEditingController();
-//   final TextEditingController _passwordController = TextEditingController();
-//   bool _isLoading = false;
-
-//   @override
-//   void dispose() {
-//     _emailController.dispose();
-//     _passwordController.dispose();
-//     super.dispose();
-//   }
-
-//   void _submitForm() async {
-//     if (_formKey.currentState!.validate()) {
-//       setState(() {
-//         _isLoading = true;
-//       });
-//       await Future.delayed(Duration(seconds: 2));
-//       setState(() {
-//         _isLoading = false;
-//       });
-
-//       Navigator.pushReplacement(
-//         context,
-//         MaterialPageRoute(builder: (context) => HomeScreen()),
-//       );
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         leading: IconButton(
-//           icon: Icon(Icons.close),
-//           onPressed: () => Navigator.pop(context),
-//         ),
-//         // title: Text('Iniciar Sesión'),
-//       ),
-//       body: SingleChildScrollView(
-//         padding: EdgeInsets.all(20),
-//         child: Form(
-//           key: _formKey,
-//           child: Column(
-//             mainAxisAlignment:
-//                 MainAxisAlignment.spaceBetween, // ← Space Between
-//             children: [
-//               Column(
-
-//                 spacing: 12.0,
-//                 children: [
-//                   _buildLoginIcon(),
-//                   _buildWelcomeMessage(context),
-
-//                   const Text(
-//                     'Password',
-//                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-//                   ),
-
-//                   TextFormField(
-//                     controller: _emailController,
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return 'Ingresa tu email';
-//                       }
-//                       if (!RegExp(
-//                         r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-//                       ).hasMatch(value)) {
-//                         return 'Email inválido';
-//                       }
-//                       return null;
-//                     },
-//                     decoration: InputDecoration(hintText: 'you@example.com'),
-//                   ),
-
-//                   const Text(
-//                     'Password',
-//                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-//                   ),
-
-//                   InputPassword(
-//                     controller: _passwordController,
-//                     hintText: '********',
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return 'Ingresa tu contraseña';
-//                       }
-//                       if (value.length < 6) return 'Mínimo 6 caracteres';
-//                       return null;
-//                     },
-//                   ),
-
-//                   _buildForgotPassword(),
-//                   _buildActionButtons(),
-//                 ],
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _buildLoginIcon() {
-//     return Center(
-//       child: Image.asset(
-//         'assets/images/logo_2.png', // Asegúrate de tener esta imagen en tus assets
-//         fit: BoxFit.contain,
-//       ),
-//     );
-//   }
-
-//   Widget _buildWelcomeMessage(BuildContext context) {
-//     return Center(
-//       child: Column(
-//         children: [
-//           Text(
-//             'Log In Genius Testosterone',
-//             style: Theme.of(context).textTheme.headlineSmall,
-//           ),
-//           Text(
-//             'Good to see you.',
-//             style: Theme.of(context).textTheme.titleSmall,
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Widget _buildActionButtons() {
-//     return Column(
-//       spacing: 10.0,
-//       children: [
-//         ElevatedButton(
-//           onPressed: _isLoading ? () {} : _submitForm,
-//           child: _isLoading
-//               ? SizedBox(
-//                   height: 20,
-//                   width: 20,
-//                   child: CircularProgressIndicator(
-//                     strokeWidth: 2,
-//                     valueColor: AlwaysStoppedAnimation<Color>(
-//                       Colors.grey[900]!,
-//                     ),
-//                   ),
-//                 )
-//               : const Text('Log In'),
-//         ),
-
-//         OutlinedButton(
-//           onPressed: () {
-//             Navigator.push(
-//               context,
-//               MaterialPageRoute(builder: (context) => RegisterScreen()),
-//             );
-//           },
-//           child: Text('Log In'),
-//         ),
-//       ],
-//     );
-//   }
-
-//   Widget _buildForgotPassword() {
-//     return Row(
-//       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//       children: [
-//         TextButton(
-//           onPressed: () {
-//             Navigator.push(
-//               context,
-//               MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
-//             );
-//           },
-//           child: Text(
-//             '¿Forgot Password?',
-//             style: TextStyle(
-//               // color: Colors.white,
-//               color: Theme.of(context).colorScheme.onSurface,
-//               decoration: TextDecoration.underline,
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/auth/services/auth_provider.dart';
 import 'package:genius_hormo/views/auth/pages/forgot_password.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
+import 'package:genius_hormo/views/welcome.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -225,21 +27,67 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-      await Future.delayed(Duration(seconds: 2));
+  if (_formKey.currentState!.validate()) {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Obtener los datos del formulario
+      final String email = _emailController.text;
+      final String password = _passwordController.text;
+
+      // Llamar al servicio de autenticación
+      final Map<String, dynamic> result = await AuthService().login(email, password);
+
+
+        print(result);
+
       setState(() {
         _isLoading = false;
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+      if (result['success'] == true) {
+
+
+
+        
+        // Login exitoso - navegar a HomeScreen
+        // if (mounted) {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => HomeScreen()),
+        //   );
+        // }
+
+        // print(result);
+      } else {
+        // Mostrar error de login
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error'] ?? 'Error en el login'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error de conexión: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -247,7 +95,13 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          // onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => WelcomeScreen()),
+            );
+          },
         ),
       ),
       body: SafeArea(
@@ -358,12 +212,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     )
-                  : const Text(
-                      'Log In',
-                    ),
+                  : const Text('Log In'),
             ),
           ),
-
 
           // Botón Register
           SizedBox(
@@ -375,9 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
-              child: const Text(
-                'Register',
-              ),
+              child: const Text('Register'),
             ),
           ),
         ],

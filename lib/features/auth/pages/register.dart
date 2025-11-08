@@ -385,6 +385,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/pages/verify_email.dart';
 import 'package:genius_hormo/features/auth/services/auth_provider.dart';
+import 'package:genius_hormo/views/welcome.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
 import 'package:genius_hormo/core/di/dependency_injection.dart';
 import 'package:go_router/go_router.dart';
@@ -433,8 +434,6 @@ class _RegistrationFormState extends State<RegisterScreen> {
   }
 
   Future<void> _submitForm() async {
-    final navigator = GoRouter.of(context);
-
     if (_formKey.currentState!.validate()) {
       if (!_acceptTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -451,33 +450,28 @@ class _RegistrationFormState extends State<RegisterScreen> {
       });
 
       try {
-        // ✅ USAR AUTH SERVICE EN LUGAR DE APICLIENT
-        // final result = await _authService.register(
-        //   username: _usernameController.text.trim(),
-        //   email: _emailController.text.trim(),
-        //   password: _passwordController.text,
-        // );
+        final result = await _authService.register(
+          username: _usernameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
 
         setState(() {
           _isLoading = false;
         });
 
-        // if (result['success'] == true) {
-        //   navigator.go('/auth/verify_email/${Uri.encodeComponent(_emailController.text)}');
-        // } else {
-        //   _showErrorDialog(result['error'] ?? 'Error en el registro');
-        // }
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                VerificationCodeScreen(email: _emailController.text),
-          ),
-        );
+        if (result['success'] == true) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  VerificationCodeScreen(email: _emailController.text),
+            ),
+          );
+        } else {
+          _showErrorDialog(result['error'] ?? 'Error en el registro');
+        }
 
-        // navigator.go(
-        //   '/auth/verify_email/${Uri.encodeComponent(_emailController.text)}',
-        // );
       } catch (e) {
         setState(() {
           _isLoading = false;
@@ -511,7 +505,12 @@ class _RegistrationFormState extends State<RegisterScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => WelcomeScreen()),
+            );
+          },
         ),
         // title: Text('Iniciar Sesión'),
       ),
@@ -742,27 +741,27 @@ class _RegistrationFormState extends State<RegisterScreen> {
     );
   }
 
-    Widget _buildPasswordField() {
-      return InputPassword(
-        controller: _passwordController,
-        hintText: '********',
-        onChanged: (value) {
-          setState(() {});
-        },
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Por favor ingresa tu contraseña';
-          }
-          if (value.length < 8) {
-            return 'La contraseña debe tener al menos 8 caracteres';
-          }
-          if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
-            return 'Debe contener mayúsculas, minúsculas y números';
-          }
-          return null;
-        },
-      );
-    }
+  Widget _buildPasswordField() {
+    return InputPassword(
+      controller: _passwordController,
+      hintText: '********',
+      onChanged: (value) {
+        setState(() {});
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Por favor ingresa tu contraseña';
+        }
+        if (value.length < 8) {
+          return 'La contraseña debe tener al menos 8 caracteres';
+        }
+        if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
+          return 'Debe contener mayúsculas, minúsculas y números';
+        }
+        return null;
+      },
+    );
+  }
 
   Widget _buildConfirmPasswordField() {
     return InputPassword(

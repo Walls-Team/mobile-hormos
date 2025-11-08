@@ -141,14 +141,18 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     );
   }
 
+    bool _isButtonEnabled() => _isAllFieldsFilled();
+
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.no_accounts),
           onPressed: () => Navigator.pop(context),
         ),
       ),

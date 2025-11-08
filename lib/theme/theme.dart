@@ -8,8 +8,8 @@ ThemeData theme = ThemeData(
     // surfaceContainerHighest: Color(0xFFF8F9FA), // Containers secundarios
     // onSurfaceVariant: Color(0xFF6C7079), // Texto sobre surfaceVariant
     //OUTLINE (Bordes)
-    outline: primary600,           // Bordes normales de inputs
-    outlineVariant: primary500,    // Bordes muy sutiles
+    outline: primary600, // Bordes normales de inputs
+    outlineVariant: primary500, // Bordes muy sutiles
 
     primary: primary600,
     onPrimary: Colors.black,
@@ -20,9 +20,9 @@ ThemeData theme = ThemeData(
     bodyMedium: TextStyle(color: const Color(0xFFBBBBBB)),
     bodySmall: TextStyle(color: const Color(0xFFBBBBBB)),
 
-    headlineLarge: TextStyle(color:Colors.white, fontWeight: FontWeight.bold),
-    headlineMedium: TextStyle(color:Colors.white, fontWeight: FontWeight.bold),
-    headlineSmall: TextStyle(color:Colors.white, fontWeight: FontWeight.bold),
+    headlineLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    headlineMedium: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    headlineSmall: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
   ),
 
   elevatedButtonTheme: ElevatedButtonThemeData(
@@ -53,14 +53,10 @@ ThemeData theme = ThemeData(
     color: Color(0xFF2A2C3B),
   ),
 
-inputDecorationTheme: InputDecorationTheme(
+  inputDecorationTheme: InputDecorationTheme(
     // BORDES
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       // borderSide: BorderSide(color: Colors.red, width: 2),
@@ -81,25 +77,34 @@ inputDecorationTheme: InputDecorationTheme(
     suffixIconColor: const Color(0xFF9D9D9D),
 
     // TEXTO Y ESTILOS
-    labelStyle: TextStyle(
-      color: Colors.white,
-      fontSize: 16,
-    ),
-    hintStyle: TextStyle(
-      color: const Color(0xFF9D9D9D),
-      fontSize: 16,
-    ),
-    errorStyle: TextStyle(
-      color: Colors.red,
-      fontSize: 14,
-    ),
+    labelStyle: TextStyle(color: Colors.white, fontSize: 16),
+    hintStyle: TextStyle(color: const Color(0xFF9D9D9D), fontSize: 16),
+    errorStyle: TextStyle(color: Colors.red, fontSize: 14),
 
     // ESPACIADO Y TAMAÑO
     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    
+
     // PREFIJO/SUFIJO
     prefixStyle: TextStyle(color: Color(0xFF1C1D23)),
     suffixStyle: TextStyle(color: Color(0xFF1C1D23)),
   ),
 
+  snackBarTheme: SnackBarThemeData(
+    // Color de fondo
+    backgroundColor: primary600,
+    // Color del texto
+    contentTextStyle: TextStyle(
+      color: Colors.black,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+    ),
+    // Comportamiento
+    // behavior: SnackBarBehavior.floating,
+    // Forma
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    // Elevación
+    elevation: 6,
+    // Ancho (solo para comportamiento flotante)
+    // width: 400,
+  ),
 );

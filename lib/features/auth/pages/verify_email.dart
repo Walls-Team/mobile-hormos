@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/auth/pages/email_verified.dart';
+import 'package:genius_hormo/features/auth/services/auth_provider.dart';
 import 'package:genius_hormo/views/auth/pages/reset_password.dart';
-import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
   final String email;
@@ -22,22 +23,26 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   bool _isResending = false;
   int _resendCountdown = 30;
   Timer? _countdownTimer;
+  bool isButtonEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _setupFocusListeners();
+    _setupControllerListeners();
     _startResendCountdown();
   }
 
   @override
   void dispose() {
     for (var controller in _controllers) {
+      controller.removeListener(_updateButtonState);
       controller.dispose();
     }
     for (var focusNode in _focusNodes) {
       focusNode.dispose();
     }
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
@@ -53,8 +58,24 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     }
   }
 
+  void _setupControllerListeners() {
+    for (int i = 0; i < _controllers.length; i++) {
+      _controllers[i].addListener(_updateButtonState);
+    }
+  }
+
+  void _updateButtonState() {
+    final allFilled = _isAllFieldsFilled();
+
+    if (allFilled != isButtonEnabled) {
+      setState(() {
+        isButtonEnabled = allFilled && !_isLoading;
+      });
+    }
+  }
+
   void _startResendCountdown() {
-    _countdownTimer?.cancel(); // Cancelar timer anterior si existe
+    _countdownTimer?.cancel();
 
     _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (_resendCountdown > 0) {
@@ -69,16 +90,12 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
 
   void _onCodeChanged(String value, int index) {
     if (value.length == 1 && index < 5) {
-      // Cambiado de 3 a 5
       _focusNodes[index + 1].requestFocus();
     } else if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
     }
 
-    // Verificar si todos los campos están llenos
-    if (_isAllFieldsFilled()) {
-      _verifyCode();
-    }
+    _updateButtonState();
   }
 
   bool _isAllFieldsFilled() {
@@ -89,31 +106,118 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     return _controllers.map((controller) => controller.text).join();
   }
 
+  // void _verifyCode() async {
+  //   if (!_isAllFieldsFilled() || _isLoading) return;
+
+  //   setState(() {
+  //     _isLoading = true;
+  //     isButtonEnabled = false;
+  //   });
+
+  //   // Simular verificación del código
+  //   await Future.delayed(Duration(seconds: 2));
+
+  //   setState(() {
+  //     _isLoading = false;
+  //   });
+
+  //   // Navegar a la pantalla de reset password si el código es correcto
+  //   // En una app real, aquí verificarías el código con tu backend
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => EmailVerifiedScreen(email: '',)
+  //     ),
+  //   );
+  // }
+
+  // En tu widget donde manejas la verificación de email
+
   void _verifyCode() async {
-    if (!_isAllFieldsFilled()) return;
+    if (!_isAllFieldsFilled() || _isLoading) return;
 
     setState(() {
       _isLoading = true;
+      isButtonEnabled = false;
     });
 
-    // Simular verificación del código
-    await Future.delayed(Duration(seconds: 2));
+    try {
+      String verificationCode = _getVerificationCodeFromFields();
 
-    setState(() {
-      _isLoading = false;
-    });
+      // Llamar al servicio de verificación de email
+      final Map<String, dynamic> result = await AuthService().verifyEmail(
+        email: widget.email, // Asumiendo que recibes el email como parámetro
+        verificationCode: verificationCode,
+      );
 
-    // Navegar a la pantalla de reset password si el código es correcto
-    // En una app real, aquí verificarías el código con tu backend
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ResetPasswordScreen(
-          email: widget.email,
-          verificationCode: _getVerificationCode(),
-        ),
-      ),
-    );
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (result['success'] == true) {
+        // Verificación exitosa
+        if (mounted) {
+
+          // Navegar a la pantalla de éxito
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EmailVerifiedScreen(email: widget.email),
+            ),
+          );
+        }
+      } else {
+        // Error en la verificación
+        setState(() {
+          isButtonEnabled = true;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error'] ?? 'Error al verificar el código'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+
+          // Opcional: Limpiar los campos para nuevo intento
+          _clearAllFields();
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        isButtonEnabled = true;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error de conexión: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // Método auxiliar para obtener el código completo de los campos individuales
+  String _getVerificationCodeFromFields() {
+    return _controllers.map((controller) => controller.text).join();
+  }
+
+  // Método para limpiar todos los campos
+  void _clearAllFields() {
+    for (var controller in _controllers) {
+      controller.clear();
+    }
+
+    // Mover el foco al primer campo (asumiendo que tienes un array de focusNodes)
+    if (_focusNodes.isNotEmpty) {
+      FocusScope.of(context).requestFocus(_focusNodes.first);
+    }
   }
 
   void _resendCode() async {
@@ -123,58 +227,158 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       _isResending = true;
     });
 
-    // Simular reenvío de código
-    await Future.delayed(Duration(seconds: 2));
+    try {
+      // // Llamar al servicio para reenviar el OTP
+      final Map<String, dynamic> result = await AuthService().resendOtp(
+        email: widget.email, // Asumiendo que recibes el email como parámetro
+      );
 
-    setState(() {
-      _isResending = false;
-      _resendCountdown = 30;
-    });
+      setState(() {
+        _isResending = false;
+      });
 
-    _startResendCountdown();
+      if (result['success'] == true) {
+        // Reenvío exitoso
+        setState(() {
+          _resendCountdown = 30; // 30 segundos de espera
+        });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Código reenviado exitosamente'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-    );
+        _startResendCountdown();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result['message'] ?? 'Código reenviado exitosamente',
+              ),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        // Error en el reenvío
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error'] ?? 'Error al reenviar el código'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isResending = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error de conexión: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
+
+  // void _resendCode() async {
+  //   if (_resendCountdown > 0) return;
+
+  //   setState(() {
+  //     _isResending = true;
+  //   });
+
+  //   // Simular reenvío de código
+  //   await Future.delayed(Duration(seconds: 2));
+
+  //   setState(() {
+  //     _isResending = false;
+  //     _resendCountdown = 30;
+  //   });
+
+  //   _startResendCountdown();
+
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text('Código reenviado exitosamente'),
+  //       backgroundColor: Theme.of(context).primaryColor,
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+      body: SafeArea(
         child: Column(
-          spacing: 40.0,
           children: [
-            SizedBox(height: 40),
-            _buildHormoIcon(),
-            _buildCodeInputs(),
-            _buildResendCode(theme),
-            _buildVerifyButton(theme),
+            // LOGO ARRIBA
+            _buildLogoSection(),
+
+            // FORMULARIO EN EL CENTRO
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _buildCodeInputs(),
+                    SizedBox(height: 20),
+                    _buildResendCode(theme),
+                  ],
+                ),
+              ),
+            ),
+
+            // BOTONES ABAJO
+            _buildBottomButtonsSection(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHormoIcon() {
+  Widget _buildLogoSection() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 40.0),
+      child: Column(
+        children: [_buildLoginIcon(), _buildWelcomeMessage(context)],
+      ),
+    );
+  }
+
+  Widget _buildLoginIcon() {
     return Center(
       child: Image.asset(
-        'assets/images/logo_2.png', // Asegúrate de tener esta imagen en tus assets
-        // width: 200,
-        // height: 200,
+        'assets/images/logo_2.png',
+        height: 80,
         fit: BoxFit.contain,
+      ),
+    );
+  }
+
+  Widget _buildWelcomeMessage(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 40),
+      child: Column(
+        children: [
+          Text(
+            'Enter verification Code',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We have sent a verification code to ${widget.email}',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[400]),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -184,18 +388,14 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(6, (index) {
         return SizedBox(
-          width: 50,
+          width: 60,
           child: TextFormField(
             controller: _controllers[index],
             focusNode: _focusNodes[index],
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             maxLength: 1,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 29),
             decoration: InputDecoration(
               counterText: '',
               border: OutlineInputBorder(
@@ -222,38 +422,13 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     );
   }
 
-  Widget _buildVerifyButton(ThemeData theme) {
-    return CustomElevatedButton(
-      onPressed: _isLoading || !_isAllFieldsFilled() ? null : _verifyCode,
-      child: _isLoading
-          ? SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  theme.colorScheme.onPrimary,
-                ),
-              ),
-            )
-          : Text(
-              'Verificar Código',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-    );
-  }
-
   Widget _buildResendCode(ThemeData theme) {
     return Column(
       children: [
-        Text(
-          '¿No recibiste el código?',
-          style: TextStyle(color: Colors.grey[400], fontSize: 14),
-        ),
         _resendCountdown > 0
             ? Text(
-                'Puedes reenviar en $_resendCountdown segundos',
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                'You can resend in $_resendCountdown seconds',
+                style: TextStyle(fontSize: 12, color: Colors.grey[400]),
               )
             : TextButton(
                 onPressed: _isResending ? null : _resendCode,
@@ -269,14 +444,46 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                         ),
                       )
                     : Text(
-                        'Reenviar Código',
-                        style: TextStyle(
-                          fontSize: 14,
+                        "If you didn't receive a code, Resend",
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
               ),
       ],
+    );
+  }
+
+  Widget _buildBottomButtonsSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 40.0, left: 20, right: 20),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: isButtonEnabled && !_isLoading ? _verifyCode : null,
+              child: _isLoading
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      'Send',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
