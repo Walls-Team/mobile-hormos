@@ -158,6 +158,7 @@ import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_validate_code.dart';
 import 'package:genius_hormo/features/auth/services/auth_provider.dart';
+import 'package:genius_hormo/features/auth/services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});

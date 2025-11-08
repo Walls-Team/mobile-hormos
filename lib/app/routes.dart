@@ -5,6 +5,7 @@ import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
 import 'package:genius_hormo/features/auth/services/auth_provider.dart';
+import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/views/faqs/faqs.dart';
 import 'package:genius_hormo/views/settings/settings.dart';
@@ -226,7 +227,8 @@ class AppRouter {
     // MÉTODO REDIRECT MEJORADO
     redirect: (context, state) async {
       // Verificar estado de autenticación
-      final bool isLoggedIn = await _authService.isLoggedIn();
+      // final bool isLoggedIn = await _authService.isLoggedIn();
+      final bool isLoggedIn = false;
 
       print(isLoggedIn);
       

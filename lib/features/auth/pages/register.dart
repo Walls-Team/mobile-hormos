@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/pages/email_verification/verify_email.dart';
-import 'package:genius_hormo/features/auth/services/auth_provider.dart';
-import 'package:genius_hormo/views/auth/pages/verification_code.dart';
+import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/views/welcome.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
 import 'package:genius_hormo/core/di/dependency_injection.dart';

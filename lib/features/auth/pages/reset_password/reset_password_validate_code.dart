@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/features/auth/services/auth_provider.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_form.dart';
+import 'package:genius_hormo/features/auth/services/auth_service.dart';
 
 class ResetPasswordVerificationCodeScreen extends StatefulWidget {
   final String email;
@@ -12,7 +12,8 @@ class ResetPasswordVerificationCodeScreen extends StatefulWidget {
   _VerificationCodeScreenState createState() => _VerificationCodeScreenState();
 }
 
-class _VerificationCodeScreenState extends State<ResetPasswordVerificationCodeScreen> {
+class _VerificationCodeScreenState
+    extends State<ResetPasswordVerificationCodeScreen> {
   final List<TextEditingController> _controllers = List.generate(
     6,
     (index) => TextEditingController(),
@@ -107,76 +108,77 @@ class _VerificationCodeScreenState extends State<ResetPasswordVerificationCodeSc
 
   // En tu widget donde manejas la verificación de email
 
-void _verifyCode() async {
-  if (!_isAllFieldsFilled() || _isLoading) return;
-
-  setState(() {
-    _isLoading = true;
-    isButtonEnabled = false;
-  });
-
-  try {
-    String verificationCode = _getVerificationCodeFromFields();
-
-    // Llamar al servicio de validación de OTP para reset de contraseña
-    final result = await AuthService().validatePasswordResetOtp(
-      email: widget.email,
-      otp: verificationCode,
-    );
+  void _verifyCode() async {
+    if (!_isAllFieldsFilled() || _isLoading) return;
 
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
+      isButtonEnabled = false;
     });
 
-    if (result.success == true) {
-      // OTP validado exitosamente - navegar a pantalla de nueva contraseña
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResetPasswordScreen(
-              email: widget.email,
-              otp: verificationCode,
-            ),
-          ),
-        );
-      }
-    } else {
-      // Error en la validación
+    try {
+      String verificationCode = _getVerificationCodeFromFields();
+
+      // Llamar al servicio de validación de OTP para reset de contraseña
+      final result = await AuthService().validatePasswordResetOtp(
+        email: widget.email,
+        otp: verificationCode,
+      );
+
       setState(() {
+        _isLoading = false;
+      });
+
+      if (result.success == true) {
+        // OTP validado exitosamente - navegar a pantalla de nueva contraseña
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResetPasswordScreen(
+                email: widget.email,
+                otp: verificationCode,
+              ),
+            ),
+          );
+        }
+      } else {
+        // Error en la validación
+        setState(() {
+          isButtonEnabled = true;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.error ?? 'Código de verificación inválido'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+
+          // Limpiar los campos para nuevo intento
+          _clearAllFields();
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
         isButtonEnabled = true;
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error ?? 'Código de verificación inválido'),
+            content: Text('Error de conexión: $e'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
         );
-
-        // Limpiar los campos para nuevo intento
-        _clearAllFields();
       }
     }
-  } catch (e) {
-    setState(() {
-      _isLoading = false;
-      isButtonEnabled = true;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error de conexión: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
   }
-}
+
   // Método auxiliar para obtener el código completo de los campos individuales
   String _getVerificationCodeFromFields() {
     return _controllers.map((controller) => controller.text).join();
@@ -222,9 +224,7 @@ void _verifyCode() async {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                result.message ?? 'Código reenviado exitosamente',
-              ),
+              content: Text(result.message ?? 'Código reenviado exitosamente'),
               duration: Duration(seconds: 3),
             ),
           );
@@ -258,31 +258,6 @@ void _verifyCode() async {
     }
   }
 
-  // void _resendCode() async {
-  //   if (_resendCountdown > 0) return;
-
-  //   setState(() {
-  //     _isResending = true;
-  //   });
-
-  //   // Simular reenvío de código
-  //   await Future.delayed(Duration(seconds: 2));
-
-  //   setState(() {
-  //     _isResending = false;
-  //     _resendCountdown = 30;
-  //   });
-
-  //   _startResendCountdown();
-
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text('Código reenviado exitosamente'),
-  //       backgroundColor: Theme.of(context).primaryColor,
-  //     ),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -291,27 +266,72 @@ void _verifyCode() async {
       body: SafeArea(
         child: Column(
           children: [
-            // LOGO ARRIBA
             _buildLogoSection(),
-
-            // FORMULARIO EN EL CENTRO
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(20),
                 child: Column(
+                  // ✅ ELIMINAR ConstrainedBox
                   children: [
-                    _buildCodeInputs(),
+                    _buildCodeInputs(), // Tu método CORREGIDO
                     SizedBox(height: 20),
                     _buildResendCode(theme),
                   ],
                 ),
               ),
             ),
-
-            // BOTONES ABAJO
             _buildBottomButtonsSection(context),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCodeInputs() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(6, (index) {
+          return Container(
+            width: 50, // ✅ 50px (6 × 50 = 300px < 353px)
+            height: 65, // ✅ Un poco más alto
+            child: TextFormField(
+              controller: _controllers[index],
+              focusNode: _focusNodes[index],
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 1,
+              style: TextStyle(
+                fontSize: 22, // ✅ Tamaño legible
+                fontWeight:
+                    FontWeight.w600, // ✅ Más grueso para mejor visibilidad
+              ),
+              decoration: InputDecoration(
+                counterText: '',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey[700]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                    width: 2,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey[700]!),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 16,
+                ), // ✅ Padding vertical adecuado
+              ),
+              onChanged: (value) => _onCodeChanged(value, index),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -344,55 +364,8 @@ void _verifyCode() async {
             'Enter verification Code',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'We have sent a verification code to ${widget.email}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[400]),
-            textAlign: TextAlign.center,
-          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCodeInputs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(6, (index) {
-        return SizedBox(
-          width: 60,
-          child: TextFormField(
-            controller: _controllers[index],
-            focusNode: _focusNodes[index],
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 1,
-            style: TextStyle(fontSize: 29),
-            decoration: InputDecoration(
-              counterText: '',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: Theme.of(context).primaryColor,
-                  width: 2,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.grey[700]!),
-              ),
-              filled: true,
-              fillColor: Colors.grey[800],
-            ),
-            onChanged: (value) => _onCodeChanged(value, index),
-          ),
-        );
-      }),
     );
   }
 

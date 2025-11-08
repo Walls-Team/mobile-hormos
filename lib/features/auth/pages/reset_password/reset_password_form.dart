@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/services/auth_provider.dart';
+import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
 
