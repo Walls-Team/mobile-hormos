@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/features/auth/pages/verify_email.dart';
+import 'package:genius_hormo/features/auth/pages/email_verification/verify_email.dart';
 import 'package:genius_hormo/home.dart';
-import 'package:genius_hormo/views/auth/pages/forgot_password.dart';
+import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 
@@ -13,7 +13,7 @@ import 'package:genius_hormo/views/store/store.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:genius_hormo/views/auth/pages/verification_code.dart' hide VerificationCodeScreen;
-import 'package:genius_hormo/views/auth/pages/reset_password.dart';
+import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_form.dart';
 import 'route_names.dart';
 
 class AppRouter {
@@ -37,24 +37,24 @@ class AppRouter {
         builder: (context, state) => const LoginScreen(),
       ),
 
-      GoRoute(
-        path: RouteNames.register,
-        name: 'register',
-        builder: (context, state) => const RegisterScreen(),
-      ),
+      // GoRoute(
+      //   path: RouteNames.register,
+      //   name: 'register',
+      //   builder: (context, state) => const RegisterScreen(),
+      // ),
 
-      GoRoute(
-        path: RouteNames.verifyEmail,
-        name: 'verify_email',
-        builder: (context, state) {
+      // GoRoute(
+      //   path: RouteNames.verifyEmail,
+      //   name: 'verify_email',
+      //   builder: (context, state) {
 
-          final email = state.pathParameters['email']!;
+      //     final email = state.pathParameters['email']!;
 
-          print(email);
+      //     print(email);
 
-          return VerificationCodeScreen(email: email);
-        },
-      ),
+      //     return VerificationCodeScreen(email: email);
+      //   },
+      // ),
 
       // TERMS AND CONDITIONS
       // GoRoute(

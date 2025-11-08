@@ -1,14 +1,15 @@
 // providers/auth_provider.dart
 import 'package:flutter/foundation.dart';
+import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:genius_hormo/features/auth/services/auth_provider.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
-  Map<String, dynamic>? _currentUser;
+  User? _currentUser;
   bool _isLoading = false;
   String? _error;
 
-  Map<String, dynamic>? get currentUser => _currentUser;
+  User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -45,8 +46,8 @@ class AuthProvider with ChangeNotifier {
         email: email,
         password: password,
       );
-      
-      if (result['success'] == true) {
+
+      if (result.success) {
         // Obtener y guardar el usuario actual después del registro
         _currentUser = await _authService.getCurrentUser();
         _error = null;
@@ -54,7 +55,7 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _error = result['error'];
+        _error = result.error;
         _isLoading = false;
         notifyListeners();
         return false;
@@ -75,15 +76,15 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final result = await _authService.login(email, password);
-      
-      if (result['success'] == true) {
+
+      if (result.success) {
         _currentUser = await _authService.getCurrentUser();
         _error = null;
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _error = result['error'];
+        _error = result.error;
         _isLoading = false;
         notifyListeners();
         return false;
@@ -109,7 +110,7 @@ class AuthProvider with ChangeNotifier {
     return await _authService.isLoggedIn();
   }
 
-  // Limpiar error
+
   void clearError() {
     _error = null;
     notifyListeners();

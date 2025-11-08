@@ -1,15 +1,18 @@
-// services/auth_service.dart
 import 'dart:convert';
+import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const String _baseUrl = 'http://localhost:3000'; // Cambia por tu URL
+  static const String _baseUrl = 'http://localhost:3000';
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
-  // REGISTER - Conectado a tu backend
-  Future<Map<String, dynamic>> register({
+  // Solo 2 keys necesarias - todo está unificado
+  static const String _jwtTokenKey = 'jwt_token';
+  static const String _userDataKey = 'user_data'; // Aquí va TODO el user data
+
+  // REGISTER
+  Future<AuthResponse> register({
     required String username,
     required String email,
     required String password,
@@ -28,44 +31,42 @@ class AuthService {
         }),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      print('Register Response status: ${response.statusCode}');
+      print('Register Response body: ${response.body}');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
 
-        // Verificar si la respuesta tiene la estructura esperada
         if (responseData['data'] != null &&
             responseData['data']['success'] == true) {
-          // Guardar datos del usuario después del registro exitoso
           await _saveUserData(responseData['data']);
+          final user = User.fromJson(responseData['data']['user'] ?? {});
+          final token = responseData['data']['access_token'];
 
-          return {
-            'success': true,
-            'data': responseData['data'],
-            'message': responseData['message'] ?? 'Registro exitoso',
-          };
+          return AuthResponse.success(
+            message: responseData['message'] ?? 'Registro exitoso',
+            user: user,
+            token: token,
+          );
         } else {
-          return {
-            'success': false,
-            'error': responseData['message'] ?? 'Error en el registro',
-          };
+          return AuthResponse.error(
+            message: responseData['message'] ?? 'Error en el registro',
+          );
         }
       } else {
         final errorData = json.decode(response.body);
-        return {
-          'success': false,
-          'error': errorData['message'] ?? 'Error en el registro',
-        };
+        return AuthResponse.error(
+          message: errorData['message'] ?? 'Error en el registro',
+        );
       }
     } catch (e) {
       print('Error en register: $e');
-      return {'success': false, 'error': 'Error de conexión: $e'};
+      return AuthResponse.error(message: 'Error de conexión: $e');
     }
   }
 
-  // LOGIN - Para completar el flujo
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  // LOGIN
+  Future<AuthResponse> login(String email, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/login'),
@@ -82,100 +83,90 @@ class AuthService {
         if (responseData['data'] != null &&
             responseData['data']['success'] == true) {
           await _saveUserData(responseData['data']);
+          final user = User.fromJson(responseData['data']['user'] ?? {});
+          final token = responseData['data']['access_token'];
 
-          return {
-            'success': true,
-            'data': responseData['data'],
-            'message': responseData['message'] ?? 'Login exitoso',
-          };
+          return AuthResponse.success(
+            message: responseData['message'] ?? 'Login exitoso',
+            user: user,
+            token: token,
+          );
         } else {
-          return {
-            'success': false,
-            'error': responseData['message'] ?? 'Error en el login',
-          };
+          return AuthResponse.error(
+            message: responseData['message'] ?? 'Error en el login',
+          );
         }
       } else {
         final errorData = json.decode(response.body);
-        return {
-          'success': false,
-          'error': errorData['message'] ?? 'Error en el login',
-        };
+        return AuthResponse.error(
+          message: errorData['message'] ?? 'Error en el login',
+        );
       }
     } catch (e) {
-      return {'success': false, 'error': 'Error de conexión: $e'};
+      return AuthResponse.error(message: 'Error de conexión: $e');
     }
   }
 
-  // Guardar datos del usuario
-  Future<void> _saveUserData(Map<String, dynamic> userData) async {
-    // Guardar JWT de forma segura
-    if (userData['access_token'] != null) {
-      await _secureStorage.write(
-        key: 'jwt_token',
-        value: userData['access_token'],
+  // GET MY PROFILE
+  Future<ApiResponse<User>> getMyProfile() async {
+    try {
+      final String? token = await _secureStorage.read(key: _jwtTokenKey);
+
+      if (token == null || token.isEmpty) {
+        return ApiResponse.error(message: 'No hay token de autenticación');
+      }
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/v1/api/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
-    }
 
-    // Guardar otros datos del usuario en SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
+      print('Get My Profile Response status: ${response.statusCode}');
+      print('Get My Profile Response body: ${response.body}');
 
-    if (userData['user'] != null) {
-      final user = userData['user'];
-      await prefs.setString('user_id', user['id']?.toString() ?? '');
-      await prefs.setString('user_email', user['email'] ?? '');
-      await prefs.setString('user_name', user['username'] ?? '');
-      await prefs.setString('profile_id', user['profile_id']?.toString() ?? '');
-      await prefs.setBool('spike_connect', user['spike_connect'] ?? false);
-    }
+      final Map<String, dynamic> responseData = json.decode(response.body);
 
-    // Guardar todos los datos de respuesta
-    await prefs.setString('user_data', json.encode(userData));
-    await prefs.setBool('is_logged_in', true);
-  }
+      if (response.statusCode == 200) {
+        final String? error = responseData['error'];
+        final bool hasError = error != null && error.isNotEmpty;
 
-  // Obtener usuario actual
-  Future<Map<String, dynamic>?> getCurrentUser() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+        if (!hasError && responseData['data'] != null) {
+          final user = User.fromJson(responseData['data']);
+          await _saveUserProfile(user);
 
-      if (!isLoggedIn) return null;
-
-      final String? userDataString = prefs.getString('user_data');
-      final String? token = await _secureStorage.read(key: 'jwt_token');
-
-      if (userDataString != null && token != null) {
-        final Map<String, dynamic> userData = json.decode(userDataString);
-        return {
-          'token': token,
-          'user': userData['user'] ?? {},
-          'email': prefs.getString('user_email'),
-          'username': prefs.getString('user_name'),
-          'user_id': prefs.getString('user_id'),
-          'profile_id': prefs.getString('profile_id'),
-          'spike_connect': prefs.getBool('spike_connect') ?? false,
-        };
+          return ApiResponse.success(
+            message: responseData['message'] ?? 'Perfil obtenido exitosamente',
+            data: user,
+          );
+        } else {
+          return ApiResponse.error(
+            message: error ?? 'Error al obtener el perfil',
+          );
+        }
+      } else if (response.statusCode == 401) {
+        return ApiResponse.error(
+          message: 'Sesión expirada. Por favor, inicia sesión nuevamente.',
+        );
+      } else {
+        return ApiResponse.error(
+          message:
+              responseData['message'] ??
+              responseData['error'] ??
+              'Error al obtener el perfil - Código: ${response.statusCode}',
+        );
       }
-
-      return null;
     } catch (e) {
-      return null;
+      print('Error en getMyProfile: $e');
+      return ApiResponse.error(message: 'Error de conexión: $e');
     }
   }
 
-  // Verificar si está logueado
-  Future<bool> isLoggedIn() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
-      final String? token = await _secureStorage.read(key: 'jwt_token');
-      return isLoggedIn && token != null && token.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<Map<String, dynamic>> verifyEmail({
+  // VERIFY EMAIL
+  Future<ApiResponse<bool>> verifyEmail({
     required String email,
     required String verificationCode,
   }) async {
@@ -189,93 +180,39 @@ class AuthService {
         body: json.encode({'email': email, 'code': verificationCode}),
       );
 
-      print('Verify Email Response status: ${response.statusCode}');
-      print('Verify Email Response body: ${response.body}');
-
       final Map<String, dynamic> responseData = json.decode(response.body);
 
-      // Lógica basada en el formato: {message: "", error: "", data: {}}
       if (response.statusCode == 200) {
-        // Verificar si hay error vacío o nulo
         final String? error = responseData['error'];
         final bool hasError = error != null && error.isNotEmpty;
 
         if (!hasError) {
-          // Si la verificación fue exitosa, actualizar el estado del usuario
-          await _updateUserVerificationStatus();
-
-          return {
-            'success': true,
-            'message':
-                responseData['message'] ??
-                responseData['data']?['message'] ??
-                'Cuenta verificada exitosamente',
-            'data': responseData['data'],
-          };
+          return ApiResponse.success(
+            message:
+                responseData['message'] ?? 'Cuenta verificada exitosamente',
+            data: true,
+          );
         } else {
-          return {
-            'success': false,
-            'error': error ?? 'Error en la verificación',
-          };
+          return ApiResponse.error(
+            message: error ?? 'Error en la verificación',
+          );
         }
       } else {
-        // Para códigos de error HTTP
-        return {
-          'success': false,
-          'error':
+        return ApiResponse.error(
+          message:
               responseData['message'] ??
               responseData['error'] ??
               'Error en la verificación - Código: ${response.statusCode}',
-        };
+        );
       }
     } catch (e) {
       print('Error en verifyEmail: $e');
-      return {'success': false, 'error': 'Error de conexión: $e'};
+      return ApiResponse.error(message: 'Error de conexión: $e');
     }
   }
 
-  // Método auxiliar para actualizar el estado de verificación
-  Future<void> _updateUserVerificationStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? userDataString = prefs.getString('user_data');
-
-    if (userDataString != null) {
-      final Map<String, dynamic> userData = json.decode(userDataString);
-
-      // Actualizar el estado de verificación en los datos del usuario
-      if (userData['user'] != null) {
-        userData['user']['email_verified'] = true;
-        userData['user']['verified'] = true;
-
-        // Guardar los datos actualizados
-        await prefs.setString('user_data', json.encode(userData));
-      }
-    }
-  }
-
-  // Método para verificar si el email está verificado
-  Future<bool> isEmailVerified() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? userDataString = prefs.getString('user_data');
-
-      if (userDataString != null) {
-        final Map<String, dynamic> userData = json.decode(userDataString);
-        final user = userData['user'];
-
-        return user['email_verified'] == true ||
-            user['verified'] == true ||
-            user['is_verified'] == true;
-      }
-
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // RESEND OTP - Reenviar código de verificación
-  Future<Map<String, dynamic>> resendOtp({required String email}) async {
+  // RESEND OTP
+  Future<ApiResponse<bool>> resendOtp({required String email}) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/v1/api/resend-otp'),
@@ -286,56 +223,334 @@ class AuthService {
         body: json.encode({'email': email, 'context': 'verify'}),
       );
 
-      print('Resend OTP Response status: ${response.statusCode}');
-      print('Resend OTP Response body: ${response.body}');
+      final Map<String, dynamic> responseData = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
+        final String? error = responseData['error'];
+        final bool hasError = error != null && error.isNotEmpty;
 
-        // Verificar éxito basado en el formato de respuesta
-        if (responseData['error'] == null || responseData['error'].isEmpty) {
-          return {
-            'success': true,
-            'message':
-                responseData['message'] ?? 'Código reenviado exitosamente',
-            'data': responseData['data'],
-          };
+        if (!hasError) {
+          return ApiResponse.success(
+            message: responseData['message'] ?? 'Código reenviado exitosamente',
+            data: true,
+          );
         } else {
-          return {
-            'success': false,
-            'error': responseData['error'] ?? 'Error al reenviar el código',
-          };
+          return ApiResponse.error(
+            message: error ?? 'Error al reenviar el código',
+          );
         }
       } else {
-        final errorData = json.decode(response.body);
-        return {
-          'success': false,
-          'error':
-              errorData['message'] ??
-              errorData['error'] ??
+        return ApiResponse.error(
+          message:
+              responseData['message'] ??
+              responseData['error'] ??
               'Error al reenviar el código - Código: ${response.statusCode}',
-        };
+        );
       }
     } catch (e) {
       print('Error en resendOtp: $e');
-      return {'success': false, 'error': 'Error de conexión: $e'};
+      return ApiResponse.error(message: 'Error de conexión: $e');
     }
   }
 
-  // Logout
+  // OBTENER USUARIO ACTUAL
+  Future<User?> getCurrentUser() async {
+    try {
+      final String? userDataString = await _secureStorage.read(
+        key: _userDataKey,
+      );
+      final String? token = await _secureStorage.read(key: _jwtTokenKey);
+
+      // Si no hay token, no hay usuario logueado
+      if (token == null || token.isEmpty) {
+        return null;
+      }
+
+      if (userDataString != null) {
+        final Map<String, dynamic> userData = json.decode(userDataString);
+        return User.fromJson(userData);
+      }
+
+      return null;
+    } catch (e) {
+      print('Error en getCurrentUser: $e');
+      return null;
+    }
+  }
+
+  // VERIFICAR SI ESTÁ LOGUEADO
+  Future<bool> isLoggedIn() async {
+    try {
+      final String? token = await _secureStorage.read(key: _jwtTokenKey);
+      return token != null && token.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // VERIFICAR SI EL EMAIL ESTÁ VERIFICADO
+  Future<bool> isEmailVerified() async {
+    try {
+      final user = await getCurrentUser();
+      return user != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // VERIFICAR SI EL PERFIL ESTÁ COMPLETO
+  Future<bool> isProfileComplete() async {
+    final user = await getCurrentUser();
+    return user?.isProfileComplete ?? false;
+  }
+
+  // LOGOUT
   Future<void> logout() async {
     try {
-      await _secureStorage.delete(key: 'jwt_token');
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_id');
-      await prefs.remove('user_email');
-      await prefs.remove('user_name');
-      await prefs.remove('profile_id');
-      await prefs.remove('user_data');
-      await prefs.remove('spike_connect');
-      await prefs.setBool('is_logged_in', false);
+      // Solo 2 operaciones en lugar de 14
+      await _secureStorage.delete(key: _jwtTokenKey);
+      await _secureStorage.delete(key: _userDataKey);
+      print('Datos de usuario eliminados');
     } catch (e) {
       print('Error durante logout: $e');
     }
   }
+
+  // MÉTODOS PRIVADOS
+  Future<void> _saveUserData(Map<String, dynamic> userData) async {
+    if (userData['access_token'] != null) {
+      await _secureStorage.write(
+        key: _jwtTokenKey,
+        value: userData['access_token'],
+      );
+    }
+
+    if (userData['user'] != null) {
+      final user = User.fromJson(userData['user']);
+      await _saveUserProfile(user);
+    }
+  }
+
+  Future<void> _saveUserProfile(User user) async {
+    try {
+      await _secureStorage.write(
+        key: _userDataKey,
+        value: json.encode(user.toJson()),
+      );
+      print('Perfil de usuario guardado: ${user.username}');
+    } catch (e) {
+      print('Error guardando perfil de usuario: $e');
+    }
+  }
+
+  // En AuthService - agregar este método
+  Future<ApiResponse<User>> updateProfile({
+    required Map<String, dynamic> updateData,
+    required String token,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$_baseUrl/v1/api/me/update'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(updateData),
+      );
+
+      print('Update Profile Response status: ${response.statusCode}');
+      print('Update Profile Response body: ${response.body}');
+
+      final Map<String, dynamic> responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        final String? error = responseData['error'];
+        final bool hasError = error != null && error.isNotEmpty;
+
+        if (!hasError && responseData['data'] != null) {
+          final user = User.fromJson(responseData['data']);
+          await _saveUserProfile(user); // Guardar en SecureStorage
+
+          return ApiResponse.success(
+            message:
+                responseData['message'] ?? 'Perfil actualizado exitosamente',
+            data: user,
+          );
+        } else {
+          return ApiResponse.error(
+            message: error ?? 'Error al actualizar el perfil',
+          );
+        }
+      } else if (response.statusCode == 401) {
+        return ApiResponse.error(
+          message: 'Sesión expirada. Por favor, inicia sesión nuevamente.',
+        );
+      } else {
+        return ApiResponse.error(
+          message:
+              responseData['message'] ??
+              responseData['error'] ??
+              'Error al actualizar el perfil - Código: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      print('Error en updateProfile: $e');
+      return ApiResponse.error(message: 'Error de conexión: $e');
+    }
+  }
+
+// PASSWORD RESET - Solicitar código de verificación
+Future<ApiResponse<bool>> requestPasswordReset({required String email}) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/v1/api/password-reset/request'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: json.encode({'email': email}),
+    );
+
+    print('Password Reset Request Response status: ${response.statusCode}');
+    print('Password Reset Request Response body: ${response.body}');
+
+    final Map<String, dynamic> responseData = json.decode(response.body);
+
+    if (response.statusCode == 200) {
+      final String? error = responseData['error'];
+      final bool hasError = error != null && error.isNotEmpty;
+
+      if (!hasError) {
+        return ApiResponse.success(
+          message: responseData['message'] ?? 'Código de verificación enviado exitosamente',
+          data: true,
+        );
+      } else {
+        return ApiResponse.error(
+          message: error ?? 'Error al solicitar el restablecimiento de contraseña',
+        );
+      }
+    } else {
+      return ApiResponse.error(
+        message: responseData['message'] ?? 
+                responseData['error'] ??
+                'Error al solicitar restablecimiento - Código: ${response.statusCode}',
+      );
+    }
+  } catch (e) {
+    print('Error en requestPasswordReset: $e');
+    return ApiResponse.error(
+      message: 'Error de conexión: $e',
+    );
+  }
+}
+
+// VALIDATE OTP - Validar código de verificación
+Future<ApiResponse<bool>> validatePasswordResetOtp({
+  required String email,
+  required String otp,
+}) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/v1/api/password-reset/validate-otp'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: json.encode({'email': email, 'code': otp}),
+    );
+
+    print('Validate OTP Response status: ${response.statusCode}');
+    print('Validate OTP Response body: ${response.body}');
+
+    final Map<String, dynamic> responseData = json.decode(response.body);
+
+    if (response.statusCode == 200) {
+      final String? error = responseData['error'];
+      final bool hasError = error != null && error.isNotEmpty;
+
+      if (!hasError) {
+        return ApiResponse.success(
+          message: responseData['message'] ?? 'Código validado exitosamente',
+          data: true,
+        );
+      } else {
+        return ApiResponse.error(
+          message: error ?? 'Error al validar el código',
+        );
+      }
+    } else {
+      return ApiResponse.error(
+        message: responseData['message'] ?? 
+                responseData['error'] ??
+                'Error al validar código - Código: ${response.statusCode}',
+      );
+    }
+  } catch (e) {
+    print('Error en validatePasswordResetOtp: $e');
+    return ApiResponse.error(
+      message: 'Error de conexión: $e',
+    );
+  }
+}
+
+// CONFIRM PASSWORD RESET - Confirmar nueva contraseña
+Future<ApiResponse<bool>> confirmPasswordReset({
+  required String email,
+  required String otp,
+  required String newPassword,
+  required String confirmPassword,
+}) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/v1/api/password-reset/confirm'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+
+      body: json.encode({
+        'email': email,
+        'code': otp,
+        'password': newPassword,
+        'confirmPassword': confirmPassword,
+      }),
+    );
+
+    print('Confirm Password Reset Response status: ${response.statusCode}');
+    print('Confirm Password Reset Response body: ${response.body}');
+
+    final Map<String, dynamic> responseData = json.decode(response.body);
+
+    if (response.statusCode == 200) {
+      final String? error = responseData['error'];
+      final bool hasError = error != null && error.isNotEmpty;
+
+      if (!hasError) {
+        return ApiResponse.success(
+          message: responseData['message'] ?? 'Contraseña restablecida exitosamente',
+          data: true,
+        );
+      } else {
+        return ApiResponse.error(
+          message: error ?? 'Error al restablecer la contraseña',
+        );
+      }
+    } else {
+      return ApiResponse.error(
+        message: responseData['message'] ?? 
+                responseData['error'] ??
+                'Error al restablecer contraseña - Código: ${response.statusCode}',
+      );
+    }
+  } catch (e) {
+    print('Error en confirmPasswordReset: $e');
+    return ApiResponse.error(
+      message: 'Error de conexión: $e',
+    );
+  }
+}
+
+
 }

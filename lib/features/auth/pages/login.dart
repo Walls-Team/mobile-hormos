@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/auth/models/user_models.dart';
+import 'package:genius_hormo/features/auth/pages/setup_screen.dart';
 import 'package:genius_hormo/features/auth/services/auth_provider.dart';
-import 'package:genius_hormo/views/auth/pages/forgot_password.dart';
+import 'package:genius_hormo/features/spike/providers/spike_providers.dart';
+import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/views/welcome.dart';
@@ -27,67 +30,81 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _submitForm() async {
-  if (_formKey.currentState!.validate()) {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // Obtener los datos del formulario
-      final String email = _emailController.text;
-      final String password = _passwordController.text;
-
-      // Llamar al servicio de autenticación
-      final Map<String, dynamic> result = await AuthService().login(email, password);
-
-
-        print(result);
-
+    if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = false;
+        _isLoading = true;
       });
 
-      if (result['success'] == true) {
+      try {
+        // Obtener los datos del formulario
+        final String email = _emailController.text;
+        final String password = _passwordController.text;
 
+        final AuthResponse loginResponse = await AuthService().login(
+          email,
+          password,
+        );
 
+        setState(() {
+          _isLoading = false;
+        });
 
-        
-        // Login exitoso - navegar a HomeScreen
-        // if (mounted) {
-        //   Navigator.pushReplacement(
-        //     context,
-        //     MaterialPageRoute(builder: (context) => HomeScreen()),
-        //   );
-        // }
+        // Login exitoso
 
-        // print(result);
-      } else {
-        // Mostrar error de login
+        if (loginResponse.success) {
+          final profileResponse = await AuthService().getMyProfile();
+          final deviceResponse = await SpikeService().getMyDevices();
+
+          if (!profileResponse.data!.isProfileComplete ||
+              deviceResponse.devices!.isEmpty) {
+
+                print('hola');
+            // - navegar a
+
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SetupScreen()),
+              );
+            }
+          } else {
+            // - navegar a HomeScreen
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            }
+          }
+
+          // print(result);
+        } else {
+          // Mostrar error de login
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(loginResponse.error ?? 'Error en el login'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['error'] ?? 'Error en el login'),
+              content: Text('Error de conexión: $e'),
               backgroundColor: Colors.red,
             ),
           );
         }
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error de conexión: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -221,10 +238,10 @@ class _LoginScreenState extends State<LoginScreen> {
             width: double.infinity,
             child: OutlinedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => RegisterScreen()),
+                // );
               },
               child: const Text('Register'),
             ),

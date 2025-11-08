@@ -1,19 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/features/auth/pages/email_verified.dart';
 import 'package:genius_hormo/features/auth/services/auth_provider.dart';
-import 'package:genius_hormo/views/auth/pages/reset_password.dart';
+import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_form.dart';
 
-class VerificationCodeScreen extends StatefulWidget {
+class ResetPasswordVerificationCodeScreen extends StatefulWidget {
   final String email;
 
-  const VerificationCodeScreen({super.key, required this.email});
+  const ResetPasswordVerificationCodeScreen({super.key, required this.email});
 
   @override
   _VerificationCodeScreenState createState() => _VerificationCodeScreenState();
 }
 
-class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
+class _VerificationCodeScreenState extends State<ResetPasswordVerificationCodeScreen> {
   final List<TextEditingController> _controllers = List.generate(
     6,
     (index) => TextEditingController(),
@@ -106,103 +105,78 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
     return _controllers.map((controller) => controller.text).join();
   }
 
-  // void _verifyCode() async {
-  //   if (!_isAllFieldsFilled() || _isLoading) return;
-
-  //   setState(() {
-  //     _isLoading = true;
-  //     isButtonEnabled = false;
-  //   });
-
-  //   // Simular verificación del código
-  //   await Future.delayed(Duration(seconds: 2));
-
-  //   setState(() {
-  //     _isLoading = false;
-  //   });
-
-  //   // Navegar a la pantalla de reset password si el código es correcto
-  //   // En una app real, aquí verificarías el código con tu backend
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => EmailVerifiedScreen(email: '',)
-  //     ),
-  //   );
-  // }
-
   // En tu widget donde manejas la verificación de email
 
-  void _verifyCode() async {
-    if (!_isAllFieldsFilled() || _isLoading) return;
+void _verifyCode() async {
+  if (!_isAllFieldsFilled() || _isLoading) return;
+
+  setState(() {
+    _isLoading = true;
+    isButtonEnabled = false;
+  });
+
+  try {
+    String verificationCode = _getVerificationCodeFromFields();
+
+    // Llamar al servicio de validación de OTP para reset de contraseña
+    final result = await AuthService().validatePasswordResetOtp(
+      email: widget.email,
+      otp: verificationCode,
+    );
 
     setState(() {
-      _isLoading = true;
-      isButtonEnabled = false;
+      _isLoading = false;
     });
 
-    try {
-      String verificationCode = _getVerificationCodeFromFields();
-
-      // Llamar al servicio de verificación de email
-      final Map<String, dynamic> result = await AuthService().verifyEmail(
-        email: widget.email, // Asumiendo que recibes el email como parámetro
-        verificationCode: verificationCode,
-      );
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (result['success'] == true) {
-        // Verificación exitosa
-        if (mounted) {
-
-          // Navegar a la pantalla de éxito
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EmailVerifiedScreen(email: widget.email),
+    if (result.success == true) {
+      // OTP validado exitosamente - navegar a pantalla de nueva contraseña
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ResetPasswordScreen(
+              email: widget.email,
+              otp: verificationCode,
             ),
-          );
-        }
-      } else {
-        // Error en la verificación
-        setState(() {
-          isButtonEnabled = true;
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['error'] ?? 'Error al verificar el código'),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 3),
-            ),
-          );
-
-          // Opcional: Limpiar los campos para nuevo intento
-          _clearAllFields();
-        }
+          ),
+        );
       }
-    } catch (e) {
+    } else {
+      // Error en la validación
       setState(() {
-        _isLoading = false;
         isButtonEnabled = true;
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error de conexión: $e'),
+            content: Text(result.error ?? 'Código de verificación inválido'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
         );
+
+        // Limpiar los campos para nuevo intento
+        _clearAllFields();
       }
     }
-  }
+  } catch (e) {
+    setState(() {
+      _isLoading = false;
+      isButtonEnabled = true;
+    });
 
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error de conexión: $e'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+}
   // Método auxiliar para obtener el código completo de los campos individuales
   String _getVerificationCodeFromFields() {
     return _controllers.map((controller) => controller.text).join();
@@ -229,7 +203,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
 
     try {
       // // Llamar al servicio para reenviar el OTP
-      final Map<String, dynamic> result = await AuthService().resendOtp(
+      final result = await AuthService().requestPasswordReset(
         email: widget.email, // Asumiendo que recibes el email como parámetro
       );
 
@@ -237,7 +211,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         _isResending = false;
       });
 
-      if (result['success'] == true) {
+      if (result.success == true) {
         // Reenvío exitoso
         setState(() {
           _resendCountdown = 30; // 30 segundos de espera
@@ -249,7 +223,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                result['message'] ?? 'Código reenviado exitosamente',
+                result.message ?? 'Código reenviado exitosamente',
               ),
               duration: Duration(seconds: 3),
             ),
@@ -260,7 +234,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['error'] ?? 'Error al reenviar el código'),
+              content: Text(result.error ?? 'Error al reenviar el código'),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
