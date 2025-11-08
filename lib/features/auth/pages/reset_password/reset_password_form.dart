@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/services/auth_provider.dart';
-import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
 
@@ -10,8 +9,7 @@ class ResetPasswordScreen extends StatefulWidget {
   final String email;
   final String otp;
 
-  const ResetPasswordScreen({Key? key, required this.email, required this.otp})
-    : super(key: key);
+  const ResetPasswordScreen({super.key, required this.email, required this.otp});
 
   @override
   _ResetPasswordScreenState createState() => _ResetPasswordScreenState();
@@ -89,46 +87,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
   }
 
-  // En reset_password_screen.dart, actualiza el método _submitForm:
-  // void _submitForm() async {
-  //   // if (_formKey.currentState!.validate()) {
-  //   //   setState(() {
-  //   //     _isLoading = true;
-  //   //   });
-
-  //   //   // Simular proceso de reset de contraseña
-  //     setState(() {
-  //       _isLoading = false;
-  //       _passwordReset = true;
-  //     });
-
-  //   //   // Mostrar mensaje de éxito
-  //   //   ScaffoldMessenger.of(context).showSnackBar(
-  //   //     SnackBar(
-  //   //       content: Text('¡Contraseña restablecida exitosamente!'),
-  //   //       backgroundColor: Colors.green,
-  //   //       behavior: SnackBarBehavior.floating,
-  //   //     ),
-  //   //   );
-
-  //     // NUEVO: Redirección automática a Home después de 2 segundos
-  //     // Future.delayed(Duration(seconds: 2), () {
-  //     //   Navigator.pushReplacement(
-  //     //     context,
-  //     //     MaterialPageRoute(builder: (context) => HomeScreen()),
-  //     //   );
-  //     // });
-  //   // }
+  // void _navigateToLogin() {
+  //   // Cambiado: Ahora va al Home en lugar del Login
+  //   Navigator.pushReplacement(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => HomeScreen()),
+  //   );
   // }
-
-  // Y actualiza el método _navigateToLogin en la pantalla de éxito:
-  void _navigateToLogin() {
-    // Cambiado: Ahora va al Home en lugar del Login
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
-    );
-  }
 
   bool _isButtonEnabled() {
     return _passwordController.text.isNotEmpty &&

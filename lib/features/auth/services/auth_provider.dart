@@ -282,6 +282,7 @@ class AuthService {
   Future<bool> isLoggedIn() async {
     try {
       final String? token = await _secureStorage.read(key: _jwtTokenKey);
+      print(token);
       return token != null && token.isNotEmpty;
     } catch (e) {
       return false;
