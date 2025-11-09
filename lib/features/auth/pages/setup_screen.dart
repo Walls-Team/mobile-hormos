@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
-import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:get_it/get_it.dart';
 

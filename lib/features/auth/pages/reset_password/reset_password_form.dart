@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
-import 'package:genius_hormo/features/auth/services/auth_provider.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
 import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
@@ -11,7 +10,11 @@ class ResetPasswordScreen extends StatefulWidget {
   final String email;
   final String otp;
 
-  const ResetPasswordScreen({super.key, required this.email, required this.otp});
+  const ResetPasswordScreen({
+    super.key,
+    required this.email,
+    required this.otp,
+  });
 
   @override
   _ResetPasswordScreenState createState() => _ResetPasswordScreenState();
@@ -27,7 +30,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _passwordReset = false;
 
   final AuthService _authService = GetIt.instance<AuthService>();
-
 
   @override
   void dispose() {
@@ -45,16 +47,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       try {
         final String newPassword = _passwordController.text;
         final String confirmPassword = _confirmPasswordController.text;
-        
 
         // Llamar al servicio para confirmar el reset de contraseña
-        final ApiResponse<bool> resetResponse = await _authService
-            .confirmPasswordReset(
-              email: widget.email,
-              otp: widget.otp,
-              newPassword: newPassword,
-              confirmPassword: confirmPassword
-            );
+        final resetResponse = await _authService.confirmPasswordReset(
+          email: widget.email,
+          code: widget.otp,
+          newPassword: newPassword,
+          confirmPassword: confirmPassword,
+        );
 
         setState(() {
           _isLoading = false;
@@ -184,18 +184,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       onChanged: (value) {
         setState(() {}); // Para actualizar los requisitos en tiempo real
       },
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor ingresa tu contraseña';
-        }
-        if (value.length < 8) {
-          return 'La contraseña debe tener al menos 8 caracteres';
-        }
-        if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
-          return 'Debe contener mayúsculas, minúsculas y números';
-        }
-        return null;
-      },
+      validator: validatePassword,
     );
   }
 

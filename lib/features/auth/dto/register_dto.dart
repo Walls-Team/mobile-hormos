@@ -1,6 +1,3 @@
-// lib/features/auth/models/register_models.dart
-
-// Request model (se mantiene igual)
 class RegisterRequest {
   final String username;
   final String email;
@@ -22,21 +19,21 @@ class RegisterRequest {
 }
 
 // Response models CORREGIDOS según la estructura real
-class RegisterResponse {
+class RegisterResponseData {
   final bool success;
   final String accessToken;
   final String refreshToken;
   final RegisterUser user;
 
-  RegisterResponse({
+  RegisterResponseData({
     required this.success,
     required this.accessToken,
     required this.refreshToken,
     required this.user,
   });
 
-  factory RegisterResponse.fromJson(Map<String, dynamic> json) {
-    return RegisterResponse(
+  factory RegisterResponseData.fromJson(Map<String, dynamic> json) {
+    return RegisterResponseData(
       success: json['success'] ?? false,
       accessToken: json['access_token'] ?? '',
       refreshToken: json['refresh_token'] ?? '',

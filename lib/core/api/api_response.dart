@@ -1,32 +1,25 @@
-// lib/core/api/api_response.dart
 class ApiResponse<T> {
+  final bool success;
   final String message;
-  final String error;
-  final T data;
+  final T? data;
+  final String? error;
 
   ApiResponse({
+    required this.success,
     required this.message,
-    required this.error,
-    required this.data,
-  });
-}
-
-class ApiErrorResponse {
-  final String message;
-  final String error;
-  final Map<String, dynamic>? data;
-
-  ApiErrorResponse({
-    required this.message,
-    required this.error,
     this.data,
+    this.error,
   });
 
-  factory ApiErrorResponse.fromJson(Map<String, dynamic> json) {
-    return ApiErrorResponse(
-      message: json['message'] ?? '',
-      error: json['error'] ?? 'unknown_error',
-      data: json['data'],
+  factory ApiResponse.success({required String message, required T data}) {
+    return ApiResponse(success: true, message: message, data: data);
+  }
+
+  factory ApiResponse.error({required String message, String? error}) {
+    return ApiResponse(
+      success: false,
+      message: message,
+      error: error ?? message,
     );
   }
 }

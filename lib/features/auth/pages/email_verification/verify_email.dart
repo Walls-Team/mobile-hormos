@@ -125,7 +125,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       // Llamar al servicio de verificación de email
       final result = await _authService.verifyEmail(
         email: widget.email, // Asumiendo que recibes el email como parámetro
-        verificationCode: verificationCode,
+        code: verificationCode,
       );
 
       setState(() {
@@ -208,7 +208,10 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       // // Llamar al servicio para reenviar el OTP
       final result = await _authService.resendOtp(
         email: widget.email, // Asumiendo que recibes el email como parámetro
+        context: 'verify'
       );
+
+      print(result);
 
       setState(() {
         _isResending = false;

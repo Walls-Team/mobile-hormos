@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_validate_code.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:get_it/get_it.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -34,7 +34,7 @@ void _submitForm() async {
     try {
       final String email = _emailController.text;
 
-      final ApiResponse<bool> resetResponse = await _authService.requestPasswordReset(
+      final resetResponse = await _authService.requestPasswordReset(
         email: email,
       );
 
@@ -134,57 +134,13 @@ void _submitForm() async {
             TextFormField(
               controller: _emailController,
               decoration: InputDecoration(hintText: 'you@example.com'),
-
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor ingresa tu email';
-                }
-                if (!RegExp(
-                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                ).hasMatch(value)) {
-                  return 'Por favor ingresa un email válido';
-                }
-                return null;
-              },
+              validator:validateEmail,
             ),
           ],
         ),
       ],
     );
   }
-
-  // Widget _buildBottomButtonSection(BuildContext context) {
-  //   return Padding(
-  //     padding: const EdgeInsets.only(bottom: 40.0, left: 20, right: 20),
-  //     child: Column(
-  //       spacing: 10.0,
-  //       children: [
-  //         // Botón Enviar Código
-  //         SizedBox(
-  //           width: double.infinity,
-  //           child: CustomElevatedButton(
-  //             onPressed: _isLoading ? null : _submitForm,
-  //             child: _isLoading
-  //                 ? SizedBox(
-  //                     height: 20,
-  //                     width: 20,
-  //                     child: CircularProgressIndicator(
-  //                       strokeWidth: 2,
-  //                       valueColor: AlwaysStoppedAnimation<Color>(
-  //                         Theme.of(context).colorScheme.onPrimary,
-  //                       ),
-  //                     ),
-  //                   )
-  //                 : Text(
-  //                     'Enviar Código de Verificación',
-  //                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-  //                   ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _buildBottomButtonSection(BuildContext context) {
     return Padding(
@@ -255,7 +211,7 @@ void _submitForm() async {
           Text(
             'We\'ll send you a verification code',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/pages/email_verification/verify_email.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
+import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
+import 'package:genius_hormo/features/auth/utils/validators/username_validator.dart';
+import 'package:genius_hormo/views/terms_and_conditions.dart';
 import 'package:genius_hormo/views/welcome.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
-import '../../../views/terms_and_conditions.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -22,7 +25,6 @@ class _RegistrationFormState extends State<RegisterScreen> {
       TextEditingController();
 
   final AuthService _authService = GetIt.instance<AuthService>();
-
 
   bool _isLoading = false;
   bool _acceptTerms = false;
@@ -77,17 +79,18 @@ class _RegistrationFormState extends State<RegisterScreen> {
         });
 
         if (result.success == true) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  VerificationCodeScreen(email: _emailController.text),
-            ),
-          );
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    VerificationCodeScreen(email: _emailController.text),
+              ),
+            );
+          }
         } else {
           _showErrorDialog(result.error ?? 'Error en el registro');
         }
-
       } catch (e) {
         setState(() {
           _isLoading = false;
@@ -144,18 +147,7 @@ class _RegistrationFormState extends State<RegisterScreen> {
               Text('Username'),
               TextFormField(
                 controller: _usernameController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa un nombre de usuario';
-                  }
-                  if (value.length < 2) {
-                    return 'El usuario debe tener al menos 2 caracteres';
-                  }
-                  if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
-                    return 'Solo se permiten letras, números y guiones bajos';
-                  }
-                  return null;
-                },
+                validator: validateUsername,
                 decoration: InputDecoration(
                   hintText: 'user',
                   border: OutlineInputBorder(
@@ -171,17 +163,7 @@ class _RegistrationFormState extends State<RegisterScreen> {
               Text('Email'),
               TextFormField(
                 controller: _emailController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu email';
-                  }
-                  if (!RegExp(
-                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                  ).hasMatch(value)) {
-                    return 'Por favor ingresa un email válido';
-                  }
-                  return null;
-                },
+                validator: validateEmail,
                 decoration: InputDecoration(
                   hintText: 'you@example.com',
                   border: OutlineInputBorder(
@@ -364,18 +346,7 @@ class _RegistrationFormState extends State<RegisterScreen> {
       onChanged: (value) {
         setState(() {});
       },
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor ingresa tu contraseña';
-        }
-        if (value.length < 8) {
-          return 'La contraseña debe tener al menos 8 caracteres';
-        }
-        if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
-          return 'Debe contener mayúsculas, minúsculas y números';
-        }
-        return null;
-      },
+      validator: validatePassword,
     );
   }
 

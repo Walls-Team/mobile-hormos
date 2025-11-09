@@ -1,0 +1,80 @@
+class LoginUser {
+  final String id;
+  final String profileId;
+  final String username;
+  final bool spikeConnect;
+
+  LoginUser({
+    required this.id,
+    required this.profileId,
+    required this.username,
+    required this.spikeConnect,
+  });
+
+  factory LoginUser.fromJson(Map<String, dynamic> json) {
+    return LoginUser(
+      id: json['id'] as String,
+      profileId: json['profile_id'] as String,
+      username: json['username'] as String,
+      spikeConnect: json['spike_connect'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'profile_id': profileId,
+      'username': username,
+      'spike_connect': spikeConnect,
+    };
+  }
+}
+
+class LoginResponse {
+  final bool success;
+  final String accessToken;
+  final String refreshToken;
+  final LoginUser user;
+
+  LoginResponse({
+    required this.success,
+    required this.accessToken,
+    required this.refreshToken,
+    required this.user,
+  });
+
+  factory LoginResponse.fromJson(Map<String, dynamic> json) {
+    return LoginResponse(
+      success: json['success'] as bool,
+      accessToken: json['access_token'] as String,
+      refreshToken: json['refresh_token'] as String,
+      user: LoginUser.fromJson(json['user'] as Map<String, dynamic>),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
+      'user': user.toJson(),
+    };
+  }
+}
+
+class LoginRequest {
+  final String username;
+  final String password;
+
+  LoginRequest({
+    required this.username,
+    required this.password,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'password': password,
+    };
+  }
+}

@@ -4,7 +4,6 @@ import 'package:genius_hormo/features/auth/pages/email_verification/verify_email
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
-import 'package:genius_hormo/features/auth/services/auth_provider.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/views/faqs/faqs.dart';
@@ -13,138 +12,13 @@ import 'package:genius_hormo/views/stats/stats.dart';
 import 'package:genius_hormo/views/store/store.dart';
 import 'package:genius_hormo/views/terms_and_conditions.dart';
 import 'package:genius_hormo/views/welcome.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:go_router/go_router.dart';
-
-// class AppRouter {
-//   final AuthService _authService = AuthService();
-
-//   GoRouter get router => _router;
-
-//   late final GoRouter _router = GoRouter(
-//     initialLocation: publicRoutes.home,
-//     routes: [
-//       GoRoute(
-//         path: publicRoutes.home,
-//         name: 'home',
-//         builder: (context, state) => const WelcomeScreen(),
-//       ),
-
-//       GoRoute(
-//         path: publicRoutes.login,
-//         name: 'login',
-//         builder: (context, state) => const LoginScreen(),
-//       ),
-
-//       GoRoute(
-//         path: publicRoutes.register,
-//         name: 'register',
-//         builder: (context, state) => const RegisterScreen(),
-//       ),
-
-//       GoRoute(
-//         path: publicRoutes.forgotPassword,
-//         name: 'forgot-password',
-//         builder: (context, state) => const ForgotPasswordScreen(),
-//       ),
-
-//       GoRoute(
-//         path: privateRoutes.dashboard,
-//         name: 'dashboard',
-//         builder: (context, state) => const HomeScreen(),
-//       ),
-
-//       GoRoute(
-//         path: privateRoutes.stats,
-//         name: 'stats',
-//         builder: (context, state) => const StatsPage(),
-//       ),
-//       GoRoute(
-//         path: privateRoutes.store,
-//         name: 'store',
-//         builder: (context, state) => const StoreScreen(),
-//       ),
-//       GoRoute(
-//         path: privateRoutes.settings,
-//         name: 'setting',
-//         builder: (context, state) => const SettingsScreen(),
-//       ),
-
-//     ],
-
-//     // Redirección basada en estado de autenticación
-//     redirect: (context, state) async {
-//       // Verificar si el usuario está autenticado
-//       final bool isLoggedIn = await _authService.isLoggedIn();
-
-//       // Rutas que requieren autenticación
-//       final bool goingToAuth =
-//           state.matchedLocation.contains('/auth') ||
-//           state.matchedLocation == RouteNames.login;
-
-//       // Rutas protegidas (que requieren autenticación)
-//       final bool goingToProtectedRoute =
-//           state.matchedLocation == RouteNames.dashboard ||
-//           state.matchedLocation.contains('/dashboard') ||
-//           state.matchedLocation.contains('/settings') ||
-//           state.matchedLocation.contains('/store');
-
-//       // Si el usuario NO está autenticado y trata de acceder a una ruta protegida
-//       if (!isLoggedIn && goingToProtectedRoute) {
-//         return RouteNames.login;
-//       }
-
-//       // Si el usuario ESTÁ autenticado y trata de acceder a rutas de auth
-//       if (isLoggedIn && goingToAuth) {
-//         return RouteNames.dashboard;
-//       }
-
-//       // Si el usuario ESTÁ autenticado y va a la página de inicio
-//       if (isLoggedIn && state.matchedLocation == RouteNames.home) {
-//         return RouteNames.dashboard;
-//       }
-
-//       // Si no hay redirección necesaria
-//       return null;
-//     },
-
-//     errorBuilder: (context, state) => Scaffold(
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             const Icon(Icons.error_outline, size: 64, color: Colors.grey),
-//             const SizedBox(height: 16),
-//             Text(
-//               'Página no encontrada',
-//               style: Theme.of(context).textTheme.headlineSmall,
-//             ),
-//             const SizedBox(height: 8),
-//             Text(
-//               state.uri.toString(),
-//               style: Theme.of(context).textTheme.bodyMedium,
-//               textAlign: TextAlign.center,
-//             ),
-//             const SizedBox(height: 24),
-//             ElevatedButton(
-//               onPressed: () => context.go(RouteNames.home),
-//               child: const Text('Ir al Inicio'),
-//             ),
-//           ],
-//         ),
-//       ),
-//     ),
-//   );
-
-//   GoRouter config() {
-//     return _router;
-//   }
-// }
-
 
 class AppRouter {
-  final AuthService _authService = AuthService();
+
+  final AuthService _authService = GetIt.instance<AuthService>();
+
   
   GoRouter get router => _router;
 

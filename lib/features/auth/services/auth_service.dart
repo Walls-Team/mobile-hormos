@@ -1,7 +1,14 @@
-// lib/services/auth_service.dart
+import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:genius_hormo/core/api/api_helpers.dart';
+import 'package:genius_hormo/core/api/api_response.dart';
+import 'package:genius_hormo/features/auth/dto/login_dto.dart';
+import 'package:genius_hormo/features/auth/dto/resend_otp.dart';
+import 'package:genius_hormo/features/auth/dto/reset_password_dto.dart';
+import 'package:genius_hormo/features/auth/dto/verify-account_dto.dart';
+import 'package:genius_hormo/features/auth/models/register_models.dart';
 import 'package:genius_hormo/features/auth/models/user_models.dart';
+import 'package:http/http.dart' as http;
 import 'user_storage_service.dart';
 
 class AuthService {
@@ -9,59 +16,197 @@ class AuthService {
   final UserStorageService _storageService;
   final http.Client _client;
 
-  AuthService({
-    UserStorageService? storageService,
-    http.Client? client,
-  })  : _storageService = storageService ?? UserStorageService(),
-        _client = client ?? http.Client();
+  AuthService({UserStorageService? storageService, http.Client? client})
+    : _storageService = storageService ?? UserStorageService(),
+      _client = client ?? http.Client();
 
-  /// Registro de nuevo usuario
-  Future<AuthResponse> register({
+  Future<ApiResponse<RegisterResponse>> register({
     required String username,
     required String email,
     required String password,
   }) async {
-    try {
-      final response = await _client.post(
-        Uri.parse('$_baseUrl/v1/api/register'),
-        headers: _getHeaders(),
-        body: json.encode({
-          'username': username,
-          'email': email,
-          'password': password,
-        }),
-      );
-
-      print('📝 Register Response status: ${response.statusCode}');
-      print('📝 Register Response body: ${response.body}');
-
-      return _handleAuthResponse(response);
-    } catch (e) {
-      print('❌ Error en register: $e');
-      return AuthResponse.error(message: 'Error de conexión: $e');
+    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+      return ApiResponse.error(message: 'Todos los campos son requeridos');
     }
+
+    if (!isValidEmail(email)) {
+      return ApiResponse.error(message: 'Email inválido');
+    }
+
+    return executeRequest<RegisterResponse>(
+      request: _client
+          .post(
+            Uri.parse('$_baseUrl/v1/api/register'),
+            headers: _getHeaders(),
+            body: json.encode({
+              'username': username.trim(),
+              'email': email.trim().toLowerCase(),
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 30)),
+      fromJson: RegisterResponse.fromJson,
+    );
   }
 
-  /// Login de usuario
-  Future<AuthResponse> login(String email, String password) async {
-    try {
-      final response = await _client.post(
-        Uri.parse('$_baseUrl/login'),
-        headers: _getHeaders(),
-        body: json.encode({'email': email, 'password': password}),
-      );
-
-      print('🔐 Login Response status: ${response.statusCode}');
-      print('🔐 Login Response body: ${response.body}');
-
-      return _handleAuthResponse(response);
-    } catch (e) {
-      print('❌ Error en login: $e');
-      return AuthResponse.error(message: 'Error de conexión: $e');
+  Future<ApiResponse<LoginResponse>> login(
+    String email,
+    String password,
+  ) async {
+    if (email.isEmpty || password.isEmpty) {
+      return ApiResponse.error(message: 'Todos los campos son requeridos');
     }
+
+    if (!isValidEmail(email)) {
+      return ApiResponse.error(message: 'Email inválido');
+    }
+
+    return executeRequest<LoginResponse>(
+      request: _client
+          .post(
+            Uri.parse('$_baseUrl/login'),
+            headers: _getHeaders(),
+            body: json.encode({
+              'email': email.trim().toLowerCase(),
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 30)),
+      fromJson: LoginResponse.fromJson,
+    );
   }
 
-  /// Obtener perfil del usuario
+  Future<ApiResponse<VerifyAccountResponseData>> verifyEmail({
+    required String email,
+    required String code,
+  }) async {
+    if (email.isEmpty || code.isEmpty) {
+      return ApiResponse.error(message: 'Todos los campos son requeridos');
+    }
+
+    if (!isValidEmail(email)) {
+      return ApiResponse.error(message: 'Email inválido');
+    }
+
+    return executeRequest<VerifyAccountResponseData>(
+      request: _client
+          .post(
+            Uri.parse('$_baseUrl/v1/api/verify-account'),
+            headers: _getHeaders(),
+            body: json.encode({'email': email, 'code': code}),
+          )
+          .timeout(const Duration(seconds: 30)),
+      fromJson: VerifyAccountResponseData.fromJson,
+    );
+  }
+
+  Future<ApiResponse<ResendOtpResponseData>> resendOtp({
+    required String email,
+    required String context,
+  }) async {
+    if (email.isEmpty || context.isEmpty) {
+      return ApiResponse.error(message: 'Todos los campos son requeridos');
+    }
+
+    if (!isValidEmail(email)) {
+      return ApiResponse.error(message: 'Email inválido');
+    }
+
+    return executeRequest<ResendOtpResponseData>(
+      request: _client
+          .post(
+            Uri.parse('$_baseUrl/v1/api/resend-otp'),
+            headers: _getHeaders(),
+            body: json.encode({'email': email, 'context': context}),
+          )
+          .timeout(const Duration(seconds: 30)),
+      fromJson: ResendOtpResponseData.fromJson,
+    );
+  }
+
+  Future<ApiResponse<PasswordResetResponseData>> requestPasswordReset({
+    required String email,
+  }) async {
+    if (email.isEmpty) {
+      return ApiResponse.error(message: 'Todos los campos son requeridos');
+    }
+
+    if (!isValidEmail(email)) {
+      return ApiResponse.error(message: 'Email inválido');
+    }
+
+    return executeRequest<PasswordResetResponseData>(
+      request: _client
+          .post(
+            Uri.parse('$_baseUrl/v1/api/password-reset/request'),
+            headers: _getHeaders(),
+            body: json.encode({'email': email}),
+          )
+          .timeout(const Duration(seconds: 30)),
+      fromJson: PasswordResetResponseData.fromJson,
+    );
+  }
+
+  Future<ApiResponse<PasswordResetResponseData>> validatePasswordResetOtp({
+    required String email,
+    required String code,
+  }) async {
+    if (email.isEmpty || code.isEmpty) {
+      return ApiResponse.error(message: 'Todos los campos son requeridos');
+    }
+
+    if (!isValidEmail(email)) {
+      return ApiResponse.error(message: 'Email inválido');
+    }
+
+    return executeRequest<PasswordResetResponseData>(
+      request: _client
+          .post(
+            Uri.parse('$_baseUrl/v1/api/password-reset/validate-otp'),
+            headers: _getHeaders(),
+            body: json.encode({'email': email, 'code': code}),
+          )
+          .timeout(const Duration(seconds: 30)),
+      fromJson: PasswordResetResponseData.fromJson,
+    );
+  }
+
+  Future<ApiResponse<PasswordResetResponseData>> confirmPasswordReset({
+    required String email,
+    required String code,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    if (email.isEmpty ||
+        code.isEmpty ||
+        newPassword.isEmpty ||
+        confirmPassword.isEmpty) {
+      return ApiResponse.error(message: 'Todos los campos son requeridos');
+    }
+
+    if (!isValidEmail(email)) {
+      return ApiResponse.error(message: 'Email inválido');
+    }
+
+    return executeRequest<PasswordResetResponseData>(
+      request: _client
+          .post(
+            Uri.parse('$_baseUrl/v1/api/password-reset/confirm'),
+            headers: _getHeaders(),
+            body: json.encode({
+              'email': email,
+              'code': code,
+              'password': newPassword,
+              'confirmPassword': confirmPassword,
+            }),
+          )
+          .timeout(const Duration(seconds: 30)),
+      fromJson: PasswordResetResponseData.fromJson,
+    );
+  }
+
+  //===================
+
   Future<ApiResponse<User>> getMyProfile() async {
     try {
       final String? token = await _storageService.getToken();
@@ -103,7 +248,8 @@ class AuthService {
         );
       } else {
         return ApiResponse.error(
-          message: responseData['message'] ??
+          message:
+              responseData['message'] ??
               responseData['error'] ??
               'Error al obtener el perfil - Código: ${response.statusCode}',
         );
@@ -113,45 +259,6 @@ class AuthService {
       return ApiResponse.error(message: 'Error de conexión: $e');
     }
   }
-
-  // ========== VERIFICACIÓN DE EMAIL ==========
-
-  /// Verificar email con código OTP
-  Future<ApiResponse<bool>> verifyEmail({
-    required String email,
-    required String verificationCode,
-  }) async {
-    try {
-      final response = await _client.post(
-        Uri.parse('$_baseUrl/v1/api/verify-account'),
-        headers: _getHeaders(),
-        body: json.encode({'email': email, 'code': verificationCode}),
-      );
-
-      return _handleApiResponse<bool>(response, (data) => true);
-    } catch (e) {
-      print('❌ Error en verifyEmail: $e');
-      return ApiResponse.error(message: 'Error de conexión: $e');
-    }
-  }
-
-  /// Reenviar código OTP
-  Future<ApiResponse<bool>> resendOtp({required String email}) async {
-    try {
-      final response = await _client.post(
-        Uri.parse('$_baseUrl/v1/api/resend-otp'),
-        headers: _getHeaders(),
-        body: json.encode({'email': email, 'context': 'verify'}),
-      );
-
-      return _handleApiResponse<bool>(response, (data) => true);
-    } catch (e) {
-      print('❌ Error en resendOtp: $e');
-      return ApiResponse.error(message: 'Error de conexión: $e');
-    }
-  }
-
-  // ========== ACTUALIZACIÓN DE PERFIL ==========
 
   /// Actualizar perfil de usuario
   Future<ApiResponse<User>> updateProfile({
@@ -184,7 +291,8 @@ class AuthService {
           await _storageService.saveUserProfile(user);
 
           return ApiResponse.success(
-            message: responseData['message'] ?? 'Perfil actualizado exitosamente',
+            message:
+                responseData['message'] ?? 'Perfil actualizado exitosamente',
             data: user,
           );
         } else {
@@ -198,7 +306,8 @@ class AuthService {
         );
       } else {
         return ApiResponse.error(
-          message: responseData['message'] ??
+          message:
+              responseData['message'] ??
               responseData['error'] ??
               'Error al actualizar el perfil - Código: ${response.statusCode}',
         );
@@ -208,71 +317,6 @@ class AuthService {
       return ApiResponse.error(message: 'Error de conexión: $e');
     }
   }
-
-  // ========== RECUPERACIÓN DE CONTRASEÑA ==========
-
-  /// Solicitar restablecimiento de contraseña
-  Future<ApiResponse<bool>> requestPasswordReset({required String email}) async {
-    try {
-      final response = await _client.post(
-        Uri.parse('$_baseUrl/v1/api/password-reset/request'),
-        headers: _getHeaders(),
-        body: json.encode({'email': email}),
-      );
-
-      return _handleApiResponse<bool>(response, (data) => true);
-    } catch (e) {
-      print('❌ Error en requestPasswordReset: $e');
-      return ApiResponse.error(message: 'Error de conexión: $e');
-    }
-  }
-
-  /// Validar OTP para restablecimiento
-  Future<ApiResponse<bool>> validatePasswordResetOtp({
-    required String email,
-    required String otp,
-  }) async {
-    try {
-      final response = await _client.post(
-        Uri.parse('$_baseUrl/v1/api/password-reset/validate-otp'),
-        headers: _getHeaders(),
-        body: json.encode({'email': email, 'code': otp}),
-      );
-
-      return _handleApiResponse<bool>(response, (data) => true);
-    } catch (e) {
-      print('❌ Error en validatePasswordResetOtp: $e');
-      return ApiResponse.error(message: 'Error de conexión: $e');
-    }
-  }
-
-  /// Confirmar restablecimiento de contraseña
-  Future<ApiResponse<bool>> confirmPasswordReset({
-    required String email,
-    required String otp,
-    required String newPassword,
-    required String confirmPassword,
-  }) async {
-    try {
-      final response = await _client.post(
-        Uri.parse('$_baseUrl/v1/api/password-reset/confirm'),
-        headers: _getHeaders(),
-        body: json.encode({
-          'email': email,
-          'code': otp,
-          'password': newPassword,
-          'confirmPassword': confirmPassword,
-        }),
-      );
-
-      return _handleApiResponse<bool>(response, (data) => true);
-    } catch (e) {
-      print('❌ Error en confirmPasswordReset: $e');
-      return ApiResponse.error(message: 'Error de conexión: $e');
-    }
-  }
-
-  // ========== DELEGACIÓN AL STORAGE SERVICE ==========
 
   /// Obtener usuario actual (delegado al storage service)
   Future<User?> getCurrentUser() => _storageService.getCurrentUser();
@@ -310,10 +354,11 @@ class AuthService {
     final Map<String, dynamic> responseData = json.decode(response.body);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      if (responseData['data'] != null && responseData['data']['success'] == true) {
+      if (responseData['data'] != null &&
+          responseData['data']['success'] == true) {
         // Guardar datos en storage
         _storageService.saveUserData(responseData['data']);
-        
+
         final user = User.fromJson(responseData['data']['user'] ?? {});
         final token = responseData['data']['access_token'];
 
@@ -338,11 +383,12 @@ class AuthService {
   /// Manejo genérico de respuestas API
   ApiResponse<T> _handleApiResponse<T>(
     http.Response response,
-    T Function(dynamic) dataMapper,
+    // T Function(dynamic) dataMapper,
+    T Function(Map<String, dynamic>) dataMapper,
   ) {
     final Map<String, dynamic> responseData = json.decode(response.body);
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       final String? error = responseData['error'];
       final bool hasError = error != null && error.isNotEmpty;
 
@@ -352,16 +398,19 @@ class AuthService {
           data: dataMapper(responseData['data']),
         );
       } else {
-        return ApiResponse.error(
-          message: error ?? 'Error en la operación',
-        );
+        return ApiResponse.error(message: error);
       }
     } else {
       return ApiResponse.error(
-        message: responseData['message'] ??
+        message:
+            responseData['message'] ??
             responseData['error'] ??
             'Error en la operación - Código: ${response.statusCode}',
       );
     }
+  }
+
+  bool isValidEmail(String email) {
+    return true;
   }
 }

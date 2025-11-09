@@ -125,7 +125,7 @@ class _VerificationCodeScreenState
       // Llamar al servicio de validación de OTP para reset de contraseña
       final result = await _authService.validatePasswordResetOtp(
         email: widget.email,
-        otp: verificationCode,
+        code: verificationCode,
       );
 
       setState(() {
@@ -208,8 +208,11 @@ class _VerificationCodeScreenState
 
     try {
       // // Llamar al servicio para reenviar el OTP
-      final result = await _authService.requestPasswordReset(
-        email: widget.email, // Asumiendo que recibes el email como parámetro
+      final result = await _authService.resendOtp(
+        email: widget.email,
+        context: 'reset_password'
+      
+       // Asumiendo que recibes el email como parámetro
       );
 
       setState(() {

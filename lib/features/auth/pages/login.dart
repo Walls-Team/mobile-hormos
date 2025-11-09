@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/features/auth/models/user_models.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
-import 'package:genius_hormo/features/auth/pages/setup_screen.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
+import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
+import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/views/welcome.dart';
@@ -43,37 +43,40 @@ class _LoginScreenState extends State<LoginScreen> {
         final String email = _emailController.text;
         final String password = _passwordController.text;
 
-        final AuthResponse loginResponse = await _authService.login(
-          email,
-          password,
-        );
+        final loginResponse = await _authService.login(email, password);
 
         setState(() {
           _isLoading = false;
         });
 
         if (loginResponse.success) {
-          final profileResponse = await _authService.getMyProfile();
-          final deviceResponse = await _spikeService.getMyDevices();
-
-          if (!profileResponse.data!.isProfileComplete ||
-              deviceResponse.devices!.isEmpty) {
-
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => SetupScreen()),
-              );
-            }
-          } else {
-            // - navegar a HomeScreen
-            if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-              );
-            }
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
           }
+          // final profileResponse = await _authService.getMyProfile();
+          // final deviceResponse = await _spikeService.getMyDevices();
+
+          // if (!profileResponse.data!.isProfileComplete ||
+          //     deviceResponse.devices!.isEmpty) {
+
+          //   if (mounted) {
+          //     Navigator.pushReplacement(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => SetupScreen()),
+          //     );
+          //   }
+          // } else {
+          //   // - navegar a HomeScreen
+          //   if (mounted) {
+          //     Navigator.pushReplacement(
+          //       context,
+          //       MaterialPageRoute(builder: (context) => HomeScreen()),
+          //     );
+          //   }
+          // }
 
           // print(result);
         } else {
@@ -163,17 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Text('Email'),
             TextFormField(
               controller: _emailController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Ingresa tu email';
-                }
-                if (!RegExp(
-                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                ).hasMatch(value)) {
-                  return 'Email inválido';
-                }
-                return null;
-              },
+              validator: validateEmail,
               decoration: InputDecoration(hintText: 'you@example.com'),
             ),
           ],
@@ -188,13 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
             InputPassword(
               controller: _passwordController,
               hintText: '********',
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Ingresa tu contraseña';
-                }
-                if (value.length < 6) return 'Mínimo 6 caracteres';
-                return null;
-              },
+              validator: validatePassword,
             ),
           ],
         ),
