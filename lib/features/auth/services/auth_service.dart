@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:genius_hormo/core/api/api_helpers.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
+import 'package:genius_hormo/core/config/app_config.dart';
 import 'package:genius_hormo/features/auth/dto/login_dto.dart';
 import 'package:genius_hormo/features/auth/dto/register_dto.dart';
 import 'package:genius_hormo/features/auth/dto/resend_otp.dart';
@@ -14,7 +15,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'user_storage_service.dart';
 
 class AuthService {
-  static const String _baseUrl = 'http://localhost:3000';
   final UserStorageService _storageService;
   final http.Client _client;
 
@@ -38,15 +38,15 @@ class AuthService {
     return executeRequest<RegisterResponseData>(
       request: _client
           .post(
-            Uri.parse('$_baseUrl/v1/api/register'),
-            headers: _getHeaders(),
+            Uri.parse(AppConfig.getApiUrl('register')),
+            headers: AppConfig.getCommonHeaders(),
             body: json.encode({
               'username': username.trim(),
               'email': email.trim().toLowerCase(),
               'password': password,
             }),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: RegisterResponseData.fromJson,
     );
   }
@@ -66,14 +66,14 @@ class AuthService {
     return executeRequest<LoginResponse>(
       request: _client
           .post(
-            Uri.parse('$_baseUrl/login'),
-            headers: _getHeaders(),
+            Uri.parse(AppConfig.getBaseUrl('login')),
+            headers: AppConfig.getCommonHeaders(),
             body: json.encode({
               'email': email.trim().toLowerCase(),
               'password': password,
             }),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: LoginResponse.fromJson,
     );
   }
@@ -93,11 +93,11 @@ class AuthService {
     return executeRequest<VerifyAccountResponseData>(
       request: _client
           .post(
-            Uri.parse('$_baseUrl/v1/api/verify-account'),
-            headers: _getHeaders(),
+            Uri.parse(AppConfig.getApiUrl('verify-account')),
+            headers: AppConfig.getCommonHeaders(),
             body: json.encode({'email': email, 'code': code}),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: VerifyAccountResponseData.fromJson,
     );
   }
@@ -117,11 +117,11 @@ class AuthService {
     return executeRequest<ResendOtpResponseData>(
       request: _client
           .post(
-            Uri.parse('$_baseUrl/v1/api/resend-otp'),
-            headers: _getHeaders(),
+            Uri.parse(AppConfig.getApiUrl('resend-otp')),
+            headers: AppConfig.getCommonHeaders(),
             body: json.encode({'email': email, 'context': context}),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: ResendOtpResponseData.fromJson,
     );
   }
@@ -140,11 +140,11 @@ class AuthService {
     return executeRequest<PasswordResetResponseData>(
       request: _client
           .post(
-            Uri.parse('$_baseUrl/v1/api/password-reset/request'),
-            headers: _getHeaders(),
+            Uri.parse(AppConfig.getApiUrl('password-reset/request')),
+            headers: AppConfig.getCommonHeaders(),
             body: json.encode({'email': email}),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: PasswordResetResponseData.fromJson,
     );
   }
@@ -164,11 +164,11 @@ class AuthService {
     return executeRequest<PasswordResetResponseData>(
       request: _client
           .post(
-            Uri.parse('$_baseUrl/v1/api/password-reset/validate-otp'),
-            headers: _getHeaders(),
+            Uri.parse(AppConfig.getApiUrl('password-reset/validate-otp')),
+            headers: AppConfig.getCommonHeaders(),
             body: json.encode({'email': email, 'code': code}),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: PasswordResetResponseData.fromJson,
     );
   }
@@ -193,8 +193,8 @@ class AuthService {
     return executeRequest<PasswordResetResponseData>(
       request: _client
           .post(
-            Uri.parse('$_baseUrl/v1/api/password-reset/confirm'),
-            headers: _getHeaders(),
+            Uri.parse(AppConfig.getApiUrl('password-reset/confirm')),
+            headers: AppConfig.getCommonHeaders(),
             body: json.encode({
               'email': email,
               'code': code,
@@ -202,7 +202,7 @@ class AuthService {
               'confirmPassword': confirmPassword,
             }),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: PasswordResetResponseData.fromJson,
     );
   }
@@ -231,10 +231,10 @@ class AuthService {
         final result = await executeRequest<UserProfileData>(
           request: _client
               .get(
-                Uri.parse('$_baseUrl/v1/api/me'),
-                headers: _getHeaders(withAuth: true, token: token),
+                Uri.parse(AppConfig.getApiUrl('me')),
+                headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
               )
-              .timeout(const Duration(seconds: 30)),
+              .timeout(AppConfig.defaultTimeout),
           fromJson: UserProfileData.fromJson,
         );
 
@@ -261,10 +261,10 @@ class AuthService {
     return executeRequest<UpdateProfileResponseData>(
       request: _client
           .get(
-            Uri.parse('$_baseUrl/v1/api/me/update'),
-            headers: _getHeaders(withAuth: true, token: token),
+            Uri.parse(AppConfig.getApiUrl('me/update')),
+            headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: UpdateProfileResponseData.fromJson,
     );
   }
@@ -339,20 +339,7 @@ class AuthService {
   Future<void> clearAllStorage() => _storageService.clearAllStorage();
 
   // ========== MÉTODOS PRIVADOS ==========
-
-  /// Headers comunes para las requests
-  Map<String, String> _getHeaders({bool withAuth = false, String? token}) {
-    final headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    if (withAuth && token != null) {
-      headers['Authorization'] = 'Bearer $token';
-    }
-
-    return headers;
-  }
+  // Nota: _getHeaders fue reemplazado por AppConfig.getCommonHeaders()
 
   bool isValidEmail(String email) {
     return true;
