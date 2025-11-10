@@ -17,9 +17,9 @@ class StatsService {
     Map<String, String>? queryParams,
   }) async {
     try {
-      final uri = Uri.parse('$_baseUrl/$endpoint').replace(
-        queryParameters: queryParams,
-      );
+      final uri = Uri.parse('$_baseUrl/$endpoint');
+
+      print(uri);
 
       final response = await client.get(
         uri,
@@ -29,11 +29,16 @@ class StatsService {
         },
       ).timeout(const Duration(seconds: 30));
 
+      print(response.statusCode);
+      // print(response.body);
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         
         // Extraer el campo 'data' del response y convertirlo al tipo específico
         final responseData = data['data'];
+
+        print(responseData);
         return fromJson(responseData);
       } else {
         throw Exception('HTTP ${response.statusCode}: ${response.body}');
@@ -48,15 +53,22 @@ class StatsService {
     String? startDate,
     String? endDate,
   }) async {
+
+    print('hola');
     final params = <String, String>{};
     if (startDate != null) params['startDate'] = startDate;
     if (endDate != null) params['endDate'] = endDate;
 
-    return await _getRequest<SleepEfficiencyData>(
+
+    final result = await _getRequest<SleepEfficiencyData>(
       endpoint: 'sleep-efficiency',
-      queryParams: params,
+      // queryParams: params,
       fromJson: (data) => SleepEfficiencyData.fromJson(data),
     );
+
+    print(result.records);
+
+    return result;
   }
 
   // GET /v1/api/stats/sleep-duration
@@ -153,6 +165,8 @@ class StatsService {
         getCalories(startDate: startDate, endDate: endDate),
         getSleepInterruptions(startDate: startDate, endDate: endDate),
       ]);
+
+      print(results);
 
       return AllStats(
         sleepEfficiency: results[0] as SleepEfficiencyData,

@@ -13,6 +13,8 @@ import 'package:genius_hormo/features/dashboard/dto/basic_metrics/spo2_record_dt
 import 'package:genius_hormo/features/dashboard/dto/energy_levels/energy_stats.dart';
 import 'package:genius_hormo/features/dashboard/dto/health_data.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
+import 'package:genius_hormo/features/stats/dto/dtos.dart';
+import 'package:genius_hormo/features/stats/service/stats_service.dart';
 import 'package:get_it/get_it.dart';
 
 class StatsScreen extends StatefulWidget {
@@ -21,27 +23,27 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  final DashBoardService _dashboardService = GetIt.instance<DashBoardService>();
-  final UserStorageService _userStorageService =
+  final StatsService _statsService = GetIt.instance<StatsService>();
+    final UserStorageService _userStorageService =
       GetIt.instance<UserStorageService>();
-  late Future<HealthData> _metricsFuture;
+  late Future<SleepEfficiencyData> _statsFuture;
 
   @override
   void initState() {
     super.initState();
     // ✅ SE EJECUTA UNA SOLA VEZ al cargar la página
-    _metricsFuture = _loadMetrics();
+    _statsFuture = _loadMetrics();
   }
 
-  Future<HealthData> _loadMetrics() async {
+  Future<SleepEfficiencyData> _loadMetrics() async {
     final token = await _userStorageService.getJWTToken();
-    return _dashboardService.getHealthData(token: token!);
+    return _statsService.getSleepEfficiency();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<HealthData>(
-      future: _metricsFuture, // ← Se usa la misma instancia del Future
+    return FutureBuilder<SleepEfficiencyData>(
+      future: _statsFuture, // ← Se usa la misma instancia del Future
       builder: (context, snapshot) {
         // ⏳ CARGANDO
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -73,22 +75,16 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildCharts(HealthData metrics) {
-    return ListView(
-      padding: EdgeInsets.all(12),
-      children: [
+  Widget _buildCharts(SleepEfficiencyData metrics) {
+    return ListView(padding: EdgeInsets.all(12), children: [
 
       ],
     );
   }
 
-
   Widget _buildSleepEficiencyChart({required List<SpO2Record> spO2ChartData}) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Container(),
-      ),
+      child: Padding(padding: const EdgeInsets.all(16), child: Container()),
     );
   }
 }

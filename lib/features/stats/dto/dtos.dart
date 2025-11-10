@@ -9,10 +9,12 @@ class SleepEfficiencyData {
 
   factory SleepEfficiencyData.fromJson(dynamic json) {
     if (json is List) {
+      print('soy list');
       return SleepEfficiencyData(
         records: json.map((item) => SleepEfficiencyRecord.fromJson(item)).toList(),
       );
     } else {
+      print('no es list');
       throw ArgumentError('Expected List but got ${json.runtimeType}');
     }
   }
