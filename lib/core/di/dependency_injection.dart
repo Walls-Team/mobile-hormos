@@ -4,6 +4,7 @@ import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
+import 'package:genius_hormo/features/stats/service/stats_service.dart';
 import 'package:genius_hormo/providers/lang_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -24,10 +25,11 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<UserStorageService>(() => UserStorageService());
 
-  getIt.registerLazySingleton<SpikeApiService>( ()=>SpikeApiService()
+  getIt.registerLazySingleton<SpikeApiService>(
+    () => SpikeApiService(),
     // () => SpikeApiService(getIt<UserStorageService>()),
   );
 
   getIt.registerLazySingleton<DashBoardService>(() => DashBoardService());
-
+  getIt.registerLazySingleton<StatsService>(() => StatsService());
 }
