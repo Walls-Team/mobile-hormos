@@ -18,7 +18,7 @@ class SpikeApiService {
   /// Obtener dispositivos del usuario desde el servidor
   Future<DevicesResponse> getMyDevices() async {
     try {
-      final String? token = await _userStorageService.getToken();
+      final String? token = await _userStorageService.getJWTToken();
       
       if (token == null || token.isEmpty) {
         return DevicesResponse.error(

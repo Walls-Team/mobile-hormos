@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/views/dashboard/components/progress_bar.dart';
+import 'package:genius_hormo/features/dashboard/components/progress_bar.dart';
+import 'package:genius_hormo/features/dashboard/dto/basic_metrics/rem_sleep_record_dto.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class SleepChart extends StatelessWidget {
-  final List<REMData> data;
-  const SleepChart({super.key, required this.data});
+class RemChart extends StatelessWidget {
+  final List<RemSleepRecord> data;
+  const RemChart({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -89,12 +90,12 @@ class SleepChart extends StatelessWidget {
                   ),
                 ),
                 // tooltipBehavior: _tooltipBehavior,
-                series: <CartesianSeries<REMData, String>>[
-                  ColumnSeries<REMData, String>(
+                series: <CartesianSeries<RemSleepRecord, String>>[
+                  ColumnSeries<RemSleepRecord, String>(
                     dataSource: data, // Cambiado de widget.data a data
-                    xValueMapper: (REMData data, _) => _formatDate(data.date),
-                    yValueMapper: (REMData data, _) => data.sleepDurationRem,
-                    pointColorMapper: (REMData data, _) =>
+                    xValueMapper: (RemSleepRecord data, _) => _formatDate(data.date),
+                    yValueMapper: (RemSleepRecord data, _) => data.sleepDurationRem,
+                    pointColorMapper: (RemSleepRecord data, _) =>
                         Theme.of(context).colorScheme.error,
                     width: 1.0,
                     spacing: 0.1,

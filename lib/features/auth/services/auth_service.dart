@@ -209,7 +209,7 @@ class AuthService {
 
   Future<ApiResponse<User>> getMyProfile() async {
     try {
-      final String? token = await _storageService.getToken();
+      final String? token = await _storageService.getJWTToken();
 
       if (token == null || token.isEmpty) {
         return ApiResponse.error(message: 'No hay token de autenticación');
@@ -265,7 +265,7 @@ class AuthService {
     required Map<String, dynamic> updateData,
   }) async {
     try {
-      final String? token = await _storageService.getToken();
+      final String? token = await _storageService.getJWTToken();
 
       if (token == null) {
         return ApiResponse.error(message: 'No hay token de autenticación');
@@ -327,9 +327,6 @@ class AuthService {
   /// Verificar si el perfil está completo (delegado al storage service)
   Future<bool> isProfileComplete() => _storageService.isProfileComplete();
 
-  /// Logout (delegado al storage service)
-  Future<void> logout() => _storageService.logout();
-
   /// Limpiar almacenamiento (delegado al storage service)
   Future<void> clearAllStorage() => _storageService.clearAllStorage();
 
@@ -349,67 +346,7 @@ class AuthService {
     return headers;
   }
 
-  /// Manejo de respuestas de autenticación
-  AuthResponse _handleAuthResponse(http.Response response) {
-    final Map<String, dynamic> responseData = json.decode(response.body);
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      if (responseData['data'] != null &&
-          responseData['data']['success'] == true) {
-        // Guardar datos en storage
-        _storageService.saveUserData(responseData['data']);
-
-        final user = User.fromJson(responseData['data']['user'] ?? {});
-        final token = responseData['data']['access_token'];
-
-        return AuthResponse.success(
-          message: responseData['message'] ?? 'Operación exitosa',
-          user: user,
-          token: token,
-        );
-      } else {
-        return AuthResponse.error(
-          message: responseData['message'] ?? 'Error en la operación',
-        );
-      }
-    } else {
-      final errorData = json.decode(response.body);
-      return AuthResponse.error(
-        message: errorData['message'] ?? 'Error en la operación',
-      );
-    }
-  }
-
-  /// Manejo genérico de respuestas API
-  ApiResponse<T> _handleApiResponse<T>(
-    http.Response response,
-    // T Function(dynamic) dataMapper,
-    T Function(Map<String, dynamic>) dataMapper,
-  ) {
-    final Map<String, dynamic> responseData = json.decode(response.body);
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final String? error = responseData['error'];
-      final bool hasError = error != null && error.isNotEmpty;
-
-      if (!hasError) {
-        return ApiResponse.success(
-          message: responseData['message'] ?? 'Operación exitosa',
-          data: dataMapper(responseData['data']),
-        );
-      } else {
-        return ApiResponse.error(message: error);
-      }
-    } else {
-      return ApiResponse.error(
-        message:
-            responseData['message'] ??
-            responseData['error'] ??
-            'Error en la operación - Código: ${response.statusCode}',
-      );
-    }
-  }
-
+  
   bool isValidEmail(String email) {
     return true;
   }

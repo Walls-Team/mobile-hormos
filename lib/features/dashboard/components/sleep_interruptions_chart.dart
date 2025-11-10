@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/views/dashboard/components/sleep_sumary.dart';
+import 'package:genius_hormo/features/dashboard/components/sleep_sumary.dart';
+import 'package:genius_hormo/features/dashboard/dto/basic_metrics/sleep_record_dto.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
 
 class SleepInterruptionsChart extends StatelessWidget {
-  final List<SleepData> data;
+  final List<SleepRecord> data;
 
   const SleepInterruptionsChart({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
     // Ordenar los datos por fecha (más reciente primero)
-    final sortedData = List<SleepData>.from(data)
+    final sortedData = List<SleepRecord>.from(data)
       ..sort((a, b) => a.date.compareTo(b.date));
 
     final ThemeData theme = Theme.of(context);
@@ -101,12 +102,12 @@ class SleepInterruptionsChart extends StatelessWidget {
               ),
             ),
 
-            series: <CartesianSeries<SleepData, String>>[
+            series: <CartesianSeries<SleepRecord, String>>[
               // Línea principal
-              LineSeries<SleepData, String>(
+              LineSeries<SleepRecord, String>(
                 dataSource: sortedData,
-                xValueMapper: (SleepData data, _) => _formatDate(data.date),
-                yValueMapper: (SleepData data, _) => data.sleepInterruptions,
+                xValueMapper: (SleepRecord data, _) => _formatDate(DateTime.parse(data.date)),
+                yValueMapper: (SleepRecord data, _) => data.sleepInterruptions,
                 color: theme.colorScheme.primary,
                 width: 3,
 
@@ -118,10 +119,10 @@ class SleepInterruptionsChart extends StatelessWidget {
                 ),
               ),
               // Área debajo de la línea
-              AreaSeries<SleepData, String>(
+              AreaSeries<SleepRecord, String>(
                 dataSource: sortedData,
-                xValueMapper: (SleepData data, _) => _formatDate(data.date),
-                yValueMapper: (SleepData data, _) => data.sleepInterruptions,
+                xValueMapper: (SleepRecord data, _) => _formatDate(DateTime.parse(data.date)),
+                yValueMapper: (SleepRecord data, _) => data.sleepInterruptions,
                 color: theme.colorScheme.primary.withValues(alpha: 0.2),
                 borderColor: Colors.transparent,
                 enableTooltip: false, // ← Esto evita el tooltip duplicado
@@ -147,7 +148,7 @@ class SleepInterruptionsChart extends StatelessWidget {
     return '$month $day';
   }
 
-  double _calculateYAxisMax(List<SleepData> data) {
+  double _calculateYAxisMax(List<SleepRecord> data) {
     if (data.isEmpty) return 15;
     final maxInterruptions = data
         .map((e) => e.sleepInterruptions)
@@ -156,7 +157,7 @@ class SleepInterruptionsChart extends StatelessWidget {
     return (maxInterruptions * 1.2).ceilToDouble().ceilToDouble();
   }
 
-  double _calculateYAxisInterval(List<SleepData> data) {
+  double _calculateYAxisInterval(List<SleepRecord> data) {
     final max = _calculateYAxisMax(data);
     if (max <= 8) return 2;
     if (max <= 16) return 4;
@@ -164,56 +165,27 @@ class SleepInterruptionsChart extends StatelessWidget {
   }
 
   // Métodos para calcular promedios
-  double _calculateAverageInterruptions(List<SleepData> data) {
+  double _calculateAverageInterruptions(List<SleepRecord> data) {
     if (data.isEmpty) return 0;
     final total = data.map((e) => e.sleepInterruptions).reduce((a, b) => a + b);
     return total / data.length;
   }
 
-  double _calculateAverageEfficiency(List<SleepData> data) {
+  double _calculateAverageEfficiency(List<SleepRecord> data) {
     if (data.isEmpty) return 0;
     final total = data.map((e) => e.sleepEfficiency).reduce((a, b) => a + b);
     return total / data.length;
   }
 
-  double _calculateAverageDuration(List<SleepData> data) {
+  double _calculateAverageDuration(List<SleepRecord> data) {
     if (data.isEmpty) return 0;
     final total = data.map((e) => e.sleepDuration).reduce((a, b) => a + b);
     return total / data.length;
   }
 
-  double _calculateAverageSleepScore(List<SleepData> data) {
+  double _calculateAverageSleepScore(List<SleepRecord> data) {
     if (data.isEmpty) return 0;
     final total = data.map((e) => e.sleepScore).reduce((a, b) => a + b);
     return total / data.length;
-  }
-}
-class SleepData {
-  final double hrvRmssd;
-  final double sleepEfficiency;
-  final double sleepDuration;
-  final int sleepInterruptions;
-  final double sleepScore;
-  final DateTime date;
-
-  SleepData({
-    required this.hrvRmssd,
-    required this.sleepEfficiency,
-    required this.sleepDuration,
-    required this.sleepInterruptions,
-    required this.sleepScore,
-    required this.date,
-  });
-
-  // Constructor desde JSON
-  factory SleepData.fromJson(Map<String, dynamic> json) {
-    return SleepData(
-      hrvRmssd: (json['hrv_rmssd'] as num).toDouble(),
-      sleepEfficiency: (json['sleep_efficiency'] as num).toDouble(),
-      sleepDuration: (json['sleep_duration'] as num).toDouble(),
-      sleepInterruptions: json['sleep_interruptions'] as int,
-      sleepScore: (json['sleep_score'] as num).toDouble(),
-      date: DateTime.parse(json['date'] as String),
-    );
   }
 }

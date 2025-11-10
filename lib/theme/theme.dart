@@ -13,6 +13,8 @@ ThemeData theme = ThemeData(
 
     primary: primary600,
     onPrimary: Colors.black,
+
+    error: Colors.red,
   ),
 
   textTheme: TextTheme(
@@ -69,22 +71,13 @@ ThemeData theme = ThemeData(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: Colors.red, width: 2),
     ),
-
-    // FONDO Y RELLENO
     filled: true,
     fillColor: const Color(0xFF2A2C3B),
-
     suffixIconColor: const Color(0xFF9D9D9D),
-
-    // TEXTO Y ESTILOS
     labelStyle: TextStyle(color: Colors.white, fontSize: 16),
     hintStyle: TextStyle(color: const Color(0xFF9D9D9D), fontSize: 16),
     errorStyle: TextStyle(color: Colors.red, fontSize: 14),
-
-    // ESPACIADO Y TAMAÑO
     contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-
-    // PREFIJO/SUFIJO
     prefixStyle: TextStyle(color: Color(0xFF1C1D23)),
     suffixStyle: TextStyle(color: Color(0xFF1C1D23)),
   ),
@@ -106,5 +99,18 @@ ThemeData theme = ThemeData(
     elevation: 6,
     // Ancho (solo para comportamiento flotante)
     // width: 400,
+  ),
+  
+  
+  iconTheme: IconThemeData(
+    color: Colors.white, // Color blanco para iconos
+    size: 24, // Tamaño opcional
+  ),
+
+  // También puedes agregar esto para iconos de botones
+  iconButtonTheme: IconButtonThemeData(
+    style: IconButton.styleFrom(
+      foregroundColor: Colors.white, // Color del icono
+    ),
   ),
 );

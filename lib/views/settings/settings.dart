@@ -16,7 +16,7 @@ class SettingsScreen extends StatelessWidget {
           spacing: 30.0,
           children: [
             _buildAvatar(),
-            const ProfileForm(),
+            // const ProfileForm(),
             _buildFAQs(context),
             _buildConnections(context),
             _buildLogoutButton(context),

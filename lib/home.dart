@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/views/dashboard/dashboard.dart';
+import 'package:genius_hormo/features/dashboard/dashboard.dart';
 import 'package:genius_hormo/views/settings/settings.dart';
 import 'package:genius_hormo/views/stats/stats.dart';
 import 'package:genius_hormo/views/store/store.dart';
@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Páginas correspondientes a cada tab
   final List<Widget> _pages = [
-    DashboardPage(),
+    DashboardScreen(),
     StatsPage(),
     StoreScreen(),
     SettingsScreen(),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/core/api/api_response.dart';
+import 'package:genius_hormo/features/auth/dto/login_dto.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
+import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
-import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/views/welcome.dart';
 import 'package:genius_hormo/widgets/form/password_input.dart';
@@ -23,7 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  final SpikeApiService _spikeService = GetIt.instance<SpikeApiService>();
+  final UserStorageService _userStorageServic =
+      GetIt.instance<UserStorageService>();
   final AuthService _authService = GetIt.instance<AuthService>();
 
   @override
@@ -43,13 +46,21 @@ class _LoginScreenState extends State<LoginScreen> {
         final String email = _emailController.text;
         final String password = _passwordController.text;
 
-        final loginResponse = await _authService.login(email, password);
+        final ApiResponse<LoginResponse> loginResponse = await _authService
+            .login(email, password);
 
         setState(() {
           _isLoading = false;
         });
 
         if (loginResponse.success) {
+          final data = loginResponse.data;
+
+          if (data != null) {
+            _userStorageServic.saveJWTToken(data.accessToken);
+            _userStorageServic.saveRefreshToken(data.accessToken);
+          }
+
           if (mounted) {
             Navigator.pushReplacement(
               context,

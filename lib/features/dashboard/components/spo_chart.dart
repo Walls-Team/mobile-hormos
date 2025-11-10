@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/dashboard/dto/basic_metrics/spo2_record_dto.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class SPOChart extends StatelessWidget {
-  final List<SPOData> data;
+class SPO2Chart extends StatelessWidget {
+  final List<SpO2Record> data;
 
-  const SPOChart({super.key, required this.data});
+  const SPO2Chart({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -92,13 +93,13 @@ class SPOChart extends StatelessWidget {
                   ),
                 ),
                 // tooltipBehavior: _tooltipBehavior,
-                series: <CartesianSeries<SPOData, String>>[
-                  ColumnSeries<SPOData, String>(
+                series: <CartesianSeries<SpO2Record, String>>[
+                  ColumnSeries<SpO2Record, String>(
                     dataSource: data, // Cambiado de widget.data a data
-                    xValueMapper: (SPOData data, _) => _formatDate(data.date),
-                    yValueMapper: (SPOData data, _) => data.spo2,
+                    xValueMapper: (SpO2Record data, _) => _formatDate(data.date),
+                    yValueMapper: (SpO2Record data, _) => data.spo2,
 
-                    pointColorMapper: (SPOData data, _) =>
+                    pointColorMapper: (SpO2Record data, _) =>
                         Theme.of(context).colorScheme.primary,
                     width: 1.0,
                     spacing: 0.1,
@@ -138,18 +139,5 @@ class SPOChart extends StatelessWidget {
       return dateString;
     }
   }
-}
-
-
-
-
-class SPOData {
-  final double spo2;
-  final String date;
-
-  SPOData({
-    required this.spo2,
-    required this.date,
-  });
 }
 
