@@ -15,6 +15,8 @@ class NavigationService {
   /// Maneja los deep links recibidos y los convierte en navegación
   void handleDeepLink(GeniusHormoDeepLinkData deepLinkData) {
     final routeConfig = _deepLinkMapper.mapDeepLinkToRoute(deepLinkData);
+
+    print(deepLinkData.fragment);
     
     if (routeConfig != null) {
       _navigateToRoute(routeConfig);

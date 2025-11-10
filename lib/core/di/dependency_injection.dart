@@ -24,8 +24,8 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<UserStorageService>(() => UserStorageService());
 
-  getIt.registerLazySingleton<SpikeApiService>(
-    () => SpikeApiService(getIt<UserStorageService>()),
+  getIt.registerLazySingleton<SpikeApiService>( ()=>SpikeApiService()
+    // () => SpikeApiService(getIt<UserStorageService>()),
   );
 
   getIt.registerLazySingleton<DashBoardService>(() => DashBoardService());

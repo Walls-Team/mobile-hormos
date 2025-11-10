@@ -21,12 +21,11 @@ class RemChart extends StatelessWidget {
             children: [
               Text(
                 'REM',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              Text(
-                'REM Avg: ${_calculateAverageDuration()}h',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
+              Text('REM Avg: ${_calculateAverageDuration()}h', softWrap: true),
             ],
           ),
         ),
@@ -93,8 +92,10 @@ class RemChart extends StatelessWidget {
                 series: <CartesianSeries<RemSleepRecord, String>>[
                   ColumnSeries<RemSleepRecord, String>(
                     dataSource: data, // Cambiado de widget.data a data
-                    xValueMapper: (RemSleepRecord data, _) => _formatDate(data.date),
-                    yValueMapper: (RemSleepRecord data, _) => data.sleepDurationRem,
+                    xValueMapper: (RemSleepRecord data, _) =>
+                        _formatDate(data.date),
+                    yValueMapper: (RemSleepRecord data, _) =>
+                        data.sleepDurationRem,
                     pointColorMapper: (RemSleepRecord data, _) =>
                         Theme.of(context).colorScheme.error,
                     width: 1.0,
@@ -154,8 +155,5 @@ class REMData {
   final double sleepDurationRem;
   final String date;
 
-  REMData({
-    required this.sleepDurationRem,
-    required this.date,
-  });
+  REMData({required this.sleepDurationRem, required this.date});
 }

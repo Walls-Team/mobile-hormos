@@ -53,15 +53,42 @@ class GeniusHormoDeepLinkService {
            uri.toString().contains('geniushormo');
   }
 
+  // void _processDeepLink(Uri uri) {
+  //   try {
+  //     final deepLinkData = GeniusHormoDeepLinkData.fromUri(uri);
+  //     _deepLinkController.add(deepLinkData);
+  //     _logInfo('Deep link processed: ${deepLinkData.path}');
+  //   } catch (e) {
+  //     _logError('Error processing deep link: $e');
+  //   }
+  // }
+
   void _processDeepLink(Uri uri) {
-    try {
-      final deepLinkData = GeniusHormoDeepLinkData.fromUri(uri);
-      _deepLinkController.add(deepLinkData);
-      _logInfo('Deep link processed: ${deepLinkData.path}');
-    } catch (e) {
-      _logError('Error processing deep link: $e');
-    }
+  try {
+    print('=== DEEP LINK RAW URI ===');
+    print('URI completo: $uri');
+    print('Scheme: ${uri.scheme}');
+    print('Host: ${uri.host}');
+    print('Path: ${uri.path}');
+    print('Path Segments: ${uri.pathSegments}');
+    print('Query: ${uri.query}');
+    print('Query Parameters: ${uri.queryParameters}');
+    
+    final deepLinkData = GeniusHormoDeepLinkData.fromUri(uri);
+    
+    print('=== PROCESSED DEEP LINK ===');
+    print('Path: ${deepLinkData.path}');
+    print('Segments: ${deepLinkData.segments}');
+    print('Host: ${deepLinkData.host}');
+    print('Link Type: ${deepLinkData.linkType}');
+    print('isAcceptDevice: ${deepLinkData.isAcceptDevice}');
+    
+    _deepLinkController.add(deepLinkData);
+    _logInfo('Deep link processed: ${deepLinkData.path}');
+  } catch (e) {
+    _logError('Error processing deep link: $e');
   }
+}
 
   void _logInfo(String message) {
     print('🔗 DeepLinkService: $message');

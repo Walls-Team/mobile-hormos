@@ -1,124 +1,72 @@
-import 'genius_hormo_deep_link_data.dart';
-import '../navigation/navigation_service.dart';
+import 'package:flutter/cupertino.dart' show NavigatorState, GlobalKey;
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/core/deep_link/genius_hormo_deep_link_data.dart';
+import 'package:genius_hormo/core/navigation/navigation_service.dart';
 
 class DeepLinkMapper {
   final GlobalKey<NavigatorState> navigatorKey;
 
   DeepLinkMapper({required this.navigatorKey});
 
-  DeepLinkRouteConfig? mapDeepLinkToRoute(GeniusHormoDeepLinkData deepLinkData) {
+  DeepLinkRouteConfig? mapDeepLinkToRoute(
+    GeniusHormoDeepLinkData deepLinkData,
+  ) {
     final context = _getNavigationContext();
     if (context == null) return null;
 
+    print('🔗 Mapping deep link - Path: ${deepLinkData.path}');
+    print('🔗 Host: ${deepLinkData.host}');
+    print('🔗 Segments: ${deepLinkData.segments}');
 
-    // HOME: https://geniushormo.com/
-    if (deepLinkData.isHome) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/',
-      );
-    }
+    // ✅ DETECCIÓN SIMPLE PARA SPIKE/ACCEPTDEVICE
+    // Para geniushormo://auth/spike/acceptdevice
+    // - Scheme: geniushormo
+    // - Host: auth
+    // - Path: /spike/acceptdevice
+    // - Segments: [spike, acceptdevice]
     
-    // TERMS AND CONDITIONS: https://geniushormo.com/terms_and_conditions
-    else if (deepLinkData.isTermsAndConditions) {
+    if (deepLinkData.linkType == GeniusHormoLinkType.customScheme &&
+        deepLinkData.host == 'auth' &&
+        deepLinkData.segments.length >= 2 &&
+        deepLinkData.segments[0] == 'spike' &&
+        deepLinkData.segments[1] == 'acceptdevice') {
+      
+      print('✅ Ruta acceptDevice detectada via custom scheme');
+      
       return DeepLinkRouteConfig(
         context: context,
-        path: '/terms_and_conditions',
-      );
-    }
-    
-    // DASHBOARD: https://geniushormo.com/dashboard
-    else if (deepLinkData.isDashboard) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/dashboard',
-      );
-    }
-    
-    // STATS: https://geniushormo.com/stats
-    else if (deepLinkData.isStats) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/stats',
-      );
-    }
-    
-    // STORE: https://geniushormo.com/store
-    else if (deepLinkData.isStore) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/store',
-      );
-    }
-    
-    // SETTINGS: https://geniushormo.com/settings
-    else if (deepLinkData.isSettings) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/settings',
-      );
-    }
-    
-    // FAQs: https://geniushormo.com/faqs
-    else if (deepLinkData.isFaqs) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/faqs',
-      );
-    }
-    
-    // LOGIN: https://geniushormo.com/auth/login
-    else if (deepLinkData.isLogin) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/auth/login',
-      );
-    }
-    
-    // REGISTER: https://geniushormo.com/auth/register
-    else if (deepLinkData.isRegister) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/auth/register',
-      );
-    }
-    
-    // RESET PASSWORD: https://geniushormo.com/auth/reset_password
-    else if (deepLinkData.isResetPassword) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/auth/reset_password',
-      );
-    }
-    
-    // FORGOT PASSWORD: https://geniushormo.com/auth/forgot_password
-    else if (deepLinkData.isForgotPassword) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/auth/forgot_password',
-      );
-    }
-    
-    // EMAIL VERIFICATION: https://geniushormo.com/auth/code_validation
-    else if (deepLinkData.isVerificateEmailCode) {
-      return DeepLinkRouteConfig(
-        context: context,
-        path: '/auth/code_validation',
+        path: '/auth/spike/acceptdevice',
         queryParameters: {
-          if (deepLinkData.getQueryParam('email') != null)
-            'email': deepLinkData.getQueryParam('email')!,
-          if (deepLinkData.getQueryParam('action') != null)
-            'action': deepLinkData.getQueryParam('action')!,
+          'provider_slug': deepLinkData.getQueryParam('provider_slug') ?? '',
+          'user_id': deepLinkData.getQueryParam('user_id') ?? '',
         },
       );
     }
 
-    // Ruta no reconocida - redirigir a home
-    return DeepLinkRouteConfig(
-      context: context,
-      path: '/',
-    );
+    // ✅ DETECCIÓN PARA UNIVERSAL LINKS
+    // Para https://geniushormo.com/auth/spike/acceptdevice
+    if (deepLinkData.linkType == GeniusHormoLinkType.universalLink &&
+        deepLinkData.segments.length >= 3 &&
+        deepLinkData.segments[0] == 'auth' &&
+        deepLinkData.segments[1] == 'spike' &&
+        deepLinkData.segments[2] == 'acceptdevice') {
+      
+      print('✅ Ruta acceptDevice detectada via universal link');
+      
+      return DeepLinkRouteConfig(
+        context: context,
+        path: '/auth/spike/acceptdevice',
+        queryParameters: {
+          'provider_slug': deepLinkData.getQueryParam('provider_slug') ?? '',
+          'user_id': deepLinkData.getQueryParam('user_id') ?? '',
+        },
+      );
+    }
+
+    // ... el resto de tus rutas existentes ...
+
+    print('❌ Ruta no reconocida');
+    return DeepLinkRouteConfig(context: context, path: '/');
   }
 
   BuildContext? _getNavigationContext() {

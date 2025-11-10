@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'package:genius_hormo/core/api/api_helpers.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
 import 'package:genius_hormo/features/auth/dto/login_dto.dart';
+import 'package:genius_hormo/features/auth/dto/register_dto.dart';
 import 'package:genius_hormo/features/auth/dto/resend_otp.dart';
 import 'package:genius_hormo/features/auth/dto/reset_password_dto.dart';
+import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/auth/dto/verify-account_dto.dart';
-import 'package:genius_hormo/features/auth/models/register_models.dart';
-import 'package:genius_hormo/features/auth/models/user_models.dart';
+import 'package:genius_hormo/features/dashboard/dto/update_profile_dto.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'user_storage_service.dart';
 
 class AuthService {
@@ -20,7 +22,7 @@ class AuthService {
     : _storageService = storageService ?? UserStorageService(),
       _client = client ?? http.Client();
 
-  Future<ApiResponse<RegisterResponse>> register({
+  Future<ApiResponse<RegisterResponseData>> register({
     required String username,
     required String email,
     required String password,
@@ -33,7 +35,7 @@ class AuthService {
       return ApiResponse.error(message: 'Email inválido');
     }
 
-    return executeRequest<RegisterResponse>(
+    return executeRequest<RegisterResponseData>(
       request: _client
           .post(
             Uri.parse('$_baseUrl/v1/api/register'),
@@ -45,7 +47,7 @@ class AuthService {
             }),
           )
           .timeout(const Duration(seconds: 30)),
-      fromJson: RegisterResponse.fromJson,
+      fromJson: RegisterResponseData.fromJson,
     );
   }
 
@@ -206,120 +208,126 @@ class AuthService {
   }
 
   //===================
+  Future<UserProfileData> getMyProfile({required String token}) async {
+    final prefs = await SharedPreferences.getInstance();
 
-  Future<ApiResponse<User>> getMyProfile() async {
-    try {
-      final String? token = await _storageService.getJWTToken();
+    final cachedUserData = prefs.getString('cached_user_profile');
 
-      if (token == null || token.isEmpty) {
-        return ApiResponse.error(message: 'No hay token de autenticación');
-      }
+    if (cachedUserData != null) {
+      // Si hay cache, convertir de JSON a objeto User y retornar
+      final userMap = json.decode(cachedUserData);
+      final user = UserProfileData.fromJson(userMap);
 
-      final response = await _client.get(
-        Uri.parse('$_baseUrl/v1/api/me'),
-        headers: _getHeaders(withAuth: true, token: token),
-      );
+      // return ApiResponse<UserProfileData>(
+      //   data: user,
+      //   success: true,
+      //   message: '',
+      // );
 
-      print('👤 Get My Profile Response status: ${response.statusCode}');
-      print('👤 Get My Profile Response body: ${response.body}');
+      return user;
+    } else {
+      // Si NO hay cache, hacer request al backend
+      try {
+        final result = await executeRequest<UserProfileData>(
+          request: _client
+              .get(
+                Uri.parse('$_baseUrl/v1/api/me'),
+                headers: _getHeaders(withAuth: true, token: token),
+              )
+              .timeout(const Duration(seconds: 30)),
+          fromJson: UserProfileData.fromJson,
+        );
 
-      final Map<String, dynamic> responseData = json.decode(response.body);
-
-      if (response.statusCode == 200) {
-        final String? error = responseData['error'];
-        final bool hasError = error != null && error.isNotEmpty;
-
-        if (!hasError && responseData['data'] != null) {
-          final user = User.fromJson(responseData['data']);
-          await _storageService.saveUserProfile(user);
-
-          return ApiResponse.success(
-            message: responseData['message'] ?? 'Perfil obtenido exitosamente',
-            data: user,
-          );
-        } else {
-          return ApiResponse.error(
-            message: error ?? 'Error al obtener el perfil',
-          );
+        if (result.success && result.data != null) {
+          final userJson = json.encode(result.data!.toJson());
+          await prefs.setString('cached_user_profile', userJson);
         }
-      } else if (response.statusCode == 401) {
-        return ApiResponse.error(
-          message: 'Sesión expirada. Por favor, inicia sesión nuevamente.',
-        );
-      } else {
-        return ApiResponse.error(
-          message:
-              responseData['message'] ??
-              responseData['error'] ??
-              'Error al obtener el perfil - Código: ${response.statusCode}',
-        );
+
+        return result.data!;
+      } catch (e) {
+        // Si hay error en la API, propagar el error
+        // return ApiResponse<UserProfileData>(
+        //   error: e.toString(),
+        //   success: false,
+        //   message: '',
+        // );
+
+        throw Exception('error al obtener los datos');
       }
-    } catch (e) {
-      print('❌ Error en getMyProfile: $e');
-      return ApiResponse.error(message: 'Error de conexión: $e');
     }
   }
 
-  /// Actualizar perfil de usuario
-  Future<ApiResponse<User>> updateProfile({
-    required Map<String, dynamic> updateData,
-  }) async {
-    try {
-      final String? token = await _storageService.getJWTToken();
-
-      if (token == null) {
-        return ApiResponse.error(message: 'No hay token de autenticación');
-      }
-
-      final response = await _client.put(
-        Uri.parse('$_baseUrl/v1/api/me/update'),
-        headers: _getHeaders(withAuth: true, token: token),
-        body: json.encode(updateData),
-      );
-
-      print('📝 Update Profile Response status: ${response.statusCode}');
-      print('📝 Update Profile Response body: ${response.body}');
-
-      final Map<String, dynamic> responseData = json.decode(response.body);
-
-      if (response.statusCode == 200) {
-        final String? error = responseData['error'];
-        final bool hasError = error != null && error.isNotEmpty;
-
-        if (!hasError && responseData['data'] != null) {
-          final user = User.fromJson(responseData['data']);
-          await _storageService.saveUserProfile(user);
-
-          return ApiResponse.success(
-            message:
-                responseData['message'] ?? 'Perfil actualizado exitosamente',
-            data: user,
-          );
-        } else {
-          return ApiResponse.error(
-            message: error ?? 'Error al actualizar el perfil',
-          );
-        }
-      } else if (response.statusCode == 401) {
-        return ApiResponse.error(
-          message: 'Sesión expirada. Por favor, inicia sesión nuevamente.',
-        );
-      } else {
-        return ApiResponse.error(
-          message:
-              responseData['message'] ??
-              responseData['error'] ??
-              'Error al actualizar el perfil - Código: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      print('❌ Error en updateProfile: $e');
-      return ApiResponse.error(message: 'Error de conexión: $e');
-    }
+  Future<ApiResponse<UpdateProfileResponseData>> updateProfile(token) async {
+    return executeRequest<UpdateProfileResponseData>(
+      request: _client
+          .get(
+            Uri.parse('$_baseUrl/v1/api/me/update'),
+            headers: _getHeaders(withAuth: true, token: token),
+          )
+          .timeout(const Duration(seconds: 30)),
+      fromJson: UpdateProfileResponseData.fromJson,
+    );
   }
+
+  // Future<ApiResponse<User>> updateProfile({
+  //   required Map<String, dynamic> updateData,
+  // }) async {
+  //   try {
+  //     final String? token = await _storageService.getJWTToken();
+
+  //     if (token == null) {
+  //       return ApiResponse.error(message: 'No hay token de autenticación');
+  //     }
+
+  //     final response = await _client.put(
+  //       Uri.parse('$_baseUrl/v1/api/me/update'),
+  //       headers: _getHeaders(withAuth: true, token: token),
+  //       body: json.encode(updateData),
+  //     );
+
+  //     print('📝 Update Profile Response status: ${response.statusCode}');
+  //     print('📝 Update Profile Response body: ${response.body}');
+
+  //     final Map<String, dynamic> responseData = json.decode(response.body);
+
+  //     if (response.statusCode == 200) {
+  //       final String? error = responseData['error'];
+  //       final bool hasError = error != null && error.isNotEmpty;
+
+  //       if (!hasError && responseData['data'] != null) {
+  //         final user = User.fromJson(responseData['data']);
+  //         await _storageService.saveUserProfile(user);
+
+  //         return ApiResponse.success(
+  //           message:
+  //               responseData['message'] ?? 'Perfil actualizado exitosamente',
+  //           data: user,
+  //         );
+  //       } else {
+  //         return ApiResponse.error(
+  //           message: error ?? 'Error al actualizar el perfil',
+  //         );
+  //       }
+  //     } else if (response.statusCode == 401) {
+  //       return ApiResponse.error(
+  //         message: 'Sesión expirada. Por favor, inicia sesión nuevamente.',
+  //       );
+  //     } else {
+  //       return ApiResponse.error(
+  //         message:
+  //             responseData['message'] ??
+  //             responseData['error'] ??
+  //             'Error al actualizar el perfil - Código: ${response.statusCode}',
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('❌ Error en updateProfile: $e');
+  //     return ApiResponse.error(message: 'Error de conexión: $e');
+  //   }
+  // }
 
   /// Obtener usuario actual (delegado al storage service)
-  Future<User?> getCurrentUser() => _storageService.getCurrentUser();
+  // Future<User?> getCurrentUser() => _storageService.getCurrentUser();
 
   /// Verificar si está logueado (delegado al storage service)
   Future<bool> isLoggedIn() => _storageService.isLoggedIn();
@@ -346,7 +354,6 @@ class AuthService {
     return headers;
   }
 
-  
   bool isValidEmail(String email) {
     return true;
   }

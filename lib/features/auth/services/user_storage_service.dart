@@ -1,7 +1,7 @@
 // lib/services/user_storage_service.dart
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:genius_hormo/features/auth/models/user_models.dart';
+import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 
 class UserStorageService {
   static const String _jwtTokenKey = 'jwt_token';
@@ -34,7 +34,7 @@ class UserStorageService {
     await _secureStorage.delete(key: _refreshTokenKey);
   }
 
-  Future<void> saveUserProfile(User user) async {
+  Future<void> saveUserProfile(UserProfileData user) async {
     try {
       await _secureStorage.write(
         key: _userDataKey,
@@ -48,7 +48,7 @@ class UserStorageService {
   }
 
   /// Obtiene el usuario actual desde el almacenamiento
-  Future<User?> getCurrentUser() async {
+  Future<UserProfileData?> getCurrentUser() async {
     try {
       final String? userDataString = await _secureStorage.read(
         key: _userDataKey,
@@ -62,7 +62,7 @@ class UserStorageService {
 
       if (userDataString != null) {
         final Map<String, dynamic> userData = json.decode(userDataString);
-        return User.fromJson(userData);
+        return UserProfileData.fromJson(userData);
       }
 
       return null;
@@ -107,7 +107,7 @@ class UserStorageService {
   /// Verifica si el perfil está completo
   Future<bool> isProfileComplete() async {
     final user = await getCurrentUser();
-    return user?.isProfileComplete ?? false;
+    return user?.isComplete ?? false;
   }
 
   Future<void> clearAllStorage() async {

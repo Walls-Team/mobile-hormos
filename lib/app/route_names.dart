@@ -7,6 +7,7 @@ class privateRoutes {
   static const String termsAndConditions = '/terms_and_condictions';
   static const String resetPassword = '/auth/reset_password';
   static const String verifyEmail = '/auth/verify_email/:email';
+  static const String acceptDevice = '/auth/spike/acceptdevice';
 }
 
 class publicRoutes {

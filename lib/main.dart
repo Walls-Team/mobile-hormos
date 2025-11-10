@@ -5,7 +5,6 @@ import 'core/di/dependency_injection.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Inicializar dependencias
   await setupDependencies();
   
   runApp(const GeniusHormoApp());

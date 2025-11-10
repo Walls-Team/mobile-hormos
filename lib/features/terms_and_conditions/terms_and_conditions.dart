@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
 
 class TermsAndConditionsScreen extends StatelessWidget {
   const TermsAndConditionsScreen({Key? key}) : super(key: key);
@@ -20,7 +19,6 @@ class TermsAndConditionsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             _buildSection(
               title: "1. Introduction and Acceptance of Terms",
               children: [
@@ -283,15 +281,11 @@ class TermsAndConditionsScreen extends StatelessWidget {
   }
 
   Widget _buildAcceptButton(BuildContext context, ThemeData theme) {
-    return CustomElevatedButton(
+    return ElevatedButton(
       onPressed: () {
-        // Retornar resultado a la pantalla anterior
         Navigator.pop(context, true);
       },
-      child: Text(
-        'Aceptar Términos y Condiciones',
-        style: TextStyle(fontWeight: FontWeight.bold,),
-      ),
+      child: Text('Aceptar Términos y Condiciones'),
     );
   }
 

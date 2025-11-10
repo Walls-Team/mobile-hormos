@@ -4,9 +4,9 @@ import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/username_validator.dart';
-import 'package:genius_hormo/views/terms_and_conditions.dart';
-import 'package:genius_hormo/views/welcome.dart';
-import 'package:genius_hormo/widgets/form/password_input.dart';
+import 'package:genius_hormo/features/terms_and_conditions/terms_and_conditions.dart';
+import 'package:genius_hormo/welcome.dart';
+import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
 
 class RegisterScreen extends StatefulWidget {

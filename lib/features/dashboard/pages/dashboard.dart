@@ -7,9 +7,11 @@ import 'package:genius_hormo/features/dashboard/components/spo_chart.dart';
 import 'package:genius_hormo/features/dashboard/components/stats.dart';
 import 'package:genius_hormo/features/dashboard/components/testosterone_chart.dart';
 import 'package:genius_hormo/features/dashboard/dto/basic_metrics/rem_sleep_record_dto.dart';
-import 'package:genius_hormo/features/dashboard/dto/basic_metrics/sleep_data_dto.dart';
 import 'package:genius_hormo/features/dashboard/dto/basic_metrics/sleep_record_dto.dart';
+import 'package:genius_hormo/features/dashboard/dto/basic_metrics/sleep_summary_dto.dart';
 import 'package:genius_hormo/features/dashboard/dto/basic_metrics/spo2_record_dto.dart';
+import 'package:genius_hormo/features/dashboard/dto/energy_levels/energy_stats.dart';
+import 'package:genius_hormo/features/dashboard/dto/health_data.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -22,7 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final DashBoardService _dashboardService = GetIt.instance<DashBoardService>();
   final UserStorageService _userStorageService =
       GetIt.instance<UserStorageService>();
-  late Future<SleepData> _metricsFuture;
+  late Future<HealthData> _metricsFuture;
 
   @override
   void initState() {
@@ -31,14 +33,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _metricsFuture = _loadMetrics();
   }
 
-  Future<SleepData> _loadMetrics() async {
+  Future<HealthData> _loadMetrics() async {
     final token = await _userStorageService.getJWTToken();
-    return _dashboardService.getBasicMetrics(token!);
+    return _dashboardService.getHealthData(token: token!);
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SleepData>(
+    return FutureBuilder<HealthData>(
       future: _metricsFuture, // ← Se usa la misma instancia del Future
       builder: (context, snapshot) {
         // ⏳ CARGANDO
@@ -63,8 +65,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         // ✅ DATOS CARGADOS
         if (snapshot.hasData) {
-          // return _buildCharts(snapshot.data!);
-
           return _buildCharts(snapshot.data!);
         }
 
@@ -73,46 +73,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildCharts(SleepData metrics) {
+  Widget _buildCharts(HealthData metrics) {
     return ListView(
       padding: EdgeInsets.all(12),
       children: [
-        _buildTestosteroneChart(),
-        _buildStatsCards(),
-        _buildRemChart(metrics.remResume),
-        _buildSleepInterruptionsChart(metrics.sleepResume),
-        _buildSpO2Chart(metrics.spoResume),
+        _buildTestosteroneChart(
+          stats: metrics.energy.stats,
+          lastUpdated: metrics.sleep.dates.first,
+        ),
+        _buildStatsCards(resume: metrics.sleep.resume),
+        _buildRemChart(remData: metrics.sleep.remResume),
+        _buildSleepInterruptionsChart(
+          sleepInterruptionsData: metrics.sleep.sleepResume,
+        ),
+        _buildSpO2Chart(spO2ChartData: metrics.sleep.spoResume),
       ],
     );
   }
 
-  Widget _buildTestosteroneChart() {
+  Widget _buildTestosteroneChart({
+    required EnergyStats stats,
+    required String lastUpdated,
+  }) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TestosteroneChart(
-              energyData: [
-                ChartData('Jan', 75, Colors.blue),
-                ChartData('Feb', 85, Colors.green),
-                ChartData('Mar', 65, Colors.orange),
-                ChartData('Apr', 90, Colors.purple),
-              ],
-            ),
+            TestosteroneChart(energyData: stats, lastUpdated: lastUpdated),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatsCards() {
+  Widget _buildStatsCards({required SleepSummary resume}) {
     return Row(
       children: [
         Expanded(
           flex: 1,
           child: StatCard(
-            duration: "92%",
+            duration: "${resume.sleepEfficiency}%",
             title: "Sleep\n Efficiency",
             icon: CupertinoIcons.zzz,
           ),
@@ -121,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Expanded(
           flex: 1,
           child: StatCard(
-            duration: "7.9h",
+            duration: "${resume.sleepDuration.round()}h",
             title: "Sleep\n Duration",
             icon: CupertinoIcons.moon,
           ),
@@ -129,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Expanded(
           flex: 1,
           child: StatCard(
-            duration: "19",
+            duration: "${resume.hrvRmssd}",
             title: "Hrv\n rmssd",
             icon: CupertinoIcons.heart,
           ),
@@ -138,7 +139,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildRemChart(List<RemSleepRecord> remData) {
+  Widget _buildRemChart({required List<RemSleepRecord> remData}) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -147,9 +148,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSleepInterruptionsChart(
-    List<SleepRecord> sleepInterruptionsData,
-  ) {
+  Widget _buildSleepInterruptionsChart({
+    required List<SleepRecord> sleepInterruptionsData,
+  }) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -158,7 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSpO2Chart(List<SpO2Record> spO2ChartData) {
+  Widget _buildSpO2Chart({required List<SpO2Record> spO2ChartData}) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

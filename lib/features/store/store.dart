@@ -1,14 +1,18 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
+import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:genius_hormo/theme/colors_pallete.dart';
+import 'package:get_it/get_it.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/cupertino.dart';
 
 class StoreScreen extends StatelessWidget {
+
   const StoreScreen({super.key});
 
   Future<void> _launchURL(BuildContext context, String url) async {
@@ -53,14 +57,9 @@ class StoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
 
-        if (localizations == null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+    if (localizations == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -133,7 +132,7 @@ class StoreScreen extends StatelessWidget {
       linearGradient: LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
-        colors: [ neutral_700, neutral_600 ],
+        colors: [neutral_700, neutral_600],
       ),
       borderGradient: LinearGradient(
         begin: Alignment.topLeft,
@@ -192,6 +191,4 @@ class StoreScreen extends StatelessWidget {
       ),
     );
   }
-
 }
-

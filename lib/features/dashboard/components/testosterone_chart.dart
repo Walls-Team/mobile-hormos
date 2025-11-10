@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/dashboard/dto/energy_levels/energy_stats.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class TestosteroneChart extends StatelessWidget {
-  final List<ChartData> energyData;
+  final EnergyStats energyData;
+  final List<ChartData> chartData;
+  final int currentValue;
+  // final int maximumValue;
+  final String lastUpdated;
 
-  const TestosteroneChart({super.key, required this.energyData});
+  TestosteroneChart({
+    super.key,
+    required this.energyData,
+    required this.lastUpdated,
+  }) : chartData = _calculateChartData(energyData),
+       currentValue = energyData.currentLevel.round();
+  // lastUpdated = _formatLastUpdated();
+
+  static List<ChartData> _calculateChartData(EnergyStats stats) {
+    return [
+      ChartData('Lowest Level', stats.lowestLevel, Colors.green),
+      ChartData('Weekly Average', stats.averageLevel, Colors.yellow),
+      ChartData('Highest Level', stats.highestLevel, Colors.greenAccent),
+      ChartData('Current Level', stats.currentLevel, Colors.cyan),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
-
-    final colorScheme = Theme.of(context).colorScheme; 
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -23,15 +43,16 @@ class TestosteroneChart extends StatelessWidget {
                   flex: 3, // Ocupa 2 partes del espacio disponible
                   child: Text(
                     'Testosterone Estimate',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     softWrap: true,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Expanded(
                   flex: 2, // Ocupa 1 parte del espacio disponible
                   child: Text(
-                    'Last updated: Nov 03, 2025',
-                    style: TextStyle(fontSize: 14),
+                    "Last updated:\n ${DateFormat.yMMMd().format(DateTime.parse(lastUpdated))}",
                     textAlign: TextAlign.right,
                     softWrap: true,
                   ),
@@ -39,20 +60,20 @@ class TestosteroneChart extends StatelessWidget {
               ],
             ),
           ),
-          Stack(
+          Column(
             children: [
               SizedBox(
-                height: 400, // Altura fija para el gráfico
+                height: 300, // Altura fija para el gráfico
                 child: Center(
                   child: SfCircularChart(
                     annotations: <CircularChartAnnotation>[
                       CircularChartAnnotation(
-                        widget: const Column(
+                        widget: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text('Current', style: TextStyle(fontSize: 14)),
                             Text(
-                              '97',
+                              '$currentValue',
                               style: TextStyle(
                                 fontSize: 30,
                                 fontWeight: FontWeight.bold,
@@ -64,59 +85,13 @@ class TestosteroneChart extends StatelessWidget {
                       ),
                     ],
 
-                    legend: Legend(
-                      isVisible: true,
-                      position: LegendPosition.bottom,
-                      overflowMode: LegendItemOverflowMode.wrap,
-                      orientation: LegendItemOrientation.horizontal,
-                      toggleSeriesVisibility:
-                          true, // Permite ocultar/mostrar series
-                      legendItemBuilder:
-                          (
-                            String name,
-                            dynamic series,
-                            dynamic point,
-                            int index,
-                          ) {
-                            final data = energyData[index];
-                            return Container(
-                              margin: EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 2,
-                              ),
-                              padding: EdgeInsets.all(6),
-
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 16,
-                                    height: 16,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: data.color,
-                                    ),
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    '${data.mes}: ${data.valor}%',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                    ),
                     series: <CircularSeries>[
                       RadialBarSeries<ChartData, String>(
-                        dataSource: energyData,
-                        xValueMapper: (ChartData data, _) => data.mes,
+                        dataSource: chartData,
+                        xValueMapper: (ChartData data, _) => data.stat,
                         yValueMapper: (ChartData data, _) => data.valor,
                         pointColorMapper: (ChartData data, _) => data.color,
-                        maximumValue: 100,
+                        maximumValue: 1400,
                         innerRadius: '50%',
                         radius: '80%',
                         gap: '5%',
@@ -127,6 +102,8 @@ class TestosteroneChart extends StatelessWidget {
                   ),
                 ),
               ),
+
+              _buildChartLegend(),
 
               // Información flotante al lado de la barra seleccionada
             ],
@@ -143,14 +120,59 @@ class TestosteroneChart extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildChartLegend() {
+    return Container(
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics:
+            const NeverScrollableScrollPhysics(), // Deshabilita el scroll interno
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // 2 columnas
+          crossAxisSpacing: 8, // Espacio horizontal entre items
+          mainAxisSpacing: 4, // Espacio vertical entre items
+          childAspectRatio: 3, // Relación ancho/alto de cada item
+        ),
+        itemCount: chartData.length, // Número total de items
+        itemBuilder: (context, index) {
+          final data = chartData[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: data.color,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '${data.stat}:\n${data.valor.toStringAsFixed(1)}ng/dL',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.visible,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
-
 class ChartData {
-  final String mes;
+  final String stat;
   final double valor;
   final Color color;
 
-  ChartData(this.mes, this.valor, this.color);
+  ChartData(this.stat, this.valor, this.color);
 }
-

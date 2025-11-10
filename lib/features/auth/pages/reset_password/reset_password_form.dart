@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
-import 'package:genius_hormo/widgets/buttons/elevated_button.dart';
-import 'package:genius_hormo/widgets/form/password_input.dart';
+import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -278,7 +277,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   Widget _buildResetButton(ThemeData theme) {
     bool isEnabled = _isButtonEnabled();
-    return CustomElevatedButton(
+
+    return ElevatedButton(
       onPressed: isEnabled ? _submitForm : null,
       child: _isLoading
           ? SizedBox(
@@ -291,7 +291,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               ),
             )
-          : Text('Send', style: TextStyle(fontWeight: FontWeight.bold)),
+          : Text('Send'),
     );
   }
 

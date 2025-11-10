@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String userName;
+  // final String avatarUrl;
   final VoidCallback? onNotificationPressed;
   final VoidCallback? onAvatarPressed;
 
@@ -10,6 +11,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.userName,
     this.onNotificationPressed,
     this.onAvatarPressed,
+    // required this.avatarUrl,
   });
 
   @override

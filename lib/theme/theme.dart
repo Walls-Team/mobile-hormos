@@ -82,6 +82,20 @@ ThemeData theme = ThemeData(
     suffixStyle: TextStyle(color: Color(0xFF1C1D23)),
   ),
 
+  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+    backgroundColor: const Color(0xFF2A2C3B), // Color de fondo
+    selectedItemColor: primary600, // Color del ítem seleccionado
+    unselectedItemColor: const Color(0xFFBBBBBB), // Color del ítem no seleccionado
+    selectedIconTheme: IconThemeData(size: 28), // Tamaño icono seleccionado
+    unselectedIconTheme: IconThemeData(
+      size: 24,
+    ), // Tamaño icono no seleccionado
+    selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+    unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
+    type: BottomNavigationBarType.fixed, // Tipo fijo o shifting
+    elevation: 8, // Sombra
+  ),
+
   snackBarTheme: SnackBarThemeData(
     // Color de fondo
     backgroundColor: primary600,
@@ -100,8 +114,7 @@ ThemeData theme = ThemeData(
     // Ancho (solo para comportamiento flotante)
     // width: 400,
   ),
-  
-  
+
   iconTheme: IconThemeData(
     color: Colors.white, // Color blanco para iconos
     size: 24, // Tamaño opcional

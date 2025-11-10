@@ -8,8 +8,8 @@ import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
 import 'package:genius_hormo/home.dart';
-import 'package:genius_hormo/views/welcome.dart';
-import 'package:genius_hormo/widgets/form/password_input.dart';
+import 'package:genius_hormo/welcome.dart';
+import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -59,6 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (data != null) {
             _userStorageServic.saveJWTToken(data.accessToken);
             _userStorageServic.saveRefreshToken(data.accessToken);
+            await _authService.getMyProfile(token: data.accessToken);
           }
 
           if (mounted) {

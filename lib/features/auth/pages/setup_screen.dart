@@ -28,12 +28,12 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _checkUserData() async {
     try {
       // Verificar si existe perfil
-      final user = await _authService.getCurrentUser();
-      _hasProfile = user != null && user.isProfileComplete;
+      // final user = await _authService.getCurrentUser();
+      // _hasProfile = user != null && user.isProfileComplete;
 
       // Verificar si existe dispositivo
-      final device = await _spikeService.myDevice();
-      _hasDevice = device != null;
+      // final device = await _spikeService.myDevice();
+      // _hasDevice = device != null;
 
       setState(() {
         _isLoading = false;
