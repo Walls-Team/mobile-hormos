@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // Success state - _userProfile nunca será null aquí
     final List<Widget> _pages = [
       DashboardScreen(),
-      StatsPage(),
+      StatsScreen(),
       StoreScreen(),
       SettingsScreen(),
     ];

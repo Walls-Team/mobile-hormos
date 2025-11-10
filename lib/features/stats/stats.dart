@@ -1,33 +1,93 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/features/dashboard/components/rem_chart.dart';
+import 'package:genius_hormo/features/dashboard/components/sleep_interruptions_chart.dart';
+import 'package:genius_hormo/features/dashboard/components/spo_chart.dart';
+import 'package:genius_hormo/features/dashboard/components/stats.dart';
+import 'package:genius_hormo/features/dashboard/components/testosterone_chart.dart';
+import 'package:genius_hormo/features/dashboard/dto/basic_metrics/rem_sleep_record_dto.dart';
+import 'package:genius_hormo/features/dashboard/dto/basic_metrics/sleep_record_dto.dart';
+import 'package:genius_hormo/features/dashboard/dto/basic_metrics/sleep_summary_dto.dart';
+import 'package:genius_hormo/features/dashboard/dto/basic_metrics/spo2_record_dto.dart';
+import 'package:genius_hormo/features/dashboard/dto/energy_levels/energy_stats.dart';
+import 'package:genius_hormo/features/dashboard/dto/health_data.dart';
+import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
+import 'package:get_it/get_it.dart';
 
-class StatsPage extends StatelessWidget {
-  const StatsPage({super.key});
+class StatsScreen extends StatefulWidget {
+  @override
+  _StatsScreenState createState() => _StatsScreenState();
+}
+
+class _StatsScreenState extends State<StatsScreen> {
+  final DashBoardService _dashboardService = GetIt.instance<DashBoardService>();
+  final UserStorageService _userStorageService =
+      GetIt.instance<UserStorageService>();
+  late Future<HealthData> _metricsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // ✅ SE EJECUTA UNA SOLA VEZ al cargar la página
+    _metricsFuture = _loadMetrics();
+  }
+
+  Future<HealthData> _loadMetrics() async {
+    final token = await _userStorageService.getJWTToken();
+    return _dashboardService.getHealthData(token: token!);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey[900],
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.bar_chart, size: 80, color: Colors.grey[600]),
-            SizedBox(height: 20),
-            Text(
-              'Estadísticas',
-              style: TextStyle(
-                fontSize: 24,
-                color: Colors.grey[400],
-                fontWeight: FontWeight.bold,
-              ),
+    return FutureBuilder<HealthData>(
+      future: _metricsFuture, // ← Se usa la misma instancia del Future
+      builder: (context, snapshot) {
+        // ⏳ CARGANDO
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        // ❌ ERROR
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error, size: 64, color: Colors.red),
+                SizedBox(height: 16),
+                Text('Error al cargar los datos'),
+                // ❌ NO hay botón de reintentar porque solo se ejecuta una vez
+              ],
             ),
-            SizedBox(height: 10),
-            Text(
-              'Contenido de estadísticas aquí',
-              style: TextStyle(color: Colors.grey[500]),
-            ),
-          ],
-        ),
+          );
+        }
+
+        // ✅ DATOS CARGADOS
+        if (snapshot.hasData) {
+          return _buildCharts(snapshot.data!);
+        }
+
+        return Center(child: Text('No se pudieron cargar los datos'));
+      },
+    );
+  }
+
+  Widget _buildCharts(HealthData metrics) {
+    return ListView(
+      padding: EdgeInsets.all(12),
+      children: [
+
+      ],
+    );
+  }
+
+
+  Widget _buildSleepEficiencyChart({required List<SpO2Record> spO2ChartData}) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Container(),
       ),
     );
   }

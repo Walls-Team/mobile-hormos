@@ -55,7 +55,7 @@ class AppRouter {
       GoRoute(
         path: privateRoutes.stats,
         name: 'stats',
-        builder: (context, state) => const StatsPage(),
+        builder: (context, state) =>  StatsScreen(),
       ),
       GoRoute(
         path: privateRoutes.store,
