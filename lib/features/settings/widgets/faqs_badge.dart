@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/theme/colors_pallete.dart';
 
 class FaqsBadge extends StatelessWidget {
   final VoidCallback onTap;
@@ -12,7 +11,8 @@ class FaqsBadge extends StatelessWidget {
       width: double.infinity, // Mismo ancho que los demás
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: neutral_600,
+        // color: neutral_600,
+        color: Color(0xFF2A2C3B)
       ),
       child: Material(
         color: Colors.transparent,
