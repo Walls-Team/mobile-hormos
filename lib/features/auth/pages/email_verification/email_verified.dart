@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/app/route_names.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
+import 'package:go_router/go_router.dart';
 
 class EmailVerifiedScreen extends StatelessWidget {
   final String email;
@@ -51,10 +53,7 @@ class EmailVerifiedScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
-                  );
+                  context.goNamed('login');
                 },
                 child: Text('Continue'),
               ),

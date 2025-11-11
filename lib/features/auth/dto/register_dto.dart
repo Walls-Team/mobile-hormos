@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class RegisterRequest {
   final String username;
   final String email;
@@ -23,22 +25,42 @@ class RegisterResponseData {
   final bool success;
   final String accessToken;
   final String refreshToken;
-  final RegisterUser user;
+  final RegisterUser? user;
 
   RegisterResponseData({
     required this.success,
     required this.accessToken,
     required this.refreshToken,
-    required this.user,
+    this.user,
   });
 
   factory RegisterResponseData.fromJson(Map<String, dynamic> json) {
-    return RegisterResponseData(
+    debugPrint('🔍 Parsing RegisterResponseData from: $json');
+    
+    // Intentar obtener el usuario de diferentes ubicaciones
+    RegisterUser? user;
+    if (json['user'] != null) {
+      user = RegisterUser.fromJson(json['user']);
+    } else if (json['data'] != null && json['data'] is Map) {
+      // Si viene en 'data', intentar parsearlo
+      final dataMap = json['data'] as Map<String, dynamic>;
+      if (dataMap['user'] != null) {
+        user = RegisterUser.fromJson(dataMap['user']);
+      } else if (dataMap['id'] != null) {
+        // Si 'data' es directamente el usuario
+        user = RegisterUser.fromJson(dataMap);
+      }
+    }
+    
+    final result = RegisterResponseData(
       success: json['success'] ?? false,
-      accessToken: json['access_token'] ?? '',
-      refreshToken: json['refresh_token'] ?? '',
-      user: RegisterUser.fromJson(json['user']),
+      accessToken: json['access_token'] ?? json['accessToken'] ?? '',
+      refreshToken: json['refresh_token'] ?? json['refreshToken'] ?? '',
+      user: user,
     );
+    
+    debugPrint('✅ Parsed RegisterResponseData: success=${result.success}');
+    return result;
   }
 }
 

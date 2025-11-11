@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/app/route_names.dart';
+import 'package:genius_hormo/app/safe_navigation.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
 import 'package:genius_hormo/features/auth/dto/login_dto.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
@@ -7,10 +9,12 @@ import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
+import 'package:genius_hormo/features/auth/pages/setup_screen.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/welcome.dart';
 import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,52 +50,47 @@ class _LoginScreenState extends State<LoginScreen> {
         final String email = _emailController.text;
         final String password = _passwordController.text;
 
+        debugPrint('📝 INICIANDO LOGIN');
+        debugPrint('📧 Email: $email');
+
         final ApiResponse<LoginResponse> loginResponse = await _authService
             .login(email, password);
+
+        debugPrint('✅ RESPUESTA RECIBIDA');
+        debugPrint('📊 Success: ${loginResponse.success}');
+        debugPrint('💬 Message: ${loginResponse.message}');
+        debugPrint('❌ Error: ${loginResponse.error}');
 
         setState(() {
           _isLoading = false;
         });
 
         if (loginResponse.success) {
+          debugPrint('🎉 LOGIN EXITOSO');
           final data = loginResponse.data;
 
           if (data != null) {
+            debugPrint('💾 Guardando tokens...');
             _userStorageServic.saveJWTToken(data.accessToken);
-            _userStorageServic.saveRefreshToken(data.accessToken);
-            await _authService.getMyProfile(token: data.accessToken);
+            _userStorageServic.saveRefreshToken(data.refreshToken);
+            debugPrint('✅ Tokens guardados');
+            
+            debugPrint('👤 Obteniendo perfil...');
+            final userProfile = await _authService.getMyProfile(token: data.accessToken);
+            debugPrint('✅ Perfil obtenido');
+            debugPrint('📋 Perfil completo: ${userProfile.isComplete}');
+
+            // NO navegar inmediatamente - esperar a que se complete el build
+            Future.microtask(() {
+              if (!mounted) return;
+              
+              debugPrint('✅ Perfil completo - Navegando a HomeScreen');
+              SafeNavigation.go(context, privateRoutes.dashboard);
+              debugPrint('✅ NAVEGACIÓN COMPLETADA');
+            });
           }
-
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
-          }
-          // final profileResponse = await _authService.getMyProfile();
-          // final deviceResponse = await _spikeService.getMyDevices();
-
-          // if (!profileResponse.data!.isProfileComplete ||
-          //     deviceResponse.devices!.isEmpty) {
-
-          //   if (mounted) {
-          //     Navigator.pushReplacement(
-          //       context,
-          //       MaterialPageRoute(builder: (context) => SetupScreen()),
-          //     );
-          //   }
-          // } else {
-          //   // - navegar a HomeScreen
-          //   if (mounted) {
-          //     Navigator.pushReplacement(
-          //       context,
-          //       MaterialPageRoute(builder: (context) => HomeScreen()),
-          //     );
-          //   }
-          // }
-
-          // print(result);
         } else {
+          debugPrint('❌ LOGIN FALLÓ: ${loginResponse.error}');
           // Mostrar error de login
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -103,6 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         }
       } catch (e) {
+        debugPrint('💥 EXCEPCIÓN: $e');
         setState(() {
           _isLoading = false;
         });
@@ -125,12 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
-          // onPressed: () => Navigator.pop(context),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => WelcomeScreen()),
-            );
+            SafeNavigation.go(context, publicRoutes.home);
           },
         ),
       ),
@@ -235,10 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
             width: double.infinity,
             child: OutlinedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),
-                );
+                SafeNavigation.goNamed(context, 'register');
               },
               child: const Text('Register'),
             ),
@@ -287,10 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         TextButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
-            );
+            SafeNavigation.goNamed(context, 'forgot_password');
           },
           child: Text(
             'Forgot Password?',

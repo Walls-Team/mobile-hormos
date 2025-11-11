@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class UserProfileData {
   final String id;
   final String username;
@@ -29,20 +31,33 @@ class UserProfileData {
 
   // Método fromJson para crear una instancia desde un Map
   factory UserProfileData.fromJson(Map<String, dynamic> json) {
-    return UserProfileData(
-      id: json['id'] as String,
-      username: json['username'] as String,
-      email: json['email'] as String?,
-      height: json['height'] != null ? (json['height'] as num).toDouble() : null,
-      weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
-      language: json['language'] as String,
-      avatar: json['avatar'] as String?,
-      birthDate: json['birth_date'] as String?,
-      gender: json['gender'] as String,
-      age: json['age'] != null ? (json['age'] as int) : null,
-      isComplete: json['is_complete'] as bool,
-      profileCompletionPercentage: (json['profile_completion_percentage'] as num).toDouble(),
-    );
+    debugPrint(' Parseando UserProfileData desde JSON:');
+    debugPrint('JSON: $json');
+    
+    try {
+      final profileData = UserProfileData(
+        id: json['id']?.toString() ?? json['user_id']?.toString() ?? 'unknown',
+        username: json['username']?.toString() ?? json['name']?.toString() ?? 'unknown',
+        email: json['email']?.toString(),
+        height: json['height'] != null ? (json['height'] as num).toDouble() : null,
+        weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
+        language: json['language']?.toString() ?? 'es',
+        avatar: json['avatar']?.toString(),
+        birthDate: json['birth_date']?.toString() ?? json['birthDate']?.toString(),
+        gender: json['gender']?.toString() ?? 'unknown',
+        age: json['age'] != null ? int.tryParse(json['age'].toString()) : null,
+        isComplete: json['is_complete'] == true || json['isComplete'] == true,
+        profileCompletionPercentage: json['profile_completion_percentage'] != null 
+            ? (json['profile_completion_percentage'] as num).toDouble() 
+            : 0.0,
+      );
+      
+      debugPrint(' UserProfileData parseado exitosamente: ${profileData.username}');
+      return profileData;
+    } catch (e) {
+      debugPrint(' Error parseando UserProfileData: $e');
+      rethrow;
+    }
   }
 
   // Método toJson para convertir la instancia a Map

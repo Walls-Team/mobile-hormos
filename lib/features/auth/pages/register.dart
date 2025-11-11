@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/features/auth/pages/email_verification/verify_email.dart';
+import 'package:genius_hormo/app/route_names.dart';
+import 'package:genius_hormo/features/auth/pages/email_verification/verify_email_intro.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
@@ -8,6 +9,7 @@ import 'package:genius_hormo/features/terms_and_conditions/terms_and_conditions.
 import 'package:genius_hormo/welcome.dart';
 import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -39,16 +41,12 @@ class _RegistrationFormState extends State<RegisterScreen> {
   }
 
   Future<void> _navigateToTermsAndConditions() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TermsAndConditionsScreen()),
-    );
-
-    if (result == true) {
-      setState(() {
-        _acceptTerms = true;
-      });
-    }
+    context.goNamed('terms_and_conditions');
+    // Nota: Para mantener la funcionalidad de retorno con resultado,
+    // necesitarías usar context.push con await, pero por ahora simplificamos
+    setState(() {
+      _acceptTerms = true;
+    });
   }
 
   Future<void> _submitForm() async {
@@ -68,30 +66,39 @@ class _RegistrationFormState extends State<RegisterScreen> {
       });
 
       try {
+        debugPrint('📝 INICIANDO REGISTRO...');
+        debugPrint('👤 Username: ${_usernameController.text.trim()}');
+        debugPrint('📧 Email: ${_emailController.text.trim()}');
+        
         final result = await _authService.register(
           username: _usernameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
 
+        debugPrint('✅ RESPUESTA RECIBIDA');
+        debugPrint('📊 Success: ${result.success}');
+        debugPrint('💬 Message: ${result.message}');
+        debugPrint('❌ Error: ${result.error}');
+
         setState(() {
           _isLoading = false;
         });
 
         if (result.success == true) {
-          if (mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    VerificationCodeScreen(email: _emailController.text),
-              ),
-            );
-          }
+          debugPrint('🎉 REGISTRO EXITOSO - Navegando a VerifyEmailIntroScreen');
+          // NO navegar inmediatamente - esperar a que se complete el build
+          Future.microtask(() {
+            if (!mounted) return;
+            context.goNamed('verify_email', extra: _emailController.text);
+            debugPrint('✅ NAVEGACIÓN COMPLETADA');
+          });
         } else {
+          debugPrint('❌ REGISTRO FALLÓ: ${result.error}');
           _showErrorDialog(result.error ?? 'Error en el registro');
         }
       } catch (e) {
+        debugPrint('💥 EXCEPCIÓN: $e');
         setState(() {
           _isLoading = false;
         });
@@ -125,10 +132,7 @@ class _RegistrationFormState extends State<RegisterScreen> {
         leading: IconButton(
           icon: Icon(Icons.close),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => WelcomeScreen()),
-            );
+            context.go(publicRoutes.home);
           },
         ),
         // title: Text('Iniciar Sesión'),

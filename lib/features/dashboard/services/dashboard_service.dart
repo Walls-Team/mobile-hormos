@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 import 'package:genius_hormo/core/api/api_helpers.dart';
+import 'package:genius_hormo/core/config/app_config.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/dashboard/dto/basic_metrics/sleep_data_dto.dart';
 import 'package:genius_hormo/features/dashboard/dto/energy_levels/energy_data.dart';
@@ -8,7 +10,6 @@ import 'package:genius_hormo/features/dashboard/dto/health_data.dart';
 import 'package:http/http.dart' as http;
 
 class DashBoardService {
-  static const String _baseUrl = 'http://localhost:3000';
   final UserStorageService _storageService;
   final http.Client _client;
 
@@ -17,14 +18,18 @@ class DashBoardService {
       _client = client ?? http.Client();
 
   Future<SleepData> getBasicMetrics({required String token}) async {
+    final url = AppConfig.getApiUrl('home/basic-metrics');
+    
+    debugPrint('🚀 GET BASIC METRICS REQUEST');
+    debugPrint('📍 URL: $url');
 
     final result = await executeRequest<SleepData>(
       request: _client
           .get(
-            Uri.parse('$_baseUrl/v1/api/home/basic-metrics'),
-            headers: _getHeaders(withAuth: true, token: token),
+            Uri.parse(url),
+            headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: SleepData.fromJson,
     );
 
@@ -35,14 +40,18 @@ class DashBoardService {
   }
 
   Future<EnergyData> getEnergyLevels({required String token}) async {
+    final url = AppConfig.getApiUrl('home/energy-levels');
+    
+    debugPrint('🚀 GET ENERGY LEVELS REQUEST');
+    debugPrint('📍 URL: $url');
 
     final result = await executeRequest<EnergyData>(
       request: _client
           .get(
-            Uri.parse('$_baseUrl/v1/api/home/energy-levels'),
-            headers: _getHeaders(withAuth: true, token: token),
+            Uri.parse(url),
+            headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
           )
-          .timeout(const Duration(seconds: 30)),
+          .timeout(AppConfig.defaultTimeout),
       fromJson: EnergyData.fromJson,
     );
 
@@ -68,17 +77,4 @@ class DashBoardService {
     }
   }
 
-  /// Headers comunes para las requests
-  Map<String, String> _getHeaders({bool withAuth = false, String? token}) {
-    final headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    if (withAuth && token != null) {
-      headers['Authorization'] = 'Bearer $token';
-    }
-
-    return headers;
-  }
 }

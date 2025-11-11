@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
+import 'package:go_router/go_router.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -33,20 +34,14 @@ class WelcomeScreen extends StatelessWidget {
         children: [
           ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
+              context.goNamed('login');
             },
             child: Text('Log in'),
           ),
 
           OutlinedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => RegisterScreen()),
-              );
+              context.goNamed('register');
             },
             child: Text('Register'),
           ),

@@ -264,8 +264,12 @@
 //   }
 // }
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
+import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:get_it/get_it.dart';
 
 class UserProfileForm extends StatefulWidget {
   final UserProfileData initialData;
@@ -283,15 +287,18 @@ class UserProfileForm extends StatefulWidget {
 
 class _UserProfileFormState extends State<UserProfileForm> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = GetIt.instance<AuthService>();
+  final UserStorageService _storageService = GetIt.instance<UserStorageService>();
 
   late TextEditingController _usernameController;
-  late TextEditingController _emailController;
   late TextEditingController _heightController;
   late TextEditingController _weightController;
   late TextEditingController _birthDateController;
   late String _selectedLanguage;
   late String _selectedGender;
   late int? _age;
+  
+  bool _isSaving = false;
 
   // Listas de opciones para los dropdowns
   final List<String> _genders = ['male', 'female', 'other'];
@@ -304,9 +311,6 @@ class _UserProfileFormState extends State<UserProfileForm> {
     _usernameController = TextEditingController(
       text: widget.initialData.username,
     );
-    _emailController = TextEditingController(
-      text: widget.initialData.email ?? '',
-    );
     _heightController = TextEditingController(
       text: widget.initialData.height?.toString() ?? '',
     );
@@ -318,44 +322,94 @@ class _UserProfileFormState extends State<UserProfileForm> {
     );
 
     _selectedLanguage = widget.initialData.language;
-    _selectedGender = widget.initialData.gender;
+    // Validar que el género esté en la lista, si no usar 'male' por defecto
+    // Manejar strings vacíos también
+    final genderValue = widget.initialData.gender.trim();
+    _selectedGender = (genderValue.isNotEmpty && _genders.contains(genderValue)) 
+        ? genderValue 
+        : 'male';
     _age = widget.initialData.age;
+    
+    debugPrint('📝 Perfil inicializado: ${widget.initialData.username}, género recibido: "${widget.initialData.gender}", género usado: $_selectedGender');
   }
 
   @override
   void dispose() {
     _usernameController.dispose();
-    _emailController.dispose();
     _heightController.dispose();
     _weightController.dispose();
     _birthDateController.dispose();
     super.dispose();
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final updatedData = UserProfileData(
-        id: widget.initialData.id,
-        username: _usernameController.text,
-        email: _emailController.text.isNotEmpty ? _emailController.text : null,
-        height: _heightController.text.isNotEmpty
-            ? double.tryParse(_heightController.text)
-            : null,
-        weight: _weightController.text.isNotEmpty
-            ? double.tryParse(_weightController.text)
-            : null,
-        language: _selectedLanguage,
-        avatar: widget.initialData.avatar,
-        birthDate: _birthDateController.text.isNotEmpty
-            ? _birthDateController.text
-            : null,
-        gender: _selectedGender,
-        age: _age,
-        isComplete: _isProfileComplete(),
-        profileCompletionPercentage: _calculateCompletionPercentage(),
-      );
+      setState(() => _isSaving = true);
+      
+      try {
+        final token = await _storageService.getJWTToken();
+        if (token == null) {
+          throw Exception('No token available');
+        }
 
-      widget.onSubmit(updatedData);
+        final updatedData = UserProfileData(
+          id: widget.initialData.id,
+          username: _usernameController.text,
+          email: widget.initialData.email,
+          height: _heightController.text.isNotEmpty
+              ? double.tryParse(_heightController.text)
+              : null,
+          weight: _weightController.text.isNotEmpty
+              ? double.tryParse(_weightController.text)
+              : null,
+          language: _selectedLanguage,
+          avatar: widget.initialData.avatar,
+          birthDate: _birthDateController.text.isNotEmpty
+              ? _birthDateController.text
+              : null,
+          gender: _selectedGender,
+          age: _age,
+          isComplete: _isProfileComplete(),
+          profileCompletionPercentage: _calculateCompletionPercentage(),
+        );
+
+        debugPrint('📝 Guardando perfil: ${updatedData.username}');
+        
+        // Llamar al servicio para actualizar
+        await _authService.updateProfile(
+          token: token,
+          updatedData: updatedData,
+        );
+
+        debugPrint('✅ Perfil guardado exitosamente');
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✅ Perfil actualizado exitosamente'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+
+        widget.onSubmit(updatedData);
+      } catch (e) {
+        debugPrint('❌ Error al guardar perfil: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ Error: $e'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isSaving = false);
+        }
+      }
     }
   }
 
@@ -367,10 +421,9 @@ class _UserProfileFormState extends State<UserProfileForm> {
 
   double _calculateCompletionPercentage() {
     int completedFields = 0;
-    int totalFields = 5; // username, email, language, gender, birthDate
+    int totalFields = 4; // username, language, gender, birthDate
 
     if (_usernameController.text.isNotEmpty) completedFields++;
-    if (_emailController.text.isNotEmpty) completedFields++;
     if (_selectedLanguage.isNotEmpty) completedFields++;
     if (_selectedGender.isNotEmpty) completedFields++;
     if (_birthDateController.text.isNotEmpty) completedFields++;
@@ -394,11 +447,6 @@ class _UserProfileFormState extends State<UserProfileForm> {
             Text('Username'),
             TextFormField(controller: _usernameController),
 
-            Text('Email'),
-            TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-            ),
             Text('Height'),
             TextFormField(
               controller: _heightController,
@@ -473,15 +521,24 @@ class _UserProfileFormState extends State<UserProfileForm> {
 
             // Botón de enviar
             ElevatedButton(
-              onPressed: _submitForm,
+              onPressed: _isSaving ? null : _submitForm,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.blue,
               ),
-              child: const Text(
-                'Save Data',
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              ),
+              child: _isSaving
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Save Data',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
             ),
           ],
         ),

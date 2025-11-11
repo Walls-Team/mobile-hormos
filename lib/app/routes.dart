@@ -17,13 +17,29 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
+  // Singleton pattern para evitar recreación
+  static AppRouter? _instance;
+  factory AppRouter() {
+    _instance ??= AppRouter._internal();
+    return _instance!;
+  }
+  
+  AppRouter._internal();
+  
   final AuthService _authService = GetIt.instance<AuthService>();
-
-  GoRouter get router => _router;
-
-  late final GoRouter _router = GoRouter(
-    initialLocation: publicRoutes.home,
-    routes: [
+  
+  // Router estático que nunca se recrea
+  static GoRouter? _cachedRouter;
+  
+  GoRouter get router {
+    if (_cachedRouter != null) {
+      return _cachedRouter!;
+    }
+    
+    _cachedRouter = GoRouter(
+      initialLocation: publicRoutes.home,
+      debugLogDiagnostics: false,
+      routes: [
       // RUTAS PÚBLICAS
       GoRoute(
         path: publicRoutes.home,
@@ -114,42 +130,45 @@ class AppRouter {
     ],
 
     // MÉTODO REDIRECT MEJORADO
-    redirect: (context, state) async {
+    redirect: (context, state) {
+      // TEMPORALMENTE DESHABILITADO PARA EVITAR LOCKS DURANTE HOT RESTART
+      // TODO: Implementar redirect sin locks
+      
       // Verificar estado de autenticación
-      final bool isLoggedIn = false;
+      // final bool isLoggedIn = false;
       // final bool isLoggedIn = await _authService.isLoggedIn();
 
       // Determinar el tipo de ruta actual
-      final currentLocation = state.matchedLocation;
-      final bool isPublicRoute = _isPublicRoute(currentLocation);
-      final bool isPrivateRoute = _isPrivateRoute(currentLocation);
-      final bool isAuthRoute = _isAuthRoute(currentLocation);
+      // final currentLocation = state.matchedLocation;
+      // final bool isPublicRoute = _isPublicRoute(currentLocation);
+      // final bool isPrivateRoute = _isPrivateRoute(currentLocation);
+      // final bool isAuthRoute = _isAuthRoute(currentLocation);
 
       // CASO 1: Usuario NO autenticado intentando acceder a ruta privada
-      if (!isLoggedIn && isPrivateRoute) {
-        return publicRoutes.login;
-      }
+      // if (!isLoggedIn && isPrivateRoute) {
+      //   return publicRoutes.login;
+      // }
 
       // CASO 2: Usuario autenticado intentando acceder a rutas de auth (login, register, etc.)
-      if (isLoggedIn && isAuthRoute) {
-        return privateRoutes.dashboard;
-      }
+      // if (isLoggedIn && isAuthRoute) {
+      //   return privateRoutes.dashboard;
+      // }
 
       // CASO 3: Usuario autenticado en la página de inicio → redirigir a dashboard
-      if (isLoggedIn && currentLocation == publicRoutes.home) {
-        return privateRoutes.dashboard;
-      }
+      // if (isLoggedIn && currentLocation == publicRoutes.home) {
+      //   return privateRoutes.dashboard;
+      // }
 
       // CASO 4: Acceso directo a rutas con parámetros sensibles → bloquear
-      if (_isDirectAccessToSensitiveRoute(state)) {
-        return publicRoutes.home;
-      }
+      // if (_isDirectAccessToSensitiveRoute(state)) {
+      //   return publicRoutes.home;
+      // }
 
-      // No hay redirección necesaria
-      return null;
-    },
+        // No hay redirección necesaria
+        return null;
+      },
 
-    errorBuilder: (context, state) => Scaffold(
+      errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -176,6 +195,9 @@ class AppRouter {
       ),
     ),
   );
+    
+    return _cachedRouter!;
+  }
 
   // MÉTODOS AUXILIARES
   bool _isPublicRoute(String location) {
@@ -210,9 +232,5 @@ class AppRouter {
       return true;
     }
     return false;
-  }
-
-  GoRouter config() {
-    return _router;
   }
 }

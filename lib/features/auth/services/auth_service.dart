@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:genius_hormo/core/api/api_helpers.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
 import 'package:genius_hormo/core/config/app_config.dart';
@@ -35,16 +36,25 @@ class AuthService {
       return ApiResponse.error(message: 'Email inválido');
     }
 
+    final url = AppConfig.getApiUrl('register/');
+    final body = json.encode({
+      'username': username.trim(),
+      'email': email.trim().toLowerCase(),
+      'password': password,
+      "confirmPassword": password,
+      "terms_and_conditions_accepted": true
+    });
+
+    debugPrint('🚀 REGISTER REQUEST');
+    debugPrint('📍 URL: $url');
+    debugPrint('📦 Body: $body');
+
     return executeRequest<RegisterResponseData>(
       request: _client
           .post(
-            Uri.parse(AppConfig.getApiUrl('register')),
+            Uri.parse(url),
             headers: AppConfig.getCommonHeaders(),
-            body: json.encode({
-              'username': username.trim(),
-              'email': email.trim().toLowerCase(),
-              'password': password,
-            }),
+            body: body,
           )
           .timeout(AppConfig.defaultTimeout),
       fromJson: RegisterResponseData.fromJson,
@@ -63,15 +73,24 @@ class AuthService {
       return ApiResponse.error(message: 'Email inválido');
     }
 
+    final url = AppConfig.getLoginUrl('login/');
+    final body = json.encode({
+      'email': email.trim().toLowerCase(),
+      'password': password,
+    });
+
+    debugPrint('🚀 LOGIN REQUEST');
+    debugPrint('📍 ENDPOINT: login/');
+    debugPrint('📍 FULL URL: $url');
+    debugPrint('📦 Body: $body');
+    debugPrint('🔧 Probando con barra final (/)...');
+
     return executeRequest<LoginResponse>(
       request: _client
           .post(
-            Uri.parse(AppConfig.getBaseUrl('login')),
+            Uri.parse(url),
             headers: AppConfig.getCommonHeaders(),
-            body: json.encode({
-              'email': email.trim().toLowerCase(),
-              'password': password,
-            }),
+            body: body,
           )
           .timeout(AppConfig.defaultTimeout),
       fromJson: LoginResponse.fromJson,
@@ -90,12 +109,19 @@ class AuthService {
       return ApiResponse.error(message: 'Email inválido');
     }
 
+    final url = AppConfig.getApiUrl('verify-account/');
+    final body = json.encode({'email': email, 'code': code});
+
+    debugPrint('🚀 VERIFY EMAIL REQUEST');
+    debugPrint('📍 URL: $url');
+    debugPrint('📦 Body: $body');
+
     return executeRequest<VerifyAccountResponseData>(
       request: _client
           .post(
-            Uri.parse(AppConfig.getApiUrl('verify-account')),
+            Uri.parse(url),
             headers: AppConfig.getCommonHeaders(),
-            body: json.encode({'email': email, 'code': code}),
+            body: body,
           )
           .timeout(AppConfig.defaultTimeout),
       fromJson: VerifyAccountResponseData.fromJson,
@@ -114,12 +140,19 @@ class AuthService {
       return ApiResponse.error(message: 'Email inválido');
     }
 
+    final url = AppConfig.getApiUrl('resend-otp/');
+    final body = json.encode({'email': email, 'context': context});
+
+    debugPrint('🚀 RESEND OTP REQUEST');
+    debugPrint('📍 URL: $url');
+    debugPrint('📦 Body: $body');
+
     return executeRequest<ResendOtpResponseData>(
       request: _client
           .post(
-            Uri.parse(AppConfig.getApiUrl('resend-otp')),
+            Uri.parse(url),
             headers: AppConfig.getCommonHeaders(),
-            body: json.encode({'email': email, 'context': context}),
+            body: body,
           )
           .timeout(AppConfig.defaultTimeout),
       fromJson: ResendOtpResponseData.fromJson,
@@ -214,59 +247,47 @@ class AuthService {
     final cachedUserData = prefs.getString('cached_user_profile');
 
     if (cachedUserData != null) {
+      debugPrint('📦 Usando perfil en caché');
       // Si hay cache, convertir de JSON a objeto User y retornar
       final userMap = json.decode(cachedUserData);
       final user = UserProfileData.fromJson(userMap);
-
-      // return ApiResponse<UserProfileData>(
-      //   data: user,
-      //   success: true,
-      //   message: '',
-      // );
 
       return user;
     } else {
       // Si NO hay cache, hacer request al backend
       try {
+        final url = AppConfig.getApiUrl('me/');
+        
+        debugPrint('🚀 GET MY PROFILE REQUEST');
+        debugPrint('📍 ENDPOINT: me');
+        debugPrint('📍 FULL URL: $url');
+        debugPrint('🔐 Token: ${token}...');
+
         final result = await executeRequest<UserProfileData>(
           request: _client
               .get(
-                Uri.parse(AppConfig.getApiUrl('me')),
+                Uri.parse(url),
                 headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
               )
               .timeout(AppConfig.defaultTimeout),
           fromJson: UserProfileData.fromJson,
         );
 
+        debugPrint('✅ PERFIL OBTENIDO');
+
         if (result.success && result.data != null) {
+          debugPrint('💾 Guardando perfil en caché');
           final userJson = json.encode(result.data!.toJson());
           await prefs.setString('cached_user_profile', userJson);
         }
 
         return result.data!;
       } catch (e) {
+        debugPrint('💥 ERROR AL OBTENER PERFIL: $e');
         // Si hay error en la API, propagar el error
-        // return ApiResponse<UserProfileData>(
-        //   error: e.toString(),
-        //   success: false,
-        //   message: '',
-        // );
-
         throw Exception('error al obtener los datos');
       }
     }
-  }
-
-  Future<ApiResponse<UpdateProfileResponseData>> updateProfile(token) async {
-    return executeRequest<UpdateProfileResponseData>(
-      request: _client
-          .get(
-            Uri.parse(AppConfig.getApiUrl('me/update')),
-            headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
-          )
-          .timeout(AppConfig.defaultTimeout),
-      fromJson: UpdateProfileResponseData.fromJson,
-    );
   }
 
   // Future<ApiResponse<User>> updateProfile({
@@ -338,10 +359,85 @@ class AuthService {
   /// Limpiar almacenamiento (delegado al storage service)
   Future<void> clearAllStorage() => _storageService.clearAllStorage();
 
+  /// Actualizar perfil del usuario
+  /// Endpoint: POST /v1/api/me/update/
+  Future<UserProfileData> updateProfile({
+    required String token,
+    required UserProfileData updatedData,
+  }) async {
+    try {
+      final url = AppConfig.getApiUrl('me/update/');
+      
+      // Construir body sin campos null
+      final bodyMap = {
+        'username': updatedData.username,
+        'height': updatedData.height,
+        'weight': updatedData.weight,
+        'language': updatedData.language,
+        'gender': updatedData.gender,
+        'birth_date': updatedData.birthDate,
+      };
+      
+      // Omitir age si es null
+      if (updatedData.age != null) {
+        bodyMap['age'] = updatedData.age;
+      }
+      
+      final body = json.encode(bodyMap);
+
+      debugPrint('🚀 UPDATE PROFILE REQUEST');
+      debugPrint('📍 ENDPOINT: me/update/');
+      debugPrint('📍 FULL URL: $url');
+      debugPrint('📦 Body: $body');
+      debugPrint('🔐 Token: ${token.substring(0, 20)}...');
+
+      final response = await _client
+          .post(
+            Uri.parse(url),
+            headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
+            body: body,
+          )
+          .timeout(AppConfig.defaultTimeout);
+
+      debugPrint('📥 RESPONSE STATUS: ${response.statusCode}');
+      debugPrint('📥 RESPONSE BODY: ${response.body}');
+
+      final result = handleApiResponse<UserProfileData>(
+        response,
+        UserProfileData.fromJson,
+      );
+
+      if (!result.success) {
+        throw Exception(result.message ?? 'Error al actualizar perfil');
+      }
+
+      debugPrint('✅ PERFIL ACTUALIZADO');
+
+      if (result.data != null) {
+        // Actualizar caché
+        final prefs = await SharedPreferences.getInstance();
+        final userJson = json.encode(result.data!.toJson());
+        await prefs.setString('cached_user_profile', userJson);
+        debugPrint('💾 Perfil en caché actualizado');
+      }
+
+      return result.data!;
+    } catch (e) {
+      debugPrint('💥 ERROR AL ACTUALIZAR PERFIL: $e');
+      throw Exception('error al actualizar el perfil');
+    }
+  }
+
   // ========== MÉTODOS PRIVADOS ==========
   // Nota: _getHeaders fue reemplazado por AppConfig.getCommonHeaders()
 
   bool isValidEmail(String email) {
-    return true;
+    // Expresión regular que permite:
+    // - Caracteres alfanuméricos
+    // - Puntos (.)
+    // - Guiones (-)
+    // - Guiones bajos (_)
+    // - Signos más (+) - usado en Gmail para testing
+    return RegExp(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
   }
 }

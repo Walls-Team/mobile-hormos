@@ -136,6 +136,8 @@ class _GeniusHormoAppState extends State<GeniusHormoApp> {
   final GeniusHormoDeepLinkService _deepLinkService = getIt<GeniusHormoDeepLinkService>();
   final NavigationService _navigationService = getIt<NavigationService>();
   final LanguageService _languageService = getIt<LanguageService>();
+  
+  // Usar el singleton de AppRouter
   final AppRouter _appRouter = AppRouter();
   
   StreamSubscription<GeniusHormoDeepLinkData>? _deepLinkSubscription;
@@ -202,7 +204,7 @@ class _GeniusHormoAppState extends State<GeniusHormoApp> {
         
         return MaterialApp.router(
           title: 'GeniusHormo',
-          routerConfig: _appRouter.config(),
+          routerConfig: _appRouter.router,
           debugShowCheckedModeBanner: false,
           
           // ✅ CONFIGURACIÓN COMPLETA Y CORRECTA DE LOCALIZATIONS

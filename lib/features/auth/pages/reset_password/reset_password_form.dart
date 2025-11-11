@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/app/route_names.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
 import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -337,10 +339,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
+                context.goNamed('login');
               },
               child: Text('Login'),
             ),

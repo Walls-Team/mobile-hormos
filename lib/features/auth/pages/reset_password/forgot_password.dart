@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/app/route_names.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_validate_code.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -45,6 +47,8 @@ void _submitForm() async {
       if (resetResponse.success) {
         // Navegar a la pantalla de verificación de código
         if (mounted) {
+          // Por ahora navegamos directamente con MaterialPageRoute
+          // Idealmente esto debería ser una ruta con extra
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -173,10 +177,7 @@ void _submitForm() async {
             width: double.infinity,
             child: OutlinedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
+                context.goNamed('login');
               },
               child: const Text('Do you have an account?'),
             ),

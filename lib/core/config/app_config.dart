@@ -3,10 +3,15 @@
 class AppConfig {
   // ========== ENDPOINTS ==========
   
-  /// URL base del API backend
+  /// URL base del API backend (para registro y verificación)
   /// Para desarrollo local: 'http://localhost:3000'
-  /// Para producción: 'https://api.geniushormo.com'
-  static const String baseUrl = 'http://localhost:3000';
+  /// Para producción: 'https://main.geniushpro.com'
+  static const String baseUrl = 'https://main.geniushpro.com';
+  
+  /// URL base del API de Login (diferente)
+  /// Para desarrollo local: 'http://localhost:3000'
+  /// Para producción: 'https://api.geniushpro.com'
+  static const String loginBaseUrl = 'https://api.geniushpro.com';
   
   /// URL base de Spike API (terceros)
   static const String spikeApiUrl = 'https://app-api.spikeapi.com/v3';
@@ -51,6 +56,16 @@ class AppConfig {
         : endpoint;
     
     return '$baseUrl/$cleanEndpoint';
+  }
+  
+  /// Construye una URL del API de Login
+  /// Ejemplo: getLoginUrl('login') => 'https://api.geniushpro.com/login'
+  static String getLoginUrl(String endpoint) {
+    final cleanEndpoint = endpoint.startsWith('/') 
+        ? endpoint.substring(1) 
+        : endpoint;
+    
+    return '$loginBaseUrl/$cleanEndpoint';
   }
   
   /// Retorna headers comunes para todas las requests

@@ -1,20 +1,30 @@
+import 'package:flutter/foundation.dart';
+
 class VerifyAccountResponseData {
   final String message;
   final String? accessToken;
   final String? refreshToken;
+  final bool success;
 
   VerifyAccountResponseData({
     required this.message,
     this.accessToken,
     this.refreshToken,
+    this.success = true,
   });
 
   factory VerifyAccountResponseData.fromJson(Map<String, dynamic> json) {
-    return VerifyAccountResponseData(
-      message: json['message'] as String,
-      accessToken: json['access_token'] as String?,
-      refreshToken: json['refresh_token'] as String?,
+    debugPrint('🔍 Parsing VerifyAccountResponseData from: $json');
+    
+    final result = VerifyAccountResponseData(
+      message: json['message'] as String? ?? 'Email verificado exitosamente',
+      accessToken: json['access_token'] as String? ?? json['accessToken'] as String?,
+      refreshToken: json['refresh_token'] as String? ?? json['refreshToken'] as String?,
+      success: json['success'] as bool? ?? true,
     );
+    
+    debugPrint('✅ Parsed VerifyAccountResponseData: message=${result.message}');
+    return result;
   }
 
   Map<String, dynamic> toJson() {

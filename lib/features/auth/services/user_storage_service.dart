@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserStorageService {
   static const String _jwtTokenKey = 'jwt_token';
@@ -112,10 +113,16 @@ class UserStorageService {
 
   Future<void> clearAllStorage() async {
     try {
+      // Limpiar secure storage (tokens y datos de usuario)
       await _secureStorage.deleteAll();
       print('✅ SecureStorage limpiado completamente');
+      
+      // Limpiar caché de SharedPreferences (perfil en caché)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('cached_user_profile');
+      print('✅ Caché de perfil eliminado');
     } catch (e) {
-      print('❌ Error limpiando SecureStorage: $e');
+      print('❌ Error limpiando almacenamiento: $e');
       rethrow;
     }
   }

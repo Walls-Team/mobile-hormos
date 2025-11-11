@@ -153,13 +153,17 @@
 // }
 
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/app/route_names.dart';
+import 'package:genius_hormo/app/safe_navigation.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
+import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/faqs/faqs.dart';
 import 'package:genius_hormo/features/settings/widgets/faqs_badge.dart';
 import 'package:genius_hormo/features/settings/widgets/profile_form.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -173,7 +177,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final SpikeApiService _spikeApiService = GetIt.instance<SpikeApiService>();
   final UserStorageService _userStorageService =
       GetIt.instance<UserStorageService>();
+  final AuthService _authService = GetIt.instance<AuthService>();
+  
   bool _loading = false;
+  bool _isLoadingProfile = true;
+  UserProfileData? _userProfile;
+  String? _profileError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      debugPrint('📱 Cargando perfil del usuario...');
+      final token = await _userStorageService.getJWTToken();
+      
+      if (token == null) {
+        throw Exception('No token available');
+      }
+
+      final userProfile = await _authService.getMyProfile(token: token);
+      
+      if (mounted) {
+        setState(() {
+          _userProfile = userProfile;
+          _isLoadingProfile = false;
+          debugPrint('✅ Perfil cargado: ${userProfile.username}');
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Error al cargar perfil: $e');
+      if (mounted) {
+        setState(() {
+          _profileError = e.toString();
+          _isLoadingProfile = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -202,24 +246,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildProfileForm() {
+    if (_isLoadingProfile) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_profileError != null) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.red),
+              SizedBox(height: 16),
+              Text('Error: $_profileError'),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadUserProfile,
+                child: Text('Reintentar'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_userProfile == null) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Text('No se pudo cargar el perfil'),
+        ),
+      );
+    }
+
     return UserProfileForm(
-      initialData: UserProfileData(
-        id: '123',
-        username: 'juanperez',
-        email: 'juan@example.com',
-        height: 175.0,
-        weight: 70.0,
-        language: 'es',
-        gender: 'male',
-        avatar:
-            'https://ms.geniushpro.com/avatars/26221e75ff4065bdc2edc5c08f40329670852824.jpg',
-        isComplete: false,
-        profileCompletionPercentage: 60.0,
-      ),
+      initialData: _userProfile!,
       onSubmit: (updatedData) {
-        // Aquí manejas los datos actualizados
-        print('Datos actualizados: $updatedData');
-        // Puedes guardar en base de datos, hacer API call, etc.
+        debugPrint('📝 Datos actualizados: ${updatedData.username}');
+        // TODO: Implementar actualización de perfil en el backend
       },
     );
   }
@@ -227,10 +296,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildFaqsButton() {
     return FaqsBadge(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => FaqsScreen()),
-        );
+        SafeNavigation.goNamed(context, 'faqs');
       },
     );
   }
@@ -263,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildLogout() {
     return OutlinedButton(
-      onPressed: () {},
+      onPressed: _performLogout,
       style: OutlinedButton.styleFrom(
         side: BorderSide(
           color: Colors.red, // Color del border
@@ -272,6 +338,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       child: Text('Log Out', style: TextStyle(color: Colors.red)),
     );
+  }
+
+  Future<void> _performLogout() async {
+    try {
+      debugPrint('🚪 Cerrando sesión...');
+      
+      // Limpiar todo el almacenamiento (token, perfil en caché, etc.)
+      await _authService.clearAllStorage();
+      
+      debugPrint('✅ Sesión cerrada exitosamente');
+      
+      // NO navegar inmediatamente - esperar a que se complete el build
+      Future.microtask(() {
+        if (!mounted) return;
+        SafeNavigation.goNamed(context, 'login');
+        debugPrint('✅ Navegado al login');
+      });
+    } catch (e) {
+      debugPrint('❌ Error al cerrar sesión: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cerrar sesión: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _linkDevice() async {
