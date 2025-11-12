@@ -154,7 +154,7 @@ class _VerificationCodeScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Código de verificación inválido'),
+              content: Text(result.error ?? 'Invalid verification code'),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -173,7 +173,7 @@ class _VerificationCodeScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error de conexión: $e'),
+            content: Text('Connection error: $e'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
@@ -182,7 +182,7 @@ class _VerificationCodeScreenState
     }
   }
 
-  // Método auxiliar para obtener el código completo de los campos individuales
+  // Helper method to get the complete code from individual fields
   String _getVerificationCodeFromFields() {
     return _controllers.map((controller) => controller.text).join();
   }
@@ -230,7 +230,7 @@ class _VerificationCodeScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message ?? 'Código reenviado exitosamente'),
+              content: Text(result.message ?? 'Code resent successfully'),
               duration: Duration(seconds: 3),
             ),
           );
@@ -240,7 +240,7 @@ class _VerificationCodeScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Error al reenviar el código'),
+              content: Text(result.error ?? 'Error resending code'),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),

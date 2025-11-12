@@ -127,6 +127,8 @@ class _RegistrationFormState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -145,8 +147,9 @@ class _RegistrationFormState extends State<RegisterScreen> {
             spacing: 20.0,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHormoIcon(),
-              _buildWelcomeMessage(context),
+              // Ocultar logo cuando el teclado está visible
+              if (!keyboardVisible) _buildHormoIcon(),
+              if (!keyboardVisible) _buildWelcomeMessage(context),
 
               Text('Username'),
               TextFormField(

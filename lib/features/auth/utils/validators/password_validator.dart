@@ -1,12 +1,12 @@
 String? validatePassword(value) {
   if (value == null || value.isEmpty) {
-    return 'Por favor ingresa tu contraseña';
+    return 'Please enter your password';
   }
   if (value.length < 8) {
-    return 'La contraseña debe tener al menos 8 caracteres';
+    return 'Password must be at least 8 characters';
   }
   if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
-    return 'Debe contener mayúsculas, minúsculas y números';
+    return 'Must contain uppercase, lowercase and numbers';
   }
   return null;
 }

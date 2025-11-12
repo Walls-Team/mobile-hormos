@@ -1,12 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
-import 'package:genius_hormo/features/auth/services/auth_service.dart';
-import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
-import 'package:genius_hormo/features/dashboard/dto/health_data.dart';
 import 'package:genius_hormo/features/dashboard/pages/dashboard.dart';
-import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
 import 'package:genius_hormo/features/settings/settings.dart';
+import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/stats/stats.dart';
 import 'package:genius_hormo/features/store/store.dart';
 import 'package:genius_hormo/widgets/app_bar.dart';
@@ -21,15 +18,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  final AuthService _authService = GetIt.instance<AuthService>();
-  final DashBoardService _dashBoardService = GetIt.instance<DashBoardService>();
-  final UserStorageService _storageService = GetIt.instance<UserStorageService>();
+  final SetupStatusService _setupStatusService = GetIt.instance<SetupStatusService>();
 
-  // Variables para almacenar los datos
   UserProfileData? _userProfile;
-  HealthData? _healthData;
   bool _isLoading = true;
-  String? _error;
+  bool _isSetupComplete = false;
 
   @override
   void initState() {
@@ -41,43 +34,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeData() async {
-    // NO setear _isLoading = true aquí porque ya inicia en true
-    debugPrint('📱 Cargando datos del usuario...');
+    debugPrint('📱 Verificando estado del setup...');
 
     try {
-      final token = await _storageService.getJWTToken();
+      final setupStatus = await _setupStatusService.checkSetupStatus();
       
-      if (token != null) {
-        // Intentar cargar datos, pero NO fallar si hay error
-        try {
-          final healthData = await _dashBoardService.getHealthData(token: token);
-          final userProfile = await _authService.getMyProfile(token: token);
-          
-          if (mounted) {
-            setState(() {
-              _userProfile = userProfile;
-              _healthData = healthData;
-            });
-          }
-          debugPrint('✅ Datos cargados exitosamente');
-        } catch (e) {
-          debugPrint('⚠️ Error cargando datos: $e');
-          // NO setear error, solo log
-        }
-      } else {
-        debugPrint('⚠️ No hay token disponible');
+      if (mounted) {
+        setState(() {
+          _isSetupComplete = setupStatus.isComplete;
+          _userProfile = setupStatus.profile;
+          _isLoading = false;
+        });
       }
-      
+
+      debugPrint('✅ Setup verificado - Completo: $_isSetupComplete');
     } catch (e) {
-      debugPrint('❌ Error crítico: $e');
-    }
-    
-    // SIEMPRE mostrar la UI al final
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        _error = null; // Limpiar cualquier error
-      });
+      debugPrint('❌ Error al verificar setup: $e');
+      if (mounted) {
+        setState(() {
+          _isSetupComplete = false;
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -94,13 +72,28 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // SIEMPRE mostrar bottom navigation, sin importar errores
-    // Las páginas individuales manejarán datos nulos
+    // Determinar qué mostrar en cada tab basado en el estado de setup
+    final Widget dashboardPage = !_isSetupComplete 
+        ? _buildSetupContent(context)
+        : DashboardScreen();
+    
+    // Páginas con condicional solo para Stats
     final List<Widget> _pages = [
-      DashboardScreen(),
-      StatsScreen(),
-      StoreScreen(),
-      SettingsScreen(),
+      dashboardPage,
+      !_isSetupComplete ? _buildSetupIncompleteMessage(context) : StatsScreen(),
+      StoreScreen(), // Store siempre accesible
+      SettingsScreen(
+        onDeviceStatusChanged: () {
+          // Callback cuando cambia el estado del dispositivo
+          debugPrint('🔄 Device status changed, refreshing...');
+          _initializeData();
+        },
+        onAvatarChanged: () {
+          // Callback cuando cambia el avatar
+          debugPrint('🔄 Avatar changed, refreshing profile...');
+          _initializeData();
+        },
+      ), // Settings siempre accesible
     ];
 
     return WillPopScope(
@@ -118,10 +111,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         decoration: BoxDecoration(),
         child: Scaffold(
-          appBar: _shouldShowAppBar(_currentIndex)
-              ? ModernAppBar(userName: _userProfile?.username ?? 'Usuario', 
-              // avatarUrl: _userProfile?.avatar,
-               )
+          appBar: _shouldShowAppBar(_currentIndex) && (_isSetupComplete || _currentIndex == 2)
+              ? ModernAppBar(
+                  userName: _userProfile?.username ?? 'Usuario',
+                  avatarUrl: _userProfile?.avatar,
+                )
               : null,
           body: _pages[_currentIndex],
           bottomNavigationBar: _buildBottomNavigationBar(theme),
@@ -187,8 +181,202 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
-bool _shouldShowAppBar(int index) {
-  return index == 0 || index == 1 || index == 2;
+  Widget _buildSetupContent(BuildContext context) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Card(
+          elevation: 4,
+          margin: const EdgeInsets.all(20),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Logo y título
+                Center(
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'assets/images/logo_2.png',
+                        height: 80,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Configuration Setup',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Complete all steps to access the dashboard',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                
+                // Items de configuración
+                _buildSetupItem(
+                  label: 'Device',
+                  status: _setupStatusService.currentStatus.hasDevice ? 'Connected' : 'Not connected',
+                  statusColor: _setupStatusService.currentStatus.hasDevice ? Colors.green : Colors.red,
+                  icon: CupertinoIcons.device_phone_portrait,
+                  isConnected: _setupStatusService.currentStatus.hasDevice,
+                  onTap: () {
+                    setState(() => _currentIndex = 3);
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('📱 Tap "Connect Device" button to link your device'),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildSetupItem(
+                  label: 'Profile',
+                  status: _setupStatusService.currentStatus.hasProfile ? 'Connected' : 'Not connected',
+                  statusColor: _setupStatusService.currentStatus.hasProfile ? Colors.green : Colors.red,
+                  icon: CupertinoIcons.person,
+                  isConnected: _setupStatusService.currentStatus.hasProfile,
+                  onTap: () {
+                    setState(() => _currentIndex = 3);
+                    // Refrescar después de un tiempo
+                    Future.delayed(const Duration(seconds: 2), () {
+                      _initializeData();
+                    });
+                  },
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSetupItem({
+    required String label,
+    required String status,
+    required Color statusColor,
+    required IconData icon,
+    required bool isConnected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 30, color: statusColor),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    status,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: statusColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isConnected)
+              const Icon(Icons.check_circle, size: 24, color: Colors.green),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSetupIncompleteMessage(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.exclamationmark_circle,
+              size: 64,
+              color: Colors.orange,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Setup Incomplete',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Complete your profile and connect a device to access Stats',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _currentIndex = 0; // Volver a Dashboard/Setup
+                });
+              },
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Back to Setup'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _shouldShowAppBar(int index) {
+    return index == 0 || index == 1 || index == 2;
+  }
 }

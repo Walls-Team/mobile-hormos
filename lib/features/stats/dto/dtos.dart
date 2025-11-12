@@ -35,7 +35,7 @@ class SleepEfficiencyRecord {
     return SleepEfficiencyRecord(
       date: DateTime.parse(json['date'] as String),
       sleepEfficiency: (json['sleep_efficiency'] as num).toDouble(),
-      dayIndex: json['day_index'] as int,
+      dayIndex: (json['day_index'] as num).toInt(),
     );
   }
 
@@ -106,7 +106,7 @@ class SleepDurationRecord {
       sleepDuration: (json['sleep_duration'] as num).toDouble(),
       sleepDurationDeep: (json['sleep_duration_deep'] as num).toDouble(),
       sleepDurationRem: (json['sleep_duration_rem'] as num).toDouble(),
-      dayIndex: json['day_index'] as int,
+      dayIndex: (json['day_index'] as num).toInt(),
     );
   }
 
@@ -189,11 +189,11 @@ class HeartRateRecord {
   factory HeartRateRecord.fromJson(Map<String, dynamic> json) {
     return HeartRateRecord(
       date: DateTime.parse(json['date'] as String),
-      heartRate: json['heartrate']?.toDouble(),
-      heartRateResting: json['heartrate_resting']?.toDouble(),
-      heartRateMax: json['heartrate_max']?.toDouble(),
-      hrvRmssd: json['hrv_rmssd']?.toDouble(),
-      dayIndex: json['day_index'] as int,
+      heartRate: (json['heartrate'] as num?)?.toDouble(),
+      heartRateResting: (json['heartrate_resting'] as num?)?.toDouble(),
+      heartRateMax: (json['heartrate_max'] as num?)?.toDouble(),
+      hrvRmssd: (json['hrv_rmssd'] as num?)?.toDouble(),
+      dayIndex: (json['day_index'] as num).toInt(),
     );
   }
 
@@ -276,7 +276,7 @@ class Spo2Record {
     return Spo2Record(
       date: DateTime.parse(json['date'] as String),
       spo2: (json['spo2'] as num).toDouble(),
-      dayIndex: json['day_index'] as int,
+      dayIndex: (json['day_index'] as num).toInt(),
     );
   }
 
@@ -350,8 +350,8 @@ class CalorieRecord {
   factory CalorieRecord.fromJson(Map<String, dynamic> json) {
     return CalorieRecord(
       date: DateTime.parse(json['date'] as String),
-      caloriesBurned: json['calories_burned']?.toDouble(),
-      dayIndex: json['day_index'] as int,
+      caloriesBurned: (json['calories_burned'] as num?)?.toDouble(),
+      dayIndex: (json['day_index'] as num).toInt(),
     );
   }
 
@@ -420,8 +420,8 @@ class SleepInterruptionRecord {
   factory SleepInterruptionRecord.fromJson(Map<String, dynamic> json) {
     return SleepInterruptionRecord(
       date: DateTime.parse(json['date'] as String),
-      sleepInterruptions: json['sleep_interruptions'] as int,
-      dayIndex: json['day_index'] as int,
+      sleepInterruptions: (json['sleep_interruptions'] as num).toInt(),
+      dayIndex: (json['day_index'] as num).toInt(),
     );
   }
 

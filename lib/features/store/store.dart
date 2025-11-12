@@ -23,21 +23,21 @@ class StoreScreen extends StatelessWidget {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Abrir enlace externo'),
+            title: const Text('Open external link'),
             content: const Text(
-              'Estás a punto de salir de la aplicación para visitar un sitio web externo. ¿Deseas continuar?',
+              'You are about to leave the app to visit an external website. Do you want to continue?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancelar'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () async {
                   Navigator.of(context).pop(true);
                   await launchUrl(uri);
                 },
-                child: const Text('Abrir enlace'),
+                child: const Text('Open link'),
               ),
             ],
           );
@@ -46,7 +46,7 @@ class StoreScreen extends StatelessWidget {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se puede abrir el enlace: $url'),
+          content: Text('Cannot open link: $url'),
           backgroundColor: Colors.red,
         ),
       );
@@ -80,7 +80,7 @@ class StoreScreen extends StatelessWidget {
               context: context,
               title: localizations.storeVitaminsTitle,
               description: localizations.storeVitaminsDescription,
-              url: 'https://example.com/vitamins', // Reemplaza con URL real
+              url: 'https://geniushormo.com/vitaminas/',
               icon: CupertinoIcons.heart,
             ),
 
@@ -89,7 +89,7 @@ class StoreScreen extends StatelessWidget {
               context: context,
               title: localizations.storeWhoopTitle,
               description: localizations.storeWhoopDescription,
-              url: 'https://example.com/whoop', // Reemplaza con URL real
+              url: 'https://join.whoop.com/us/en/GENIUS/',
               icon: CupertinoIcons.waveform_path,
             ),
 
@@ -98,7 +98,7 @@ class StoreScreen extends StatelessWidget {
               context: context,
               title: localizations.storeLabcorpTitle,
               description: localizations.storeLabcorpDescription,
-              url: 'https://example.com/labs-sorio', // Reemplaza con URL real
+              url: 'https://www.labcorp.com/',
               icon: CupertinoIcons.drop,
             ),
 
@@ -107,7 +107,7 @@ class StoreScreen extends StatelessWidget {
               context: context,
               title: localizations.storeMuseTitle,
               description: localizations.storeMuseDescription,
-              url: 'https://example.com/muse', // Reemplaza con URL real
+              url: 'https://choosemuse.com/pages/muse-2-offers',
               icon: CupertinoIcons.moon_zzz,
             ),
           ],

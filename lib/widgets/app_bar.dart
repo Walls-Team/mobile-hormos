@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String userName;
-  // final String avatarUrl;
+  final String? avatarUrl;
   final VoidCallback? onNotificationPressed;
   final VoidCallback? onAvatarPressed;
 
   const ModernAppBar({
     super.key,
     required this.userName,
+    this.avatarUrl,
     this.onNotificationPressed,
     this.onAvatarPressed,
-    // required this.avatarUrl,
   });
 
   @override
@@ -47,18 +47,26 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: 0.5,
                   ),
                 ),
-                child: ClipOval(
-                  child: Image.network(
-                    'https://ms.geniushpro.com/avatars/5449b6e5f64161e729df4633f08162134106e76c.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.person, color: Colors.grey),
-                      );
-                    },
-                  ),
-                ),
+                child: avatarUrl != null && avatarUrl!.isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          avatarUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[800],
+                              child: Icon(Icons.person, color: Colors.grey[600]),
+                            );
+                          },
+                        ),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey[800],
+                        ),
+                        child: Icon(Icons.person, color: Colors.grey[600]),
+                      ),
               ),
             ),
 

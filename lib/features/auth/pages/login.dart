@@ -121,6 +121,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -131,24 +133,32 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.spaceBetween, // Distribuye el espacio
-          children: [
-            // LOGO ARRIBA
-            _buildLogoSection(),
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - 
+                         MediaQuery.of(context).padding.top - 
+                         kToolbarHeight,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // LOGO ARRIBA (ocultar cuando el teclado está visible)
+                  if (!keyboardVisible) _buildLogoSection(),
 
-            // FORMULARIO EN EL CENTRO
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(20),
-                child: Form(key: _formKey, child: _buildLoginForm()),
+                  // FORMULARIO EN EL CENTRO
+                  Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Form(key: _formKey, child: _buildLoginForm()),
+                  ),
+
+                  // BOTONES ABAJO
+                  _buildBottomButtonsSection(context),
+                ],
               ),
             ),
-
-            // BOTONES ABAJO
-            _buildBottomButtonsSection(context),
-          ],
+          ),
         ),
       ),
     );

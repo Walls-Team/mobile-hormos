@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/dashboard/pages/dashboard.dart';
 import 'package:genius_hormo/features/settings/settings.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
@@ -18,6 +19,7 @@ class SetupScreen extends StatefulWidget {
 class _SetupScreenState extends State<SetupScreen> {
   final SpikeApiService _spikeService = GetIt.instance<SpikeApiService>();
   final AuthService _authService = GetIt.instance<AuthService>();
+  final UserStorageService _userStorageService = GetIt.instance<UserStorageService>();
 
   bool _hasProfile = false;
   bool _hasDevice = false;
@@ -32,36 +34,69 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Future<void> _checkUserData() async {
     try {
-      // Verificar si existe perfil
-      // final user = await _authService.getCurrentUser();
-      // _hasProfile = user != null && user.isProfileComplete;
+      // Verificar si existe perfil completo
+      final token = await _userStorageService.getJWTToken();
+      if (token != null) {
+        try {
+          final profile = await _authService.getMyProfile(token: token);
+          _hasProfile = profile.isComplete;
+          debugPrint('✅ Profile check: ${_hasProfile ? "Complete" : "Incomplete"}');
+          debugPrint('   Profile completion: ${profile.profileCompletionPercentage}%');
+        } catch (e) {
+          debugPrint('⚠️ Error checking profile: $e');
+          _hasProfile = false;
+        }
+      }
 
-      // Verificar si existe dispositivo
-      // final device = await _spikeService.myDevice();
-      // _hasDevice = device != null;
-
+      // TODO: Verificar si existe dispositivo conectado
+      // Esto dependerá de tu implementación de dispositivos
+      _hasDevice = false; // Por ahora false
+      
       setState(() {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error checking user data: $e');
+      debugPrint('❌ Error checking user data: $e');
       setState(() {
         _isLoading = false;
+        _hasProfile = false;
+        _hasDevice = false;
       });
     }
+  }
+
+  // Método para refrescar el estado cuando se actualiza el perfil
+  void refreshSetupStatus() {
+    setState(() {
+      _isLoading = true;
+    });
+    _checkUserData();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Array de páginas
-    final List<Widget> _pages = [
-      _buildSetupContent(context), // Dashboard/Setup
-      StatsScreen(),
-      StoreScreen(),
-      SettingsScreen(),
-    ];
+    // Determinar qué mostrar basado en el estado de configuración
+    Widget currentPage;
+    
+    if (_currentIndex == 0) {
+      // Dashboard: Mostrar setup mientras no esté completo
+      currentPage = _buildSetupContent(context);
+    } else if (_currentIndex == 3) {
+      // Settings: Siempre permitir acceso
+      currentPage = SettingsScreen();
+    } else if (_currentIndex == 2) {
+      // Store: Siempre permitir acceso
+      currentPage = StoreScreen();
+    } else {
+      // Stats: Mostrar mensaje si setup no está completo
+      if (!_hasProfile || !_hasDevice) {
+        currentPage = _buildSetupIncompleteMessage(context);
+      } else {
+        currentPage = StatsScreen();
+      }
+    }
 
     return WillPopScope(
       onWillPop: () async {
@@ -76,8 +111,57 @@ class _SetupScreenState extends State<SetupScreen> {
         return false; // No permitir volver atrás
       },
       child: Scaffold(
-        body: _pages[_currentIndex],
+        body: currentPage,
         bottomNavigationBar: _buildBottomNavigationBar(theme),
+      ),
+    );
+  }
+
+  Widget _buildSetupIncompleteMessage(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.exclamationmark_circle,
+              size: 64,
+              color: Colors.orange,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Setup Incomplete',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Complete your profile and connect a device to access Stats',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _currentIndex = 0; // Volver a Dashboard/Setup
+                });
+              },
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Back to Setup'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -255,17 +339,32 @@ class _SetupScreenState extends State<SetupScreen> {
     bool showCheck = false,
   }) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
         debugPrint('$label clicked');
-        // Navegar a Settings (perfil)
+        
         if (label == 'Profile') {
           debugPrint('🚀 Navegando a Settings (Profile)');
           setState(() {
             _currentIndex = 3; // Settings es el índice 3
           });
+          
+          // Refrescar el estado cuando vuelva de Settings
+          Future.delayed(const Duration(milliseconds: 500), () {
+            refreshSetupStatus();
+          });
         } else if (label == 'Device') {
-          debugPrint('🚀 Device setup - funcionalidad pendiente');
-          // TODO: Implementar configuración de dispositivo
+          debugPrint('🚀 Abriendo configuración de dispositivo');
+          setState(() {
+            _currentIndex = 3; // Ir a Settings donde está el botón Connect Device
+          });
+          
+          // Mostrar SnackBar indicando dónde encontrar la opción
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('📱 Tap "Connect Device" button to link your device'),
+              duration: Duration(seconds: 3),
+            ),
+          );
         }
       },
       borderRadius: BorderRadius.circular(8),

@@ -13,8 +13,8 @@ class SleepSummary {
 
   factory SleepSummary.fromJson(Map<String, dynamic> json) {
     return SleepSummary(
-      hrvRmssd: json['hrv_rmssd'] as int,
-      sleepEfficiency: json['sleep_efficiency'] as int,
+      hrvRmssd: (json['hrv_rmssd'] as num).toInt(),
+      sleepEfficiency: (json['sleep_efficiency'] as num).toInt(),
       sleepDuration: (json['sleep_duration'] as num).toDouble(),
       date: json['date'] as String,
     );
