@@ -48,10 +48,10 @@ class _InputPasswordState extends State<InputPassword> {
 
   String? _defaultValidator(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Ingresa tu contraseña';
+      return 'Enter your password';
     }
     if (value.length < 6) {
-      return 'Mínimo 6 caracteres';
+      return 'Minimum 6 characters';
     }
     return null;
   }

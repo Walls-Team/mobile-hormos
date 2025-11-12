@@ -31,31 +31,64 @@ class UserProfileData {
 
   // Método fromJson para crear una instancia desde un Map
   factory UserProfileData.fromJson(Map<String, dynamic> json) {
-    debugPrint(' Parseando UserProfileData desde JSON:');
-    debugPrint('JSON: $json');
+    debugPrint('\n🔍 Parseando UserProfileData desde JSON:');
+    debugPrint('📦 JSON recibido: $json');
+    debugPrint('🔑 Keys disponibles: ${json.keys.toList()}');
     
     try {
+      // Parse individual con logging
+      final id = json['id']?.toString() ?? json['user_id']?.toString() ?? 'unknown';
+      final username = json['username']?.toString() ?? json['name']?.toString() ?? 'unknown';
+      final email = json['email']?.toString();
+      
+      debugPrint('📝 Parseando height: ${json['height']} (tipo: ${json['height'].runtimeType})');
+      final height = json['height'] != null ? double.tryParse(json['height'].toString()) : null;
+      
+      debugPrint('📝 Parseando weight: ${json['weight']} (tipo: ${json['weight'].runtimeType})');
+      final weight = json['weight'] != null ? double.tryParse(json['weight'].toString()) : null;
+      
+      final language = json['language']?.toString() ?? 'es';
+      final avatar = json['avatar']?.toString();
+      final birthDate = json['birth_date']?.toString() ?? json['birthDate']?.toString();
+      final gender = json['gender']?.toString() ?? 'unknown';
+      final age = json['age'] != null ? int.tryParse(json['age'].toString()) : null;
+      final isComplete = json['is_complete'] == true || json['isComplete'] == true;
+      
+      debugPrint('📝 Parseando completion %: ${json['profile_completion_percentage']} (tipo: ${json['profile_completion_percentage'].runtimeType})');
+      final profileCompletionPercentage = json['profile_completion_percentage'] != null 
+          ? double.tryParse(json['profile_completion_percentage'].toString()) ?? 0.0
+          : 0.0;
+      
+      debugPrint('\n✅ Valores parseados:');
+      debugPrint('   id: $id');
+      debugPrint('   username: $username');
+      debugPrint('   email: $email');
+      debugPrint('   height: $height');
+      debugPrint('   weight: $weight');
+      debugPrint('   avatar: $avatar');
+      debugPrint('   gender: $gender');
+      debugPrint('   age: $age\n');
+      
       final profileData = UserProfileData(
-        id: json['id']?.toString() ?? json['user_id']?.toString() ?? 'unknown',
-        username: json['username']?.toString() ?? json['name']?.toString() ?? 'unknown',
-        email: json['email']?.toString(),
-        height: json['height'] != null ? (json['height'] as num).toDouble() : null,
-        weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
-        language: json['language']?.toString() ?? 'es',
-        avatar: json['avatar']?.toString(),
-        birthDate: json['birth_date']?.toString() ?? json['birthDate']?.toString(),
-        gender: json['gender']?.toString() ?? 'unknown',
-        age: json['age'] != null ? int.tryParse(json['age'].toString()) : null,
-        isComplete: json['is_complete'] == true || json['isComplete'] == true,
-        profileCompletionPercentage: json['profile_completion_percentage'] != null 
-            ? (json['profile_completion_percentage'] as num).toDouble() 
-            : 0.0,
+        id: id,
+        username: username,
+        email: email,
+        height: height,
+        weight: weight,
+        language: language,
+        avatar: avatar,
+        birthDate: birthDate,
+        gender: gender,
+        age: age,
+        isComplete: isComplete,
+        profileCompletionPercentage: profileCompletionPercentage,
       );
       
-      debugPrint(' UserProfileData parseado exitosamente: ${profileData.username}');
+      debugPrint('✅ UserProfileData creado exitosamente: ${profileData.username}');
       return profileData;
-    } catch (e) {
-      debugPrint(' Error parseando UserProfileData: $e');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error parseando UserProfileData: $e');
+      debugPrint('📍 StackTrace: $stackTrace');
       rethrow;
     }
   }

@@ -16,39 +16,40 @@ import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart'
 import 'package:get_it/get_it.dart';
 
 class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final DashBoardService _dashboardService = GetIt.instance<DashBoardService>();
-  final UserStorageService _userStorageService =
-      GetIt.instance<UserStorageService>();
+  final UserStorageService _userStorageService = GetIt.instance<UserStorageService>();
   late Future<HealthData> _metricsFuture;
 
   @override
   void initState() {
     super.initState();
-    // ✅ SE EJECUTA UNA SOLA VEZ al cargar la página
     _metricsFuture = _loadMetrics();
   }
 
   Future<HealthData> _loadMetrics() async {
     final token = await _userStorageService.getJWTToken();
-    return _dashboardService.getHealthData(token: token!);
+    if (token == null || token.isEmpty) {
+      throw Exception('No token available');
+    }
+    return _dashboardService.getHealthData(token: token);
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<HealthData>(
-      future: _metricsFuture, // ← Se usa la misma instancia del Future
+      future: _metricsFuture,
       builder: (context, snapshot) {
-        // ⏳ CARGANDO
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         }
 
-        // ❌ ERROR
         if (snapshot.hasError) {
           return Center(
             child: Column(
@@ -57,13 +58,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Icon(Icons.error, size: 64, color: Colors.red),
                 SizedBox(height: 16),
                 Text('Error al cargar los datos'),
-                // ❌ NO hay botón de reintentar porque solo se ejecuta una vez
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _metricsFuture = _loadMetrics();
+                    });
+                  },
+                  child: Text('Reintentar'),
+                ),
               ],
             ),
           );
         }
 
-        // ✅ DATOS CARGADOS
         if (snapshot.hasData) {
           return _buildCharts(snapshot.data!);
         }

@@ -1,15 +1,15 @@
 String? validateEmail(value) {
   if (value == null || value.isEmpty) {
-    return 'Por favor ingresa tu email';
+    return 'Please enter your email';
   }
-  // Expresión regular más permisiva que permite:
-  // - Caracteres alfanuméricos
-  // - Puntos (.)
-  // - Guiones (-)
-  // - Guiones bajos (_)
-  // - Signos más (+) - usado en Gmail para testing
+  // More permissive regular expression that allows:
+  // - Alphanumeric characters
+  // - Dots (.)
+  // - Hyphens (-)
+  // - Underscores (_)
+  // - Plus signs (+) - used in Gmail for testing
   if (!RegExp(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
-    return 'Por favor ingresa un email válido';
+    return 'Please enter a valid email';
   }
   return null;
 }

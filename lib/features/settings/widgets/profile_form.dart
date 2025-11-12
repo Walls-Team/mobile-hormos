@@ -269,16 +269,19 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/features/settings/widgets/avatar_selector_modal.dart';
 import 'package:get_it/get_it.dart';
 
 class UserProfileForm extends StatefulWidget {
   final UserProfileData initialData;
   final void Function(UserProfileData) onSubmit;
+  final VoidCallback? onAvatarChanged;
 
   const UserProfileForm({
     super.key,
     required this.initialData,
     required this.onSubmit,
+    this.onAvatarChanged,
   });
 
   @override
@@ -297,6 +300,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
   late String _selectedLanguage;
   late String _selectedGender;
   late int? _age;
+  String? _selectedAvatar;
   
   bool _isSaving = false;
 
@@ -329,8 +333,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
         ? genderValue 
         : 'male';
     _age = widget.initialData.age;
-    
-    debugPrint('📝 Perfil inicializado: ${widget.initialData.username}, género recibido: "${widget.initialData.gender}", género usado: $_selectedGender');
+    _selectedAvatar = widget.initialData.avatar;
   }
 
   @override
@@ -363,7 +366,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
               ? double.tryParse(_weightController.text)
               : null,
           language: _selectedLanguage,
-          avatar: widget.initialData.avatar,
+          avatar: _selectedAvatar,
           birthDate: _birthDateController.text.isNotEmpty
               ? _birthDateController.text
               : null,
@@ -372,16 +375,12 @@ class _UserProfileFormState extends State<UserProfileForm> {
           isComplete: _isProfileComplete(),
           profileCompletionPercentage: _calculateCompletionPercentage(),
         );
-
-        debugPrint('📝 Guardando perfil: ${updatedData.username}');
         
         // Llamar al servicio para actualizar
         await _authService.updateProfile(
           token: token,
           updatedData: updatedData,
         );
-
-        debugPrint('✅ Perfil guardado exitosamente');
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -395,7 +394,6 @@ class _UserProfileFormState extends State<UserProfileForm> {
 
         widget.onSubmit(updatedData);
       } catch (e) {
-        debugPrint('❌ Error al guardar perfil: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -441,7 +439,38 @@ class _UserProfileFormState extends State<UserProfileForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 10.0,
           children: [
-            _buildAvatar(size: 100.0, imageUrl: widget.initialData.avatar),
+            GestureDetector(
+              onTap: _showAvatarSelector,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  _buildAvatar(size: 100.0, imageUrl: _selectedAvatar),
+                  Positioned(
+                    bottom: 0,
+                    right: MediaQuery.of(context).size.width / 2 - 62,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Color(0xFF1E1E2C), width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Toca el avatar para cambiarlo',
+              style: TextStyle(color: Colors.white60, fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
 
             // Campo Username
             Text('Username'),
@@ -546,14 +575,104 @@ class _UserProfileFormState extends State<UserProfileForm> {
     );
   }
 
-  Widget _buildAvatar({required size, required imageUrl}) {
+  void _showAvatarSelector() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AvatarSelectorModal(
+        currentAvatarUrl: _selectedAvatar,
+        onAvatarSelected: (String avatarUrl) async {
+          setState(() {
+            _selectedAvatar = avatarUrl;
+          });
+          
+          // Actualizar avatar inmediatamente
+          await _updateAvatar(avatarUrl);
+        },
+      ),
+    );
+  }
+
+  Future<void> _updateAvatar(String avatarUrl) async {
+    try {
+      final token = await _storageService.getJWTToken();
+      if (token == null) {
+        throw Exception('No token available');
+      }
+
+      final result = await _authService.updateAvatar(
+        token: token,
+        avatarUrl: avatarUrl,
+      );
+
+      if (mounted && result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Avatar updated successfully'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        
+        // Recargar el perfil para actualizar el header
+        await _reloadProfile();
+        
+        // Notificar al parent que el avatar cambió
+        widget.onAvatarChanged?.call();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error updating avatar'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _reloadProfile() async {
+    try {
+      final token = await _storageService.getJWTToken();
+      if (token != null) {
+        final updatedProfile = await _authService.getMyProfile(token: token);
+        // El perfil ya se guarda en caché dentro de getMyProfile
+        debugPrint('🔄 Perfil recargado con nuevo avatar');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error recargando perfil: $e');
+    }
+  }
+
+  Widget _buildAvatar({required size, required String? imageUrl}) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        image: DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.contain),
+        color: imageUrl == null ? Colors.grey[800] : null,
+        image: imageUrl != null 
+            ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+            : null,
       ),
+      child: imageUrl == null
+          ? Icon(
+              Icons.person,
+              size: size * 0.6,
+              color: Colors.grey[600],
+            )
+          : null,
     );
   }
 

@@ -20,24 +20,29 @@ class SleepData {
 
   factory SleepData.fromJson(Map<String, dynamic> json) {
     return SleepData(
-      resume: SleepSummary.fromJson(json['resume']),
-      sleepResume: (json['sleep_resume'] as List)
-          .map((item) => SleepRecord.fromJson(item))
-          .toList(),
-      remResume: (json['rem_resume'] as List)
-          .map((item) => RemSleepRecord.fromJson(item))
-          .toList(),
-      spoResume: (json['spo_resume'] as List)
-          .map((item) => SpO2Record.fromJson(item))
-          .toList(),
-      dates: (json['dates'] as List).cast<String>(),
+      resume: SleepSummary.fromJson(json['resume'] as Map<String, dynamic>),
+      sleepResume: (json['sleep_resume'] as List<dynamic>?)
+              ?.map((item) => SleepRecord.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      remResume: (json['rem_resume'] as List<dynamic>?)
+              ?.map((item) => RemSleepRecord.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      spoResume: (json['spo_resume'] as List<dynamic>?)
+              ?.map((item) => SpO2Record.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      dates: (json['dates'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'resume': resume.toJson(),
-      'sleep_resume': sleepResume.map((item) => item.toJson()).toList(),
+      'resume': resume?.toJson(),
+      'sleep_resume': sleepResume?.map((item) => item.toJson()).toList(),
+      'rem_resume': remResume?.map((item) => item.toJson()).toList(),
+      'spo_resume': spoResume?.map((item) => item.toJson()).toList(),
       'rem_resume': remResume.map((item) => item.toJson()).toList(),
       'spo_resume': spoResume.map((item) => item.toJson()).toList(),
       'dates': dates,

@@ -28,12 +28,12 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    if (username.isEmpty || email.isEmpty || password.isEmpty) {
-      return ApiResponse.error(message: 'Todos los campos son requeridos');
+    if (email.isEmpty || password.isEmpty || username.isEmpty) {
+      return ApiResponse.error(message: 'All fields are required');
     }
 
     if (!isValidEmail(email)) {
-      return ApiResponse.error(message: 'Email inválido');
+      return ApiResponse.error(message: 'Invalid email');
     }
 
     final url = AppConfig.getApiUrl('register/');
@@ -66,11 +66,11 @@ class AuthService {
     String password,
   ) async {
     if (email.isEmpty || password.isEmpty) {
-      return ApiResponse.error(message: 'Todos los campos son requeridos');
+      return ApiResponse.error(message: 'All fields are required');
     }
 
     if (!isValidEmail(email)) {
-      return ApiResponse.error(message: 'Email inválido');
+      return ApiResponse.error(message: 'Invalid email');
     }
 
     final url = AppConfig.getLoginUrl('login/');
@@ -102,11 +102,11 @@ class AuthService {
     required String code,
   }) async {
     if (email.isEmpty || code.isEmpty) {
-      return ApiResponse.error(message: 'Todos los campos son requeridos');
+      return ApiResponse.error(message: 'All fields are required');
     }
 
     if (!isValidEmail(email)) {
-      return ApiResponse.error(message: 'Email inválido');
+      return ApiResponse.error(message: 'Invalid email');
     }
 
     final url = AppConfig.getApiUrl('verify-account/');
@@ -133,11 +133,11 @@ class AuthService {
     required String context,
   }) async {
     if (email.isEmpty || context.isEmpty) {
-      return ApiResponse.error(message: 'Todos los campos son requeridos');
+      return ApiResponse.error(message: 'All fields are required');
     }
 
     if (!isValidEmail(email)) {
-      return ApiResponse.error(message: 'Email inválido');
+      return ApiResponse.error(message: 'Invalid email');
     }
 
     final url = AppConfig.getApiUrl('resend-otp/');
@@ -163,11 +163,11 @@ class AuthService {
     required String email,
   }) async {
     if (email.isEmpty) {
-      return ApiResponse.error(message: 'Todos los campos son requeridos');
+      return ApiResponse.error(message: 'All fields are required');
     }
 
     if (!isValidEmail(email)) {
-      return ApiResponse.error(message: 'Email inválido');
+      return ApiResponse.error(message: 'Invalid email');
     }
 
     return executeRequest<PasswordResetResponseData>(
@@ -187,11 +187,11 @@ class AuthService {
     required String code,
   }) async {
     if (email.isEmpty || code.isEmpty) {
-      return ApiResponse.error(message: 'Todos los campos son requeridos');
+      return ApiResponse.error(message: 'All fields are required');
     }
 
     if (!isValidEmail(email)) {
-      return ApiResponse.error(message: 'Email inválido');
+      return ApiResponse.error(message: 'Invalid email');
     }
 
     return executeRequest<PasswordResetResponseData>(
@@ -216,11 +216,11 @@ class AuthService {
         code.isEmpty ||
         newPassword.isEmpty ||
         confirmPassword.isEmpty) {
-      return ApiResponse.error(message: 'Todos los campos son requeridos');
+      return ApiResponse.error(message: 'All fields are required');
     }
 
     if (!isValidEmail(email)) {
-      return ApiResponse.error(message: 'Email inválido');
+      return ApiResponse.error(message: 'Invalid email');
     }
 
     return executeRequest<PasswordResetResponseData>(
@@ -243,50 +243,85 @@ class AuthService {
   //===================
   Future<UserProfileData> getMyProfile({required String token}) async {
     final prefs = await SharedPreferences.getInstance();
-
     final cachedUserData = prefs.getString('cached_user_profile');
 
-    if (cachedUserData != null) {
-      debugPrint('📦 Usando perfil en caché');
-      // Si hay cache, convertir de JSON a objeto User y retornar
-      final userMap = json.decode(cachedUserData);
-      final user = UserProfileData.fromJson(userMap);
+    // SIEMPRE hacer request para debugging (comentar el caché temporalmente)
+    // if (cachedUserData != null) {
+    //   debugPrint('📦 Usando perfil en caché');
+    //   final userMap = json.decode(cachedUserData);
+    //   final user = UserProfileData.fromJson(userMap);
+    //   return user;
+    // }
 
-      return user;
-    } else {
-      // Si NO hay cache, hacer request al backend
-      try {
-        final url = AppConfig.getApiUrl('me/');
-        
-        debugPrint('🚀 GET MY PROFILE REQUEST');
-        debugPrint('📍 ENDPOINT: me');
-        debugPrint('📍 FULL URL: $url');
-        debugPrint('🔐 Token: ${token}...');
-
-        final result = await executeRequest<UserProfileData>(
-          request: _client
-              .get(
-                Uri.parse(url),
-                headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
-              )
-              .timeout(AppConfig.defaultTimeout),
-          fromJson: UserProfileData.fromJson,
-        );
-
-        debugPrint('✅ PERFIL OBTENIDO');
-
-        if (result.success && result.data != null) {
-          debugPrint('💾 Guardando perfil en caché');
-          final userJson = json.encode(result.data!.toJson());
-          await prefs.setString('cached_user_profile', userJson);
+    try {
+      final url = AppConfig.getApiUrl('me/');
+      final headers = AppConfig.getCommonHeaders(withAuth: true, token: token);
+      
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🚀 GET MY PROFILE REQUEST');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📍 ENDPOINT: me/');
+      debugPrint('🌐 FULL URL: $url');
+      debugPrint('📤 HEADERS:');
+      headers.forEach((key, value) {
+        if (key == 'Authorization') {
+          debugPrint('   $key: Bearer ${token.substring(0, 20)}...');
+        } else {
+          debugPrint('   $key: $value');
         }
+      });
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-        return result.data!;
-      } catch (e) {
-        debugPrint('💥 ERROR AL OBTENER PERFIL: $e');
-        // Si hay error en la API, propagar el error
-        throw Exception('error al obtener los datos');
+      final result = await executeRequest<UserProfileData>(
+        request: _client
+            .get(
+              Uri.parse(url),
+              headers: headers,
+            )
+            .timeout(AppConfig.defaultTimeout),
+        fromJson: UserProfileData.fromJson,
+      );
+
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📥 RESPONSE FROM getMyProfile');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('✅ Success: ${result.success}');
+      debugPrint('📝 Message: ${result.message}');
+      
+      if (result.success && result.data != null) {
+        final userData = result.data!;
+        debugPrint('\n👤 USER DATA OBJECT:');
+        debugPrint('   userDATA: ${result}');
+        debugPrint('   Username: ${userData.username}');
+        debugPrint('   Email: ${userData.email}');
+        debugPrint('   Avatar: ${userData.avatar}');
+        debugPrint('   Height: ${userData.height}');
+        debugPrint('   Weight: ${userData.weight}');
+        debugPrint('   Gender: ${userData.gender}');
+        debugPrint('   BirthDate: ${userData.birthDate}');
+        debugPrint('   Language: ${userData.language}');
+        debugPrint('   Age: ${userData.age}');
+        debugPrint('   Is Complete: ${userData.isComplete}');
+        debugPrint('   Completion %: ${userData.profileCompletionPercentage}');
+        
+        debugPrint('\n💾 Guardando perfil en caché...');
+        final userJson = json.encode(userData.toJson());
+        await prefs.setString('cached_user_profile', userJson);
+        debugPrint('✅ Caché actualizado');
+      } else {
+        debugPrint('❌ Error: ${result.error}');
       }
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      return result.data!;
+    } catch (e, stackTrace) {
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('💥 ERROR EN getMyProfile');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ Error: $e');
+      debugPrint('📍 StackTrace: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      throw Exception('Error al obtener perfil: $e');
     }
   }
 
@@ -367,8 +402,9 @@ class AuthService {
   }) async {
     try {
       final url = AppConfig.getApiUrl('me/update/');
+      final headers = AppConfig.getCommonHeaders(withAuth: true, token: token);
       
-      // Construir body sin campos null
+      // Construir body con campos del perfil
       final bodyMap = {
         'username': updatedData.username,
         'height': updatedData.height,
@@ -385,22 +421,47 @@ class AuthService {
       
       final body = json.encode(bodyMap);
 
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('🚀 UPDATE PROFILE REQUEST');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('📍 ENDPOINT: me/update/');
-      debugPrint('📍 FULL URL: $url');
-      debugPrint('📦 Body: $body');
-      debugPrint('🔐 Token: ${token.substring(0, 20)}...');
+      debugPrint('🌐 FULL URL: $url');
+      debugPrint('📤 HEADERS:');
+      headers.forEach((key, value) {
+        if (key == 'Authorization') {
+          debugPrint('   $key: Bearer ${token.substring(0, 20)}...');
+        } else {
+          debugPrint('   $key: $value');
+        }
+      });
+      debugPrint('\n📦 REQUEST BODY (JSON):');
+      debugPrint(body);
+      debugPrint('\n📋 DATOS A ACTUALIZAR:');
+      debugPrint('   Username: ${updatedData.username}');
+      debugPrint('   Email: ${updatedData.email}');
+      debugPrint('   Height: ${updatedData.height}');
+      debugPrint('   Weight: ${updatedData.weight}');
+      debugPrint('   Gender: ${updatedData.gender}');
+      debugPrint('   BirthDate: ${updatedData.birthDate}');
+      debugPrint('   Language: ${updatedData.language}');
+      debugPrint('   Age: ${updatedData.age}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       final response = await _client
           .post(
             Uri.parse(url),
-            headers: AppConfig.getCommonHeaders(withAuth: true, token: token),
+            headers: headers,
             body: body,
           )
           .timeout(AppConfig.defaultTimeout);
 
-      debugPrint('📥 RESPONSE STATUS: ${response.statusCode}');
-      debugPrint('📥 RESPONSE BODY: ${response.body}');
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📥 RESPONSE FROM updateProfile');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint('📄 Response Body:');
+      debugPrint(response.body);
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       final result = handleApiResponse<UserProfileData>(
         response,
@@ -408,36 +469,202 @@ class AuthService {
       );
 
       if (!result.success) {
+        debugPrint('\n❌ UPDATE FAILED:');
+        debugPrint('   Message: ${result.message}');
+        debugPrint('   Error: ${result.error}\n');
         throw Exception(result.message ?? 'Error al actualizar perfil');
       }
 
-      debugPrint('✅ PERFIL ACTUALIZADO');
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('✅ PERFIL ACTUALIZADO EXITOSAMENTE');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       if (result.data != null) {
+        final userData = result.data!;
+        debugPrint('\n👤 UPDATED USER DATA OBJECT:');
+        debugPrint('   ID: ${userData.id}');
+        debugPrint('   Username: ${userData.username}');
+        debugPrint('   Email: ${userData.email}');
+        debugPrint('   Height: ${userData.height}');
+        debugPrint('   Weight: ${userData.weight}');
+        debugPrint('   Gender: ${userData.gender}');
+        debugPrint('   BirthDate: ${userData.birthDate}');
+        debugPrint('   Language: ${userData.language}');
+        debugPrint('   Age: ${userData.age}');
+        debugPrint('   Is Complete: ${userData.isComplete}');
+        debugPrint('   Completion %: ${userData.profileCompletionPercentage}');
+        
         // Actualizar caché
+        debugPrint('\n💾 Actualizando caché...');
         final prefs = await SharedPreferences.getInstance();
-        final userJson = json.encode(result.data!.toJson());
+        final userJson = json.encode(userData.toJson());
         await prefs.setString('cached_user_profile', userJson);
-        debugPrint('💾 Perfil en caché actualizado');
+        debugPrint('✅ Caché actualizado');
       }
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       return result.data!;
-    } catch (e) {
-      debugPrint('💥 ERROR AL ACTUALIZAR PERFIL: $e');
-      throw Exception('error al actualizar el perfil');
+    } catch (e, stackTrace) {
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('💥 ERROR EN updateProfile');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ Error: $e');
+      debugPrint('📍 StackTrace: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      throw Exception('Error al actualizar perfil: $e');
     }
   }
 
   // ========== MÉTODOS PRIVADOS ==========
-  // Nota: _getHeaders fue reemplazado por AppConfig.getCommonHeaders()
 
   bool isValidEmail(String email) {
-    // Expresión regular que permite:
-    // - Caracteres alfanuméricos
-    // - Puntos (.)
-    // - Guiones (-)
-    // - Guiones bajos (_)
-    // - Signos más (+) - usado en Gmail para testing
+    // More permissive regular expression that allows:
+    // - Alphanumeric characters
+    // - Dots (.)
+    // - Hyphens (-)
+    // - Underscores (_)
+    // - Plus signs (+) - used in Gmail for testing
     return RegExp(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email);
+  }
+
+  /// Actualizar avatar del usuario
+  /// Endpoint: POST /v1/api/me/avatar/
+  Future<ApiResponse<void>> updateAvatar({
+    required String token,
+    required String avatarUrl,
+  }) async {
+    try {
+      final url = AppConfig.getApiUrl('me/avatar/');
+      final headers = AppConfig.getCommonHeaders(withAuth: true, token: token);
+      
+      final body = json.encode({
+        'avatar': avatarUrl,
+      });
+
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🖼️  UPDATE AVATAR REQUEST');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📍 ENDPOINT: me/avatar/');
+      debugPrint('🌐 FULL URL: $url');
+      debugPrint('📦 BODY: $body');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      final response = await _client
+          .post(
+            Uri.parse(url),
+            headers: headers,
+            body: body,
+          )
+          .timeout(AppConfig.defaultTimeout);
+
+      debugPrint('\n📥 RESPONSE FROM updateAvatar');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint('📄 Response Body: ${response.body}\n');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('✅ AVATAR ACTUALIZADO EXITOSAMENTE\n');
+        return ApiResponse.success(message: 'Avatar updated successfully', data: null);
+      } else {
+        return ApiResponse.error(message: 'Error updating avatar');
+      }
+    } catch (e) {
+      debugPrint('❌ Error updating avatar: $e');
+      return ApiResponse.error(message: e.toString());
+    }
+  }
+
+  /// Eliminar cuenta del usuario
+  /// Endpoint: DELETE /v1/api/delete-account/
+  Future<ApiResponse<void>> deleteAccount({
+    required String token,
+  }) async {
+    try {
+      final url = AppConfig.getApiUrl('delete-account/');
+      final headers = AppConfig.getCommonHeaders(withAuth: true, token: token);
+
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🗑️  DELETE ACCOUNT REQUEST');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📍 ENDPOINT: delete-account/');
+      debugPrint('🌐 FULL URL: $url');
+      debugPrint('🔧 METHOD: DELETE');
+      debugPrint('📤 HEADERS:');
+      headers.forEach((key, value) {
+        if (key == 'Authorization') {
+          debugPrint('   $key: Bearer ${token.substring(0, 20)}...');
+        } else {
+          debugPrint('   $key: $value');
+        }
+      });
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      final response = await _client
+          .delete(
+            Uri.parse(url),
+            headers: headers,
+          )
+          .timeout(AppConfig.defaultTimeout);
+
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📥 DELETE ACCOUNT RESPONSE');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint('📄 Response Body:');
+      debugPrint(response.body);
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      // Aceptar 200, 204 (No Content), y 202 (Accepted)
+      if (response.statusCode == 200 || 
+          response.statusCode == 204 || 
+          response.statusCode == 202) {
+        
+        String message = 'Account deleted successfully';
+        
+        if (response.statusCode != 204 && response.body.isNotEmpty) {
+          try {
+            final Map<String, dynamic> responseData = json.decode(response.body);
+            message = responseData['message']?.toString() ?? message;
+            
+            // Verificar si hay error en la respuesta
+            final error = responseData['error']?.toString() ?? '';
+            if (error.isNotEmpty) {
+              debugPrint('❌ Error en respuesta: $error');
+              return ApiResponse.error(message: error);
+            }
+          } catch (e) {
+            debugPrint('⚠️ No se pudo parsear la respuesta, pero status code es exitoso');
+          }
+        }
+        
+        debugPrint('✅ CUENTA ELIMINADA EXITOSAMENTE\n');
+
+        return ApiResponse.success(
+          message: message,
+          data: null,
+        );
+      } else {
+        String errorMessage = 'Error ${response.statusCode}';
+        
+        try {
+          final Map<String, dynamic> responseData = json.decode(response.body);
+          errorMessage = responseData['error']?.toString() ?? 
+                        responseData['message']?.toString() ?? 
+                        errorMessage;
+        } catch (e) {
+          errorMessage = response.body.isNotEmpty ? response.body : errorMessage;
+        }
+        
+        debugPrint('❌ $errorMessage');
+        return ApiResponse.error(message: errorMessage);
+      }
+    } catch (e, stackTrace) {
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('💥 ERROR EN DELETE ACCOUNT');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ Error: $e');
+      debugPrint('📍 StackTrace: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      return ApiResponse.error(message: 'Error deleting account: $e');
+    }
   }
 }
