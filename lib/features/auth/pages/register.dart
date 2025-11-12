@@ -231,22 +231,22 @@ class _RegistrationFormState extends State<RegisterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Requisitos de la contraseña:',
+          'Password requirements:',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         SizedBox(height: 8),
-        _buildRequirementItem('Al menos 8 caracteres', password.length >= 8),
+        _buildRequirementItem('At least 8 characters', password.length >= 8),
         _buildRequirementItem(
-          'Una letra mayúscula',
+          'One uppercase letter',
           RegExp(r'[A-Z]').hasMatch(password),
         ),
         _buildRequirementItem(
-          'Una letra minúscula',
+          'One lowercase letter',
           RegExp(r'[a-z]').hasMatch(password),
         ),
-        _buildRequirementItem('Un número', RegExp(r'\d').hasMatch(password)),
+        _buildRequirementItem('One number', RegExp(r'\d').hasMatch(password)),
         _buildRequirementItem(
-          'Un carácter especial (!@#\$%^&*)',
+          'One special character (!@#\$%^&*)',
           RegExp(r'[!@#\$%^&*]').hasMatch(password),
           isRecommended: true,
         ),
@@ -305,11 +305,11 @@ class _RegistrationFormState extends State<RegisterScreen> {
             Expanded(
               child: Wrap(
                 children: [
-                  Text('Acepto los ', style: TextStyle(color: Colors.white)),
+                  Text('I accept the ', style: TextStyle(color: Colors.white)),
                   GestureDetector(
                     onTap: _navigateToTermsAndConditions,
                     child: Text(
-                      'términos y condiciones',
+                      'terms and conditions',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         decoration: TextDecoration.underline,
