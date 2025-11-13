@@ -11,18 +11,54 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [_buildIllustration(), _buildActionButtons(context)],
+          children: [
+            _buildResponsiveTopSpacing(), // Espacio superior responsive
+            _buildIllustration(),
+            const SizedBox(height: 40), // Espacio reducido entre logo y botones
+            _buildActionButtons(context),
+            const SizedBox(height: 40), // Espacio inferior
+          ],
         ),
       ),
     );
   }
 
+  Widget _buildResponsiveTopSpacing() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Espacio superior responsive: 15% del alto de la pantalla
+        final screenHeight = MediaQuery.of(context).size.height;
+        final topSpacing = screenHeight * 0.15;
+        
+        return SizedBox(height: topSpacing);
+      },
+    );
+  }
+
   Widget _buildIllustration() {
-    return Image(
-      image: AssetImage('assets/images/logo.png'),
-      height: 150,
-      fit: BoxFit.contain,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Logo responsive ajustado para iPhone 16:
+        // iPhone 16 (852px): 35% = ~298px (más grande)
+        // Dispositivos pequeños (<700px): 40%
+        // Dispositivos grandes (>900px): 32%
+        final screenHeight = MediaQuery.of(context).size.height;
+        double logoHeight;
+        
+        if (screenHeight < 700) {
+          logoHeight = screenHeight * 0.40; // Dispositivos pequeños
+        } else if (screenHeight > 900) {
+          logoHeight = screenHeight * 0.32; // Tablets/iPad
+        } else {
+          logoHeight = screenHeight * 0.35; // iPhone 16 y similares
+        }
+        
+        return Image(
+          image: AssetImage('assets/images/logo.png'),
+          height: logoHeight,
+          fit: BoxFit.contain,
+        );
+      },
     );
   }
 
