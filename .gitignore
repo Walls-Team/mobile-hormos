@@ -36,6 +36,16 @@ migrate_working_dir/
 # Symbolication related
 app.*.symbols
 
+# iOS build artifacts
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+
+# iOS Xcode user data
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/xcuserdata/
+ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+
 # Obfuscation related
 app.*.map.json
 
