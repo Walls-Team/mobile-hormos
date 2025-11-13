@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/app/route_names.dart';
 import 'package:genius_hormo/app/safe_navigation.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
+import 'package:genius_hormo/core/auth/auth_state_provider.dart';
 import 'package:genius_hormo/features/auth/dto/login_dto.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
@@ -79,6 +80,11 @@ class _LoginScreenState extends State<LoginScreen> {
             final userProfile = await _authService.getMyProfile(token: data.accessToken);
             debugPrint('✅ Perfil obtenido');
             debugPrint('📋 Perfil completo: ${userProfile.isComplete}');
+
+            // Marcar como autenticado en el AuthStateProvider
+            final authStateProvider = GetIt.instance<AuthStateProvider>();
+            authStateProvider.setAuthenticated();
+            debugPrint('✅ AuthStateProvider actualizado');
 
             // NO navegar inmediatamente - esperar a que se complete el build
             Future.microtask(() {

@@ -173,7 +173,7 @@ class AuthService {
     return executeRequest<PasswordResetResponseData>(
       request: _client
           .post(
-            Uri.parse(AppConfig.getApiUrl('password-reset/request')),
+            Uri.parse(AppConfig.getApiUrl('password-reset/request/')),
             headers: AppConfig.getCommonHeaders(),
             body: json.encode({'email': email}),
           )
@@ -197,7 +197,7 @@ class AuthService {
     return executeRequest<PasswordResetResponseData>(
       request: _client
           .post(
-            Uri.parse(AppConfig.getApiUrl('password-reset/validate-otp')),
+            Uri.parse(AppConfig.getApiUrl('password-reset/validate-otp/')),
             headers: AppConfig.getCommonHeaders(),
             body: json.encode({'email': email, 'code': code}),
           )
@@ -223,10 +223,19 @@ class AuthService {
       return ApiResponse.error(message: 'Invalid email');
     }
 
+    debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('🔐 PASSWORD RESET CONFIRM REQUEST');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('📧 Email: $email');
+    debugPrint('🔢 Code: $code');
+    debugPrint('🔒 Password Length: ${newPassword.length}');
+    debugPrint('📍 Endpoint: password-reset/confirm/');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
     return executeRequest<PasswordResetResponseData>(
       request: _client
           .post(
-            Uri.parse(AppConfig.getApiUrl('password-reset/confirm')),
+            Uri.parse(AppConfig.getApiUrl('password-reset/confirm/')),
             headers: AppConfig.getCommonHeaders(),
             body: json.encode({
               'email': email,

@@ -62,9 +62,34 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         });
 
         if (resetResponse.success) {
+          debugPrint('✅ Contraseña cambiada exitosamente');
+          
+          // Mostrar pantalla de éxito inmediatamente
           setState(() {
             _passwordReset = true;
           });
+          
+          // Mostrar mensaje de éxito en SnackBar
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '🎉 Password changed successfully!',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
         } else {
           // Mostrar error
           ScaffoldMessenger.of(context).showSnackBar(
@@ -114,7 +139,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(publicRoutes.home);
+            }
+          },
         ),
       ),
       body: _passwordReset
@@ -311,18 +342,27 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     spacing: 10.0,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Título
+                      // Icono de éxito
                       _buildIcon(context),
+
+                      // Título
                       Text(
-                        'You’re ready to go',
-                        style: Theme.of(context).textTheme.headlineSmall,
+                        'Password Changed!',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
                       ),
+
+                      SizedBox(height: 8),
 
                       // Mensaje
                       Text(
-                        'Password succesfully reseted, \n You’re all set to continue.',
+                        'Your password has been successfully changed.\nYou can now login with your new password.',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -338,10 +378,25 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Colors.green,
+              ),
               onPressed: () {
-                context.goNamed('login');
+                debugPrint(' Navegando al login después de cambio exitoso de contraseña');
+                Future.microtask(() {
+                  if (!mounted) return;
+                  context.goNamed('login');
+                });
               },
-              child: Text('Login'),
+              child: Text(
+                'Go to Login',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ),

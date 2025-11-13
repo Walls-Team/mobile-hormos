@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/app/route_names.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_form.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 
 class ResetPasswordVerificationCodeScreen extends StatefulWidget {
   final String email;
@@ -122,7 +124,11 @@ class _VerificationCodeScreenState
     try {
       String verificationCode = _getVerificationCodeFromFields();
 
-      // Llamar al servicio de validación de OTP para reset de contraseña
+      debugPrint('📧 Email: ${widget.email}');
+      debugPrint('🔢 Código ingresado: $verificationCode');
+      debugPrint('🔄 Validando código con el backend...');
+
+      // PASO 2: Validar el código OTP con el backend
       final result = await _authService.validatePasswordResetOtp(
         email: widget.email,
         code: verificationCode,
@@ -133,8 +139,11 @@ class _VerificationCodeScreenState
       });
 
       if (result.success == true) {
-        // OTP validado exitosamente - navegar a pantalla de nueva contraseña
-        if (mounted) {
+        debugPrint('✅ Código validado exitosamente');
+        
+        // Código validado - navegar a pantalla de nueva contraseña
+        Future.microtask(() {
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -144,8 +153,10 @@ class _VerificationCodeScreenState
               ),
             ),
           );
-        }
+        });
       } else {
+        debugPrint('❌ Código inválido: ${result.error}');
+        
         // Error en la validación
         setState(() {
           isButtonEnabled = true;
@@ -165,6 +176,8 @@ class _VerificationCodeScreenState
         }
       }
     } catch (e) {
+      debugPrint('💥 Error al validar código: $e');
+      
       setState(() {
         _isLoading = false;
         isButtonEnabled = true;
@@ -269,6 +282,18 @@ class _VerificationCodeScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(publicRoutes.home);
+            }
+          },
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [

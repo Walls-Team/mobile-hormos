@@ -36,9 +36,15 @@ void _submitForm() async {
     try {
       final String email = _emailController.text;
 
+      debugPrint('📧 Solicitando reset de contraseña para: $email');
+
       final resetResponse = await _authService.requestPasswordReset(
         email: email,
       );
+
+      debugPrint('✅ Respuesta recibida: ${resetResponse.success}');
+      debugPrint('💬 Mensaje: ${resetResponse.message}');
+      debugPrint('❌ Error: ${resetResponse.error}');
 
       setState(() {
         _isLoading = false;
@@ -46,16 +52,15 @@ void _submitForm() async {
 
       if (resetResponse.success) {
         // Navegar a la pantalla de verificación de código
-        if (mounted) {
-          // Por ahora navegamos directamente con MaterialPageRoute
-          // Idealmente esto debería ser una ruta con extra
+        Future.microtask(() {
+          if (!mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ResetPasswordVerificationCodeScreen(email: email),
             ),
           );
-        }
+        });
       } else {
         // Mostrar error
         if (mounted) {
@@ -90,7 +95,13 @@ void _submitForm() async {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(publicRoutes.home);
+            }
+          },
         ),
       ),
       body: SafeArea(

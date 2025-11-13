@@ -154,6 +154,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/app/safe_navigation.dart';
+import 'package:genius_hormo/core/auth/auth_state_provider.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
@@ -290,7 +291,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildDeviceButton(),
                   // _buildFaqsButton(), // Comentado - requiere FaqsBadge widget
                   _buildLogout(),
-                  SizedBox(height: 20),
+                  SizedBox(height: 0),
                   _buildDeleteAccount(),
                 ],
               ),
@@ -339,7 +340,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       initialData: _userProfile!,
       onSubmit: (updatedData) {
         debugPrint('📝 Datos actualizados: ${updatedData.username}');
-        // TODO: Implementar actualización de perfil en el backend
+        debugPrint('✅ Perfil completo: ${updatedData.isComplete}');
+        
+        // Actualizar el estado del perfil inmediatamente
+        setState(() {
+          _userProfile = updatedData;
+        });
+        
+        debugPrint('🔄 Estado actualizado - Botón Connect Device debería actualizarse');
       },
       onAvatarChanged: widget.onAvatarChanged,
     );
@@ -449,25 +457,108 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     }
 
-    // Mostrar botón de conectar
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _isConnectingDevice ? null : _connectDevice,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-        child: _isConnectingDevice
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+    // Verificar si el perfil está completo
+    final bool isProfileComplete = _userProfile?.isComplete ?? false;
+
+    // Mostrar botón de conectar con validación
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Banner informativo si el perfil no está completo
+        if (!isProfileComplete)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.orange.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Colors.orange,
+                  size: 24,
                 ),
-              )
-            : const Text('Connect Device'),
-      ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Complete Your Profile',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'You need to complete your profile before connecting a device.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        
+        // Botón de conectar
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: (_isConnectingDevice || !isProfileComplete) 
+                ? null 
+                : _connectDevice,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              backgroundColor: isProfileComplete 
+                  ? null // Usa el color del theme
+                  : Colors.grey[800], // Color deshabilitado
+            ),
+            child: _isConnectingDevice
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (!isProfileComplete)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Icon(
+                            Icons.lock_outline,
+                            size: 18,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      Text(
+                        'Connect Device',
+                        style: TextStyle(
+                          color: isProfileComplete 
+                              ? Colors.black 
+                              : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -940,6 +1031,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       // Limpiar todo el almacenamiento (token, perfil en caché, etc.)
       await _authService.clearAllStorage();
+      
+      // Marcar como no autenticado en el AuthStateProvider
+      final authStateProvider = GetIt.instance<AuthStateProvider>();
+      authStateProvider.setUnauthenticated();
+      debugPrint('✅ AuthStateProvider actualizado - Usuario deslogueado');
       
       // NO navegar inmediatamente - esperar a que se complete el build
       Future.microtask(() {

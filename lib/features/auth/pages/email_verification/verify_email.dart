@@ -143,7 +143,33 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       });
 
       if (result.success == true) {
-        debugPrint('🎉 VERIFICACIÓN EXITOSA - Navegando a Login');
+        debugPrint('🎉 VERIFICACIÓN EXITOSA');
+        
+        // Mostrar mensaje de éxito
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      '🎉 Registration successful! Welcome!',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        
+        // Esperar un momento para que el usuario vea el mensaje
+        await Future.delayed(Duration(seconds: 2));
+        
         // Verificación exitosa - ir directamente al login
         Future.microtask(() {
           if (!mounted) return;

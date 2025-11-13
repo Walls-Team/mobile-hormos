@@ -346,6 +346,11 @@ class _UserProfileFormState extends State<UserProfileForm> {
   }
 
   Future<void> _submitForm() async {
+    // Validar campos requeridos primero
+    if (!_validateRequiredFields()) {
+      return;
+    }
+    
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
       
@@ -376,28 +381,40 @@ class _UserProfileFormState extends State<UserProfileForm> {
           profileCompletionPercentage: _calculateCompletionPercentage(),
         );
         
-        // Llamar al servicio para actualizar
-        await _authService.updateProfile(
+        debugPrint('💾 Actualizando perfil...');
+        debugPrint('Username: ${updatedData.username}');
+        debugPrint('Height: ${updatedData.height}');
+        debugPrint('Weight: ${updatedData.weight}');
+        debugPrint('BirthDate: ${updatedData.birthDate}');
+        debugPrint('Gender: ${updatedData.gender}');
+        
+        // Llamar al servicio para actualizar (retorna UserProfileData o lanza excepción)
+        final result = await _authService.updateProfile(
           token: token,
           updatedData: updatedData,
         );
         
+        // Si llegamos aquí, el update fue exitoso
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ Perfil actualizado exitosamente'),
+              content: Text('✅ Profile updated successfully'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             ),
           );
         }
 
-        widget.onSubmit(updatedData);
+        // Notificar al parent con los datos actualizados
+        widget.onSubmit(result);
       } catch (e) {
+        debugPrint('💥 Error al actualizar perfil: $e');
         if (mounted) {
+          // Intentar parsear error del backend
+          final errorMessage = _parseErrorMessage(e.toString());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ Error: $e'),
+              content: Text('❌ $errorMessage'),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -410,9 +427,126 @@ class _UserProfileFormState extends State<UserProfileForm> {
       }
     }
   }
+  
+  bool _validateRequiredFields() {
+    List<String> missingFields = [];
+    
+    if (_usernameController.text.trim().isEmpty) {
+      missingFields.add('Username');
+    }
+    if (_heightController.text.trim().isEmpty) {
+      missingFields.add('Height');
+    }
+    if (_weightController.text.trim().isEmpty) {
+      missingFields.add('Weight');
+    }
+    if (_birthDateController.text.trim().isEmpty) {
+      missingFields.add('BirthDay');
+    }
+    if (_selectedGender.isEmpty) {
+      missingFields.add('Gender');
+    }
+    
+    if (missingFields.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('⚠️ Please complete: ${missingFields.join(", ")}'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return false;
+    }
+    
+    return true;
+  }
+  
+  void _showBackendErrors(String? error) {
+    if (error == null) return;
+    
+    try {
+      // Intentar parsear el error como JSON del backend
+      final Map<String, dynamic>? errorData = _parseBackendError(error);
+      
+      if (errorData != null && errorData.containsKey('error')) {
+        final errors = errorData['error'] as Map<String, dynamic>;
+        List<String> errorMessages = [];
+        
+        errors.forEach((field, messages) {
+          if (messages is List) {
+            errorMessages.addAll(messages.cast<String>());
+          }
+        });
+        
+        if (errorMessages.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('❌ Validation Errors:', 
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 4),
+                  ...errorMessages.map((msg) => Text('• $msg')),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 5),
+            ),
+          );
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error parseando backend error: $e');
+    }
+    
+    // Fallback: mostrar error raw
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('❌ $error'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+  
+  Map<String, dynamic>? _parseBackendError(String error) {
+    try {
+      // Buscar JSON en el string de error
+      final jsonStart = error.indexOf('{');
+      final jsonEnd = error.lastIndexOf('}');
+      
+      if (jsonStart != -1 && jsonEnd != -1) {
+        final jsonString = error.substring(jsonStart, jsonEnd + 1);
+        return Map<String, dynamic>.from(
+          // Necesitaríamos dart:convert pero por ahora retornar null
+          {} // TODO: parsear JSON si es necesario
+        );
+      }
+    } catch (e) {
+      debugPrint('Error parseando JSON: $e');
+    }
+    return null;
+  }
+  
+  String _parseErrorMessage(String error) {
+    // Extraer mensaje legible del error
+    if (error.contains('altura') || error.contains('height')) {
+      return 'Height must be between 3.0 and 9.0 ft';
+    }
+    if (error.contains('peso') || error.contains('weight')) {
+      return 'Weight must be at least 40.0 lbs';
+    }
+    return error;
+  }
 
   bool _isProfileComplete() {
     return _usernameController.text.isNotEmpty &&
+        _heightController.text.isNotEmpty &&
+        _weightController.text.isNotEmpty &&
+        _birthDateController.text.isNotEmpty &&
         _selectedLanguage.isNotEmpty &&
         _selectedGender.isNotEmpty;
   }
@@ -479,13 +613,17 @@ class _UserProfileFormState extends State<UserProfileForm> {
             Text('Height'),
             TextFormField(
               controller: _heightController,
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
-                if (value != null && value.isNotEmpty) {
-                  final height = double.tryParse(value);
-                  if (height == null || height <= 0) {
-                    return 'Altura inválida';
-                  }
+                if (value == null || value.isEmpty) {
+                  return 'Height is required';
+                }
+                final height = double.tryParse(value);
+                if (height == null) {
+                  return 'Please enter a valid number';
+                }
+                if (height < 3.0 || height > 9.0) {
+                  return 'Height must be between 3.0 and 9.0 ft';
                 }
                 return null;
               },
@@ -493,13 +631,17 @@ class _UserProfileFormState extends State<UserProfileForm> {
             Text('Weight'),
             TextFormField(
               controller: _weightController,
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
-                if (value != null && value.isNotEmpty) {
-                  final weight = double.tryParse(value);
-                  if (weight == null || weight <= 0) {
-                    return 'Peso inválido';
-                  }
+                if (value == null || value.isEmpty) {
+                  return 'Weight is required';
+                }
+                final weight = double.tryParse(value);
+                if (weight == null) {
+                  return 'Please enter a valid number';
+                }
+                if (weight < 40.0) {
+                  return 'Weight must be at least 40.0 lbs';
                 }
                 return null;
               },
@@ -509,18 +651,56 @@ class _UserProfileFormState extends State<UserProfileForm> {
             // Campo Birth Date
             TextFormField(
               controller: _birthDateController,
-
+              readOnly: true,
               onTap: () async {
-                // Opcional: puedes agregar un date picker aquí
+                // Calcular fecha máxima (18 años atrás desde hoy)
+                final DateTime maxDate = DateTime.now().subtract(Duration(days: 18 * 365));
+                
                 final date = await showDatePicker(
                   context: context,
-                  initialDate: DateTime.now(),
+                  initialDate: maxDate,
                   firstDate: DateTime(1900),
-                  lastDate: DateTime.now(),
+                  lastDate: maxDate, // No permitir fechas menores de 18 años
+                  helpText: 'Select your birth date',
+                  errorFormatText: 'Invalid date',
                 );
                 if (date != null) {
                   _birthDateController.text =
                       "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+                }
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Birth date is required';
+                }
+                
+                // Validar formato de fecha
+                try {
+                  final parts = value.split('-');
+                  if (parts.length != 3) {
+                    return 'Invalid date format';
+                  }
+                  
+                  final year = int.parse(parts[0]);
+                  final month = int.parse(parts[1]);
+                  final day = int.parse(parts[2]);
+                  final birthDate = DateTime(year, month, day);
+                  
+                  // Calcular edad
+                  final today = DateTime.now();
+                  var age = today.year - birthDate.year;
+                  if (today.month < birthDate.month || 
+                      (today.month == birthDate.month && today.day < birthDate.day)) {
+                    age--;
+                  }
+                  
+                  if (age < 18) {
+                    return 'You must be at least 18 years old';
+                  }
+                  
+                  return null;
+                } catch (e) {
+                  return 'Invalid date format';
                 }
               },
             ),

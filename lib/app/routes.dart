@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/app/route_names.dart';
+import 'package:genius_hormo/core/auth/auth_redirect_service.dart';
 import 'package:genius_hormo/features/acceptdevice/pages/accept_device.dart';
 import 'package:genius_hormo/features/auth/pages/email_verification/verify_email.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
@@ -129,44 +130,11 @@ class AppRouter {
       // ),
     ],
 
-    // MÉTODO REDIRECT MEJORADO
-    redirect: (context, state) {
-      // TEMPORALMENTE DESHABILITADO PARA EVITAR LOCKS DURANTE HOT RESTART
-      // TODO: Implementar redirect sin locks
-      
-      // Verificar estado de autenticación
-      // final bool isLoggedIn = false;
-      // final bool isLoggedIn = await _authService.isLoggedIn();
-
-      // Determinar el tipo de ruta actual
-      // final currentLocation = state.matchedLocation;
-      // final bool isPublicRoute = _isPublicRoute(currentLocation);
-      // final bool isPrivateRoute = _isPrivateRoute(currentLocation);
-      // final bool isAuthRoute = _isAuthRoute(currentLocation);
-
-      // CASO 1: Usuario NO autenticado intentando acceder a ruta privada
-      // if (!isLoggedIn && isPrivateRoute) {
-      //   return publicRoutes.login;
-      // }
-
-      // CASO 2: Usuario autenticado intentando acceder a rutas de auth (login, register, etc.)
-      // if (isLoggedIn && isAuthRoute) {
-      //   return privateRoutes.dashboard;
-      // }
-
-      // CASO 3: Usuario autenticado en la página de inicio → redirigir a dashboard
-      // if (isLoggedIn && currentLocation == publicRoutes.home) {
-      //   return privateRoutes.dashboard;
-      // }
-
-      // CASO 4: Acceso directo a rutas con parámetros sensibles → bloquear
-      // if (_isDirectAccessToSensitiveRoute(state)) {
-      //   return publicRoutes.home;
-      // }
-
-        // No hay redirección necesaria
-        return null;
-      },
+    // MÉTODO REDIRECT FUNCIONAL - Maneja autenticación sin Navigator locks
+    redirect: (context, state) async {
+      final authRedirectService = AuthRedirectService();
+      return await authRedirectService.handleRedirect(state);
+    },
 
       errorBuilder: (context, state) => Scaffold(
       body: Center(
