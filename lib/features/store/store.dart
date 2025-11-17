@@ -141,52 +141,51 @@ class StoreScreen extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12.0),
-
         onTap: () => _launchURL(context, url),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 10,
-            children: [
-              // Título del partner
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  // color: Colors.black,
-                ),
-              ),
-
-              // Descripción con icono en fila
-              Row(
+        child: Stack(
+          children: [
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 10,
                 children: [
-                  // Icono de tamaño mediano
-                  Icon(
-                    icon, // Cambié a arrow_forward que es más común para enlaces
-                    size: 40, // Tamaño mediano
-                  ),
-                  const SizedBox(width: 8), // Espacio entre icono y texto
-                  // Texto de descripción
-                  Expanded(
-                    child: Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        // color: Colors.grey[700],
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.justify,
+                  // Título del partner
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      // color: Colors.black,
                     ),
+                  ),
+
+                  // Descripción sin icono para mejor alineación
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      // color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.justify,
                   ),
                 ],
               ),
-
-              // Indicador de enlace externo
-            ],
-          ),
+            ),
+            
+            // Icono en la esquina superior derecha
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Icon(
+                icon,
+                size: 24,
+                color: Colors.white70,
+              ),
+            ),
+          ],
         ),
       ),
     );

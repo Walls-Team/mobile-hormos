@@ -1,269 +1,3 @@
-// import 'package:flutter/material.dart';
-// import '../../models/profile_model.dart';
-// import '../../services/profile_service.dart';
-// import '../../utils/constants.dart';
-
-// class ProfileForm extends StatefulWidget {
-//   const ProfileForm({super.key});
-
-//   @override
-//   State<ProfileForm> createState() => _ProfileFormState();
-// }
-
-// class _ProfileFormState extends State<ProfileForm> {
-//   final _formKey = GlobalKey<FormState>();
-
-//   final TextEditingController _userController = TextEditingController();
-//   final TextEditingController _heightController = TextEditingController();
-//   final TextEditingController _weightController = TextEditingController();
-//   final TextEditingController _birthDateController = TextEditingController();
-
-//   bool _isLoading = true;
-//   bool _isFormValid = false;
-
-//   final Map<String, bool> _filledFields = {
-//     'user': false,
-//     'gender': true,
-//     'height': false,
-//     'weight': false,
-//     'birthDate': true,
-//   };
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadProfileData();
-//   }
-
-//   Future<void> _loadProfileData() async {
-
-//   }
-
-//   String _formatDate(DateTime date) {
-//     return '${date.day}/${date.month}/${date.year}';
-//   }
-
-//   Future<void> _selectDate(BuildContext context) async {
-//     final DateTime? picked = await showDatePicker(
-//       context: context,
-//       initialDate: _profile.birthDate,
-//       firstDate: DateTime(1900),
-//       lastDate: DateTime.now(),
-//     );
-
-//     if (picked != null && picked != _profile.birthDate) {
-//       setState(() {
-//         _profile = _profile.copyWith(birthDate: picked);
-//         _birthDateController.text = _formatDate(picked);
-//         _filledFields['birthDate'] = true;
-//         _checkFormValidity();
-//       });
-//     }
-//   }
-
-//   void _checkFormValidity() {
-//     final isAllFieldsFilled = _filledFields.values.every(
-//       (isFilled) => isFilled,
-//     );
-//     setState(() {
-//       _isFormValid = isAllFieldsFilled;
-//     });
-//   }
-
-//   void _updateFieldFilled(String fieldName, String value) {
-//     bool isFilled = value.trim().isNotEmpty;
-
-//     if (fieldName == 'height' || fieldName == 'weight') {
-//       final numericValue = double.tryParse(value);
-//       isFilled = numericValue != null && numericValue > 0;
-//     }
-
-//     setState(() {
-//       _filledFields[fieldName] = isFilled;
-//     });
-//     _checkFormValidity();
-//   }
-
-//   void _saveProfile() {
-//     if (_formKey.currentState!.validate() && _isFormValid) {
-//       _formKey.currentState!.save();
-//       _profileService.saveProfile(_profile);
-
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text(
-//             'Perfil guardado exitosamente',
-//             style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-//           ),
-//           backgroundColor: Colors.yellow[700],
-//         ),
-//       );
-//     }
-//   }
-
-//   @override
-//   void dispose() {
-//     _userController.dispose();
-//     _heightController.dispose();
-//     _weightController.dispose();
-//     _birthDateController.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final theme = Theme.of(context);
-//     if (_isLoading) {
-//       return const Center(child: CircularProgressIndicator());
-//     }
-
-//     return Form(
-//       key: _formKey,
-//       child: Column(
-//         spacing: 20,
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           // Campo User (editable)
-//           Text('User', style: theme.textTheme.bodyMedium),
-//           TextFormField(
-//             controller: _userController,
-//             decoration: InputDecorations.textFormFieldDecoration(
-//               'User',
-//               context,
-//             ),
-//             validator: Validators.requiredField,
-//             onChanged: (value) {
-//               _updateFieldFilled('user', value);
-//             },
-//             onSaved: (value) {
-//               _profile = _profile.copyWith(user: value!);
-//             },
-//             style: const TextStyle(color: Colors.white),
-//           ),
-
-//           // Campo Password (fijo) - NO SELECCIONABLE
-//           Text('Password', style: theme.textTheme.bodyMedium),
-
-//           IgnorePointer(
-//             child: Opacity(
-//               opacity: 0.7,
-//               child: TextFormField(
-//                 initialValue: _profile.password,
-//                 decoration: InputDecorations.disabledFieldDecoration(
-//                   'Contraseña',
-//                   Icons.lock,
-//                   context,
-//                 ),
-//                 readOnly: true,
-//                 obscureText: true,
-//                 enableInteractiveSelection: false,
-//                 showCursor: false,
-//                 style: const TextStyle(color: Colors.white70),
-//               ),
-//             ),
-//           ),
-
-//           Text('Gender', style: theme.textTheme.bodyMedium),
-
-//           // Campo Género (editable)
-//           DropdownButtonFormField<String>(
-//             initialValue: _profile.gender,
-//             decoration: InputDecorations.dropdownDecoration(context),
-//             items: AppConstants.genders.map((String gender) {
-//               return DropdownMenuItem<String>(
-//                 value: gender,
-//                 child: Text(
-//                   gender,
-//                   // style: const TextStyle(color: Colors.white),
-//                 ),
-//               );
-//             }).toList(),
-//             onChanged: (String? newValue) {
-//               if (newValue != null) {
-//                 setState(() {
-//                   _profile = _profile.copyWith(gender: newValue);
-//                   _filledFields['gender'] = true;
-//                   _checkFormValidity();
-//                 });
-//               }
-//             },
-//             validator: Validators.requiredField,
-//             dropdownColor: Colors.grey[900],
-//             style: const TextStyle(color: Colors.white),
-//           ),
-
-//           Text('Height (ft)', style: theme.textTheme.bodyMedium),
-
-//           // Campo Altura (editable)
-//           TextFormField(
-//             controller: _heightController,
-//             decoration: InputDecorations.heightDecoration(context),
-//             keyboardType: TextInputType.numberWithOptions(decimal: true),
-//             validator: Validators.validateHeight,
-//             onChanged: (value) {
-//               _updateFieldFilled('height', value);
-//             },
-//             onSaved: (value) {
-//               if (value != null && value.isNotEmpty) {
-//                 _profile = _profile.copyWith(height: double.parse(value));
-//               }
-//             },
-//             style: const TextStyle(color: Colors.white),
-//           ),
-
-//           Text('Weight (lb)', style: theme.textTheme.bodyMedium),
-
-//           // Campo Peso (editable)
-//           TextFormField(
-//             controller: _weightController,
-//             decoration: InputDecorations.weightDecoration(context),
-//             keyboardType: TextInputType.numberWithOptions(decimal: true),
-//             validator: Validators.validateWeight,
-//             onChanged: (value) {
-//               _updateFieldFilled('weight', value);
-//             },
-//             onSaved: (value) {
-//               if (value != null && value.isNotEmpty) {
-//                 _profile = _profile.copyWith(weight: double.parse(value));
-//               }
-//             },
-//             style: const TextStyle(color: Colors.white),
-//           ),
-
-//           Text('Date of Bird', style: theme.textTheme.bodyMedium),
-
-//           // Campo Fecha de Nacimiento (editable)
-//           TextFormField(
-//             controller: _birthDateController,
-//             decoration: InputDecorations.birthDateDecoration(context),
-//             readOnly: true,
-//             onTap: () => _selectDate(context),
-//             validator: Validators.requiredField,
-//             style: const TextStyle(color: Colors.white),
-//           ),
-//           // Botón Guardar - Solo se activa cuando todos los campos están llenos
-//           SizedBox(
-//             width: double.infinity,
-//             child: ElevatedButton(
-//               onPressed: _isFormValid ? _saveProfile : null,
-//               style: _isFormValid
-//                   ? AppButtonStyles.infoButton
-//                   : AppButtonStyles.disabledButton,
-//               child: const Text(
-//                 'Guardar Cambios',
-//                 style: TextStyle(
-//                   color: Colors.white,
-//                   fontWeight: FontWeight.bold,
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
@@ -326,8 +60,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
     );
 
     _selectedLanguage = widget.initialData.language;
-    // Validar que el género esté en la lista, si no usar 'male' por defecto
-    // Manejar strings vacíos también
+    // Validate that gender is in the list, if not use 'male' as default
+    // Handle empty strings too
     final genderValue = widget.initialData.gender.trim();
     _selectedGender = (genderValue.isNotEmpty && _genders.contains(genderValue)) 
         ? genderValue 
@@ -346,7 +80,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
   }
 
   Future<void> _submitForm() async {
-    // Validar campos requeridos primero
+    // Validate required fields first
     if (!_validateRequiredFields()) {
       return;
     }
@@ -405,12 +139,12 @@ class _UserProfileFormState extends State<UserProfileForm> {
           );
         }
 
-        // Notificar al parent con los datos actualizados
+        // Notify parent with updated data
         widget.onSubmit(result);
       } catch (e) {
-        debugPrint('💥 Error al actualizar perfil: $e');
+        debugPrint('💥 Error updating profile: $e');
         if (mounted) {
-          // Intentar parsear error del backend
+          // Try to parse backend error
           final errorMessage = _parseErrorMessage(e.toString());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -465,7 +199,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
     if (error == null) return;
     
     try {
-      // Intentar parsear el error como JSON del backend
+      // Try to parse error as JSON from backend
       final Map<String, dynamic>? errorData = _parseBackendError(error);
       
       if (errorData != null && errorData.containsKey('error')) {
@@ -499,10 +233,10 @@ class _UserProfileFormState extends State<UserProfileForm> {
         }
       }
     } catch (e) {
-      debugPrint('⚠️ Error parseando backend error: $e');
+      debugPrint('⚠️ Error parsing backend error: $e');
     }
     
-    // Fallback: mostrar error raw
+    // Fallback: show raw error
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('❌ $error'),
@@ -514,25 +248,25 @@ class _UserProfileFormState extends State<UserProfileForm> {
   
   Map<String, dynamic>? _parseBackendError(String error) {
     try {
-      // Buscar JSON en el string de error
+      // Search for JSON in error string
       final jsonStart = error.indexOf('{');
       final jsonEnd = error.lastIndexOf('}');
       
       if (jsonStart != -1 && jsonEnd != -1) {
         final jsonString = error.substring(jsonStart, jsonEnd + 1);
         return Map<String, dynamic>.from(
-          // Necesitaríamos dart:convert pero por ahora retornar null
-          {} // TODO: parsear JSON si es necesario
+          // We would need dart:convert but for now return null
+          {} // TODO: parse JSON if necessary
         );
       }
     } catch (e) {
-      debugPrint('Error parseando JSON: $e');
+      debugPrint('Error parsing JSON: $e');
     }
     return null;
   }
   
   String _parseErrorMessage(String error) {
-    // Extraer mensaje legible del error
+    // Extract readable message from error
     if (error.contains('altura') || error.contains('height')) {
       return 'Height must be between 3.0 and 9.0 ft';
     }
@@ -601,12 +335,12 @@ class _UserProfileFormState extends State<UserProfileForm> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Toca el avatar para cambiarlo',
+              'Tap avatar to change it',
               style: TextStyle(color: Colors.white60, fontSize: 12),
               textAlign: TextAlign.center,
             ),
 
-            // Campo Username
+            // Username field
             Text('Username'),
             TextFormField(controller: _usernameController),
 
@@ -648,19 +382,19 @@ class _UserProfileFormState extends State<UserProfileForm> {
             ),
 
             Text('BirthDay'),
-            // Campo Birth Date
+            // Birth Date field
             TextFormField(
               controller: _birthDateController,
               readOnly: true,
               onTap: () async {
-                // Calcular fecha máxima (18 años atrás desde hoy)
+                // Calculate maximum date (18 years ago from today)
                 final DateTime maxDate = DateTime.now().subtract(Duration(days: 18 * 365));
                 
                 final date = await showDatePicker(
                   context: context,
                   initialDate: maxDate,
                   firstDate: DateTime(1900),
-                  lastDate: maxDate, // No permitir fechas menores de 18 años
+                  lastDate: maxDate, // Don't allow dates under 18 years old
                   helpText: 'Select your birth date',
                   errorFormatText: 'Invalid date',
                 );
@@ -674,7 +408,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                   return 'Birth date is required';
                 }
                 
-                // Validar formato de fecha
+                // Validate date format
                 try {
                   final parts = value.split('-');
                   if (parts.length != 3) {
@@ -722,7 +456,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Por favor selecciona un género';
+                  return 'Please select a gender';
                 }
                 return null;
               },
@@ -767,7 +501,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
             _selectedAvatar = avatarUrl;
           });
           
-          // Actualizar avatar inmediatamente
+          // Update avatar immediately
           await _updateAvatar(avatarUrl);
         },
       ),
@@ -795,10 +529,10 @@ class _UserProfileFormState extends State<UserProfileForm> {
           ),
         );
         
-        // Recargar el perfil para actualizar el header
+        // Reload profile to update header
         await _reloadProfile();
         
-        // Notificar al parent que el avatar cambió
+        // Notify parent that avatar changed
         widget.onAvatarChanged?.call();
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -828,10 +562,10 @@ class _UserProfileFormState extends State<UserProfileForm> {
       if (token != null) {
         final updatedProfile = await _authService.getMyProfile(token: token);
         // El perfil ya se guarda en caché dentro de getMyProfile
-        debugPrint('🔄 Perfil recargado con nuevo avatar');
+        debugPrint('🔄 Profile reloaded with new avatar');
       }
     } catch (e) {
-      debugPrint('⚠️ Error recargando perfil: $e');
+      debugPrint('⚠️ Error reloading profile: $e');
     }
   }
 
@@ -859,11 +593,11 @@ class _UserProfileFormState extends State<UserProfileForm> {
   String _getGenderDisplayName(String gender) {
     switch (gender) {
       case 'male':
-        return 'Masculino';
+        return 'Male';
       case 'female':
-        return 'Femenino';
+        return 'Female';
       case 'other':
-        return 'Otro';
+        return 'Other';
       default:
         return gender;
     }

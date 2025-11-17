@@ -43,7 +43,7 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
       final token = await _storageService.getJWTToken();
       if (token == null) {
         setState(() {
-          _error = 'No se encontró el token de autenticación';
+          _error = 'Authentication token not found';
           _isLoading = false;
         });
         return;
@@ -58,13 +58,13 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
         });
       } else {
         setState(() {
-          _error = response.message ?? 'Error al cargar avatares';
+          _error = response.message ?? 'Error loading avatars';
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _error = 'Error de conexión: $e';
+        _error = 'Connection error: $e';
         _isLoading = false;
       });
     }
@@ -95,7 +95,7 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Selecciona tu Avatar',
+                  'Select Your Avatar',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -142,7 +142,7 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue,
                                 ),
-                                child: const Text('Reintentar'),
+                                child: const Text('Retry'),
                               ),
                             ],
                           ),
@@ -151,7 +151,7 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
                     : _avatars.isEmpty
                         ? const Center(
                             child: Text(
-                              'No hay avatares disponibles',
+                              'No avatars available',
                               style: TextStyle(color: Colors.white70),
                             ),
                           )
@@ -239,7 +239,7 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
                           ),
           ),
 
-          // Footer con botón de confirmar
+          // Footer with confirm button
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
@@ -265,7 +265,7 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
                   ),
                 ),
                 child: const Text(
-                  'Confirmar Selección',
+                  'Confirm Selection',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

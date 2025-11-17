@@ -33,24 +33,24 @@
 //   showDialog(
 //     context: context,
 //     builder: (context) => AlertDialog(
-//       title: Text('Cerrar Sesión'),
-//       content: Text('¿Estás seguro de que quieres cerrar sesión?'),
+//       title: Text('Log Out'),
+//       content: Text('Are you sure you want to log out?'),
 //       actions: [
 //         TextButton(
 //           onPressed: () => Navigator.pop(context),
-//           child: Text('Cancelar'),
+//           child: Text('Cancel'),
 //         ),
 //         ElevatedButton(
 //           style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
 //           onPressed: () {
-//             // Cerrar sesión y volver al login
+//             // Log out and return to login
 //             Navigator.pushNamedAndRemoveUntil(
 //               context,
 //               '/login',
 //               (route) => false,
 //             );
 //           },
-//           child: Text('Cerrar Sesión'),
+//           child: Text('Log Out'),
 //         ),
 //       ],
 //     ),
@@ -80,7 +80,7 @@
 //     child: Column(
 //       children: [
 //         Text(
-//           'Perfil',
+//           'Profile',
 //           style: TextStyle(
 //             fontSize: 24,
 //             fontWeight: FontWeight.bold,
@@ -140,8 +140,8 @@
 //       );
 //     },
 //     style: OutlinedButton.styleFrom(
-//       foregroundColor: errorColor, // Color del texto
-//       side: BorderSide(color: errorColor), // Color del borde
+//       foregroundColor: errorColor, // Text color
+//       side: BorderSide(color: errorColor), // Border color
 //       minimumSize: const Size(double.infinity, 50),
 //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
 //     ),
@@ -319,7 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadUserProfile,
-                child: Text('Reintentar'),
+                child: Text('Retry'),
               ),
             ],
           ),
@@ -331,7 +331,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Text('No se pudo cargar el perfil'),
+          child: Text('Could not load profile'),
         ),
       );
     }
@@ -339,15 +339,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return UserProfileForm(
       initialData: _userProfile!,
       onSubmit: (updatedData) {
-        debugPrint('📝 Datos actualizados: ${updatedData.username}');
-        debugPrint('✅ Perfil completo: ${updatedData.isComplete}');
+      debugPrint('📝 Data updated: ${updatedData.username}');
+        debugPrint('✅ Profile complete: ${updatedData.isComplete}');
         
-        // Actualizar el estado del perfil inmediatamente
+        // Update profile status immediately
         setState(() {
           _userProfile = updatedData;
         });
         
-        debugPrint('🔄 Estado actualizado - Botón Connect Device debería actualizarse');
+        debugPrint('🔄 Status updated - Connect Device button should update');
       },
       onAvatarChanged: widget.onAvatarChanged,
     );
@@ -383,10 +383,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     if (_hasDevice) {
-      // Mostrar botón de desconectar y información del dispositivo
+      // Show disconnect button and device information
       return Column(
         children: [
-          // Información del dispositivo conectado
+          // Connected device information
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -426,7 +426,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           SizedBox(height: 12),
-          // Botón de desconectar
+          // Disconnect button
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
@@ -457,14 +457,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     }
 
-    // Verificar si el perfil está completo
+    // Check if profile is complete
     final bool isProfileComplete = _userProfile?.isComplete ?? false;
 
-    // Mostrar botón de conectar con validación
+    // Show connect button with validation
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Banner informativo si el perfil no está completo
+        // Information banner if profile is not complete
         if (!isProfileComplete)
           Container(
             margin: const EdgeInsets.only(bottom: 12),
@@ -512,7 +512,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         
-        // Botón de conectar
+        // Connect button
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -568,14 +568,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final token = await _userStorageService.getJWTToken();
       if (token == null) {
-        throw Exception('No hay sesión activa');
+        throw Exception('No active session');
       }
 
-      // Paso 1: Iniciar integración y obtener task_id
+      // Step 1: Start integration and get task_id
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🚀 Iniciando integración...'),
+            content: Text('🚀 Starting integration...'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -587,17 +587,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (!initResult.success || initResult.data == null) {
-        throw Exception(initResult.message ?? 'Error al iniciar integración');
+        throw Exception(initResult.message ?? 'Error starting integration');
       }
 
       final taskId = initResult.data!.taskId;
-      debugPrint('✅ Task iniciado: $taskId');
+      debugPrint('✅ Task started: $taskId');
 
       // Paso 2: Hacer polling hasta obtener integration_url
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('⏳ Obteniendo URL de integración...'),
+            content: Text('⏳ Getting integration URL...'),
             duration: Duration(seconds: 3),
           ),
         );
@@ -611,19 +611,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (!pollResult.success || pollResult.data == null) {
-        throw Exception(pollResult.message ?? 'Error al obtener URL de integración');
+        throw Exception(pollResult.message ?? 'Error getting integration URL');
       }
 
       final integrationData = pollResult.data!;
       final integrationUrl = integrationData.integrationUrl;
 
-      debugPrint('✅ Integration URL obtenido: ${integrationUrl.substring(0, 50)}...');
+      debugPrint('✅ Integration URL obtained: ${integrationUrl.substring(0, 50)}...');
 
       // Paso 3: Abrir URL en el navegador
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('🌐 Abriendo navegador...'),
+            content: Text('🌐 Opening browser...'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -633,7 +633,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final canLaunch = await canLaunchUrl(uri);
       
       if (!canLaunch) {
-        throw Exception('No se puede abrir la URL de integración');
+        throw Exception('Cannot open integration URL');
       }
 
       final launched = await launchUrl(
@@ -642,7 +642,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (!launched) {
-        throw Exception('No se pudo abrir el navegador');
+        throw Exception('Could not open browser');
       }
 
       if (mounted) {
@@ -653,12 +653,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '✅ Navegador abierto',
+                  '✅ Browser opened',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text('Spike ID: ${integrationData.spikeId}'),
-                const Text('Complete el login en el navegador'),
+                const Text('Complete login in browser'),
               ],
             ),
             backgroundColor: Colors.green,
@@ -667,23 +667,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
 
-      debugPrint('\n✅ NAVEGADOR ABIERTO EXITOSAMENTE');
+      debugPrint('\n✅ BROWSER OPENED SUCCESSFULLY');
       debugPrint('   Spike ID: ${integrationData.spikeId}');
       debugPrint('   Provider: ${integrationData.provider}');
-      debugPrint('   Esperando callback del navegador...\n');
+      debugPrint('   Waiting for browser callback...\n');
 
-      // Refrescar el estado del dispositivo después de un tiempo
+      // Refresh device status after some time
       Future.delayed(const Duration(seconds: 5), () {
         _setupStatusService.refreshDeviceStatus();
-        _loadDeviceStatus(); // Recargar el estado local también
-        widget.onDeviceStatusChanged?.call(); // Notificar al padre
-        debugPrint('🔄 Estado del dispositivo actualizado');
+        _loadDeviceStatus(); // Reload local status as well
+        widget.onDeviceStatusChanged?.call(); // Notify parent of change
+        debugPrint('Device status updated');
       });
 
-      // TODO: El callback del deeplink se manejará en otro endpoint
+      // TODO: The deeplink callback will be handled in another endpoint
       
     } catch (e) {
-      debugPrint('❌ Error en _connectDevice: $e');
+      debugPrint('Error in _connectDevice: $e');
+      debugPrint('❌ Error in _connectDevice: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -706,7 +707,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final token = await _userStorageService.getJWTToken();
       if (token == null) {
-        throw Exception('No hay sesión activa');
+        throw Exception('No active session');
       }
 
       // Confirmar desconexión
@@ -755,10 +756,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (!result.success) {
-        throw Exception(result.message ?? 'Error al desconectar dispositivo');
+        throw Exception(result.message ?? 'Error disconnecting device');
       }
 
-      debugPrint('✅ DISPOSITIVO DESCONECTADO EXITOSAMENTE');
+      debugPrint('✅ DEVICE DISCONNECTED SUCCESSFULLY');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -769,7 +770,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         );
 
-        // Actualizar estados
+        // Update statuses
         setState(() {
           _hasDevice = false;
           _deviceProvider = null;
@@ -784,7 +785,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
       
     } catch (e) {
-      debugPrint('❌ Error en _disconnectDevice: $e');
+      debugPrint('❌ Error in _disconnectDevice: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -938,11 +939,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     try {
-      // Obtener el token
+      // Get the token
       final token = await _userStorageService.getJWTToken();
       
       if (token == null) {
-        // Cerrar loading
+        // Close loading
         if (mounted) Navigator.of(context).pop();
         
         if (mounted) {
@@ -974,16 +975,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         }
 
-        // Limpiar almacenamiento y desloguear
+        // Clear storage and log out
         await _authService.clearAllStorage();
         
-        // Navegar al login
+        // Navigate to login
         Future.microtask(() {
           if (!mounted) return;
           SafeNavigation.goNamed(context, 'login');
         });
       } else {
-        // Mostrar error
+        // Show error
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1029,15 +1030,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _performLogout() async {
     try {
-      // Limpiar todo el almacenamiento (token, perfil en caché, etc.)
+      // Clear all storage (token, cached profile, etc.)
       await _authService.clearAllStorage();
       
-      // Marcar como no autenticado en el AuthStateProvider
+      // Mark as unauthenticated in AuthStateProvider
       final authStateProvider = GetIt.instance<AuthStateProvider>();
       authStateProvider.setUnauthenticated();
-      debugPrint('✅ AuthStateProvider actualizado - Usuario deslogueado');
+      debugPrint('✅ AuthStateProvider updated - User logged out');
       
-      // NO navegar inmediatamente - esperar a que se complete el build
+      // DON'T navigate immediately - wait for build to complete
       Future.microtask(() {
         if (!mounted) return;
         SafeNavigation.goNamed(context, 'login');
