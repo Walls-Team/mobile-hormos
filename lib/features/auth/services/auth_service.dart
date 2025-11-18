@@ -73,17 +73,16 @@ class AuthService {
       return ApiResponse.error(message: 'Invalid email');
     }
 
-    final url = AppConfig.getLoginUrl('login/');
+    final url = AppConfig.getLoginUrl('login');
     final body = json.encode({
       'email': email.trim().toLowerCase(),
       'password': password,
     });
 
     debugPrint('🚀 LOGIN REQUEST');
-    debugPrint('📍 ENDPOINT: login/');
+    debugPrint('📍 ENDPOINT: login');
     debugPrint('📍 FULL URL: $url');
     debugPrint('📦 Body: $body');
-    debugPrint('🔧 Probando con barra final (/)...');
 
     return executeRequest<LoginResponse>(
       request: _client
