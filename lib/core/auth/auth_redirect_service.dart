@@ -30,9 +30,7 @@ class AuthRedirectService {
     return location == privateRoutes.dashboard ||
         location == privateRoutes.stats ||
         location == privateRoutes.store ||
-        location == privateRoutes.settings ||
-        location == privateRoutes.faqs ||
-        location == privateRoutes.termsAndConditions;
+        location == privateRoutes.settings;
   }
 
   /// Lógica principal de redirect

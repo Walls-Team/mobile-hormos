@@ -4,6 +4,7 @@ import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/settings/widgets/avatar_selector_modal.dart';
+import 'package:genius_hormo/features/settings/widgets/language_selector.dart';
 import 'package:get_it/get_it.dart';
 
 class UserProfileForm extends StatefulWidget {
@@ -483,6 +484,11 @@ class _UserProfileFormState extends State<UserProfileForm> {
                       style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
             ),
+            
+            const SizedBox(height: 20),
+            
+            // Selector de idioma
+            const LanguageSelector(),
           ],
         ),
       ),

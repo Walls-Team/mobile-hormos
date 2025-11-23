@@ -84,16 +84,7 @@ class AppRouter {
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
       ),
-      GoRoute(
-        path: privateRoutes.faqs,
-        name: 'faqs',
-        builder: (context, state) => const FaqsScreen(),
-      ),
-      GoRoute(
-        path: privateRoutes.termsAndConditions,
-        name: 'terms_and_conditions',
-        builder: (context, state) => const TermsAndConditionsScreen(),
-      ),
+      // FAQs se abre con Navigator.push() tradicional, NO con GoRouter
 
       // RUTAS PRIVADAS CON PARÁMETROS (usando extra para seguridad)
       GoRoute(
@@ -179,9 +170,7 @@ class AppRouter {
     return location == privateRoutes.dashboard ||
         location == privateRoutes.stats ||
         location == privateRoutes.store ||
-        location == privateRoutes.settings ||
-        location == privateRoutes.faqs ||
-        location == privateRoutes.termsAndConditions;
+        location == privateRoutes.settings;
   }
 
   bool _isAuthRoute(String location) {

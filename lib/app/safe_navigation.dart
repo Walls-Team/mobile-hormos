@@ -67,4 +67,42 @@ class SafeNavigation {
       }
     }
   }
+  
+  /// Safe version of context.pushNamed() - Adds route to stack instead of replacing
+  static void pushNamed(BuildContext context, String name, {Object? extra}) {
+    if (!canNavigate()) return;
+    
+    _lastNavigationTime = DateTime.now();
+    
+    try {
+      context.pushNamed(name, extra: extra);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Push navigation error caught: $e');
+      }
+    }
+  }
+  
+  /// Safe version of context.pop()
+  static void pop(BuildContext context, [Object? result]) {
+    if (!canNavigate()) return;
+    
+    // Verificar si realmente se puede hacer pop
+    if (!context.canPop()) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Cannot pop - no routes in stack');
+      }
+      return;
+    }
+    
+    _lastNavigationTime = DateTime.now();
+    
+    try {
+      context.pop(result);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Pop navigation error caught: $e');
+      }
+    }
+  }
 }

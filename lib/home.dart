@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/dashboard/pages/dashboard.dart';
+import 'package:genius_hormo/features/daily_questions/services/daily_questions_dialog_service.dart';
 import 'package:genius_hormo/features/settings/settings.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/stats/stats.dart';
@@ -19,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final SetupStatusService _setupStatusService = GetIt.instance<SetupStatusService>();
+  final DailyQuestionsDialogService _dailyQuestionsService = DailyQuestionsDialogService();
 
   UserProfileData? _userProfile;
   bool _isLoading = true;
@@ -45,6 +47,18 @@ class _HomeScreenState extends State<HomeScreen> {
           _userProfile = setupStatus.profile;
           _isLoading = false;
         });
+        
+        // Mostrar cuestionario diario si el perfil está completo
+        // (no requiere dispositivo conectado)
+        if (_userProfile != null) {
+          // Esperar un poco más para que la UI esté lista
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              debugPrint('📋 Verificando cuestionario diario...');
+              _dailyQuestionsService.checkAndShowDailyQuestions(context);
+            }
+          });
+        }
       }
 
       debugPrint('✅ Setup verificado - Completo: $_isSetupComplete');
@@ -96,19 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ), // Settings siempre accesible
     ];
 
-    return WillPopScope(
-      onWillPop: () async {
-        // Si no estamos en Dashboard, volver a Dashboard
-        if (_currentIndex != 0) {
-          setState(() {
-            _currentIndex = 0;
-          });
-          return false; // No salir de la app
-        }
-        // Si estamos en Dashboard, prevenir volver a login
-        return false; // No permitir volver atrás
-      },
-      child: Container(
+    return Container(
         decoration: BoxDecoration(),
         child: Scaffold(
           appBar: _shouldShowAppBar(_currentIndex) && (_isSetupComplete || _currentIndex == 2)
@@ -120,8 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
           body: _pages[_currentIndex],
           bottomNavigationBar: _buildBottomNavigationBar(theme),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildBottomNavigationBar(ThemeData theme) {

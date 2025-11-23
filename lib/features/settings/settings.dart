@@ -158,6 +158,8 @@ import 'package:genius_hormo/core/auth/auth_state_provider.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/features/faqs/faqs.dart';
+import 'package:genius_hormo/features/settings/widgets/faqs_badge.dart';
 import 'package:genius_hormo/features/settings/widgets/profile_form.dart';
 import 'package:genius_hormo/features/settings/widgets/profile_skeleton_loader.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
@@ -289,7 +291,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 spacing: 20,
                 children: [
                   _buildDeviceButton(),
-                  // _buildFaqsButton(), // Comentado - requiere FaqsBadge widget
+                  _buildFaqsButton(),
                   _buildLogout(),
                   SizedBox(height: 0),
                   _buildDeleteAccount(),
@@ -353,13 +355,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Widget _buildFaqsButton() {
-  //   return FaqsBadge(
-  //     onTap: () {
-  //       SafeNavigation.goNamed(context, 'faqs');
-  //     },
-  //   );
-  // }
+  Widget _buildFaqsButton() {
+    return FaqsBadge(
+      onTap: () {
+        // Navegar con Navigator ROOT para bypass completamente GoRouter
+        Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute(
+            builder: (context) => const FaqsScreen(),
+          ),
+        );
+      },
+    );
+  }
 
   Widget _buildDeviceButton() {
     if (_isLoadingDeviceStatus) {

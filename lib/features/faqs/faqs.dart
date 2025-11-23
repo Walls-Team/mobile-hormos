@@ -8,14 +8,24 @@ class FaqsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(localizations.faqsTitle),
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+    // PANTALLA NORMAL con Scaffold como cualquier otra pantalla
+    return WillPopScope(
+      onWillPop: () async {
+        // Interceptar el botón back del sistema y usar Navigator ROOT
+        Navigator.of(context, rootNavigator: true).pop();
+        return false; // Prevenir el comportamiento por defecto
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(localizations.faqsTitle),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // Usar Navigator ROOT para hacer pop
+              Navigator.of(context, rootNavigator: true).pop();
+            },
+          ),
         ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -28,27 +38,22 @@ class FaqsScreen extends StatelessWidget {
                 fontSize: 14,
                 height: 1.5,
               ),
-              // textAlign:
-              //     TextAlign.justify, // Justificado como text-wrap: pretty
-              softWrap: true, // Habilitar salto de línea suave
-              overflow: TextOverflow.visible, // Evitar el truncamiento
-              strutStyle: StrutStyle(
-                // // fontSize: 16,
-                // height: 1.0,
-                // leading: 0.5, // Espaciado adicional entre líneas
-              ),
+              softWrap: true,
+              overflow: TextOverflow.visible,
+              strutStyle: StrutStyle(),
             ),
             // Lista de preguntas frecuentes
             ListView.separated(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              itemCount: 7, // 7 preguntas
+              itemCount: 7,
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) =>
                   _buildFaqItem(context, index, localizations),
             ),
           ],
         ),
+      ),
       ),
     );
   }
