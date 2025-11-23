@@ -5,7 +5,6 @@ import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/username_validator.dart';
-import 'package:genius_hormo/features/terms_and_conditions/terms_and_conditions.dart';
 import 'package:genius_hormo/welcome.dart';
 import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
@@ -41,9 +40,8 @@ class _RegistrationFormState extends State<RegisterScreen> {
   }
 
   Future<void> _navigateToTermsAndConditions() async {
-    context.goNamed('terms_and_conditions');
-    // Nota: Para mantener la funcionalidad de retorno con resultado,
-    // necesitarías usar context.push con await, pero por ahora simplificamos
+    context.pushNamed('terms_and_conditions');
+    // Marcar como aceptado después de ver los términos
     setState(() {
       _acceptTerms = true;
     });

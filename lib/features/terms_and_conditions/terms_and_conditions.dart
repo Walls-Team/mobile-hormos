@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class TermsAndConditionsScreen extends StatelessWidget {
   const TermsAndConditionsScreen({Key? key}) : super(key: key);
@@ -11,7 +12,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SingleChildScrollView(
@@ -283,7 +284,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
   Widget _buildAcceptButton(BuildContext context, ThemeData theme) {
     return ElevatedButton(
       onPressed: () {
-        Navigator.pop(context, true);
+        context.pop(true);
       },
       child: Text('Aceptar Términos y Condiciones'),
     );
