@@ -4,11 +4,14 @@ import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/dashboard/pages/dashboard.dart';
 import 'package:genius_hormo/features/daily_questions/services/daily_questions_dialog_service.dart';
 import 'package:genius_hormo/features/settings/settings.dart';
+import 'package:genius_hormo/services/whoop_promo_service.dart';
+import 'package:genius_hormo/widgets/whoop_promo_modal.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/stats/stats.dart';
 import 'package:genius_hormo/features/store/store.dart';
 import 'package:genius_hormo/widgets/app_bar.dart';
 import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final SetupStatusService _setupStatusService = GetIt.instance<SetupStatusService>();
   final DailyQuestionsDialogService _dailyQuestionsService = DailyQuestionsDialogService();
+  final WhoopPromoService _whoopPromoService = GetIt.instance<WhoopPromoService>();
 
   UserProfileData? _userProfile;
   bool _isLoading = true;
@@ -52,10 +56,21 @@ class _HomeScreenState extends State<HomeScreen> {
         // (no requiere dispositivo conectado)
         if (_userProfile != null) {
           // Esperar un poco más para que la UI esté lista
-          Future.delayed(const Duration(seconds: 2), () {
+          Future.delayed(const Duration(seconds: 2), () async {
             if (mounted) {
               debugPrint('📋 Verificando cuestionario diario...');
               _dailyQuestionsService.checkAndShowDailyQuestions(context);
+              
+              // Mostrar modal de WHOOP después del cuestionario (si corresponde)
+              Future.delayed(const Duration(milliseconds: 500), () async {
+                if (mounted) {
+                  final shouldShow = await _whoopPromoService.shouldShowPromo();
+                  if (shouldShow && mounted) {
+                    await WhoopPromoModal.show(context);
+                    await _whoopPromoService.markAsShown();
+                  }
+                }
+              });
             }
           });
         }
@@ -163,19 +178,19 @@ class _HomeScreenState extends State<HomeScreen> {
           items: [
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.square_grid_2x2, size: 24),
-              label: 'Dashboard',
+              label: AppLocalizations.of(context)!['dashboard']['overview'],
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.chart_bar, size: 24),
-              label: 'Stats',
+              label: AppLocalizations.of(context)!['dashboard']['stats'],
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.shopping_cart, size: 24),
-              label: 'Store',
+              label: AppLocalizations.of(context)!['dashboard']['store'],
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.gear, size: 24),
-              label: 'Settings',
+              label: AppLocalizations.of(context)!['dashboard']['settings'],
             ),
           ],
         ),
@@ -207,14 +222,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        'Configuration Setup',
+                        AppLocalizations.of(context)!['dashboard']['configurationSetup'],
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Complete all steps to access the dashboard',
+                        AppLocalizations.of(context)!['dashboard']['completeAllSteps'],
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
@@ -227,8 +242,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 
                 // Items de configuración
                 _buildSetupItem(
-                  label: 'Device',
-                  status: _setupStatusService.currentStatus.hasDevice ? 'Connected' : 'Not connected',
+                  label: AppLocalizations.of(context)!['dashboard']['device'],
+                  status: _setupStatusService.currentStatus.hasDevice ? AppLocalizations.of(context)!['dashboard']['deviceConnected'] : AppLocalizations.of(context)!['dashboard']['deviceNotConnected'],
                   statusColor: _setupStatusService.currentStatus.hasDevice ? Colors.green : Colors.red,
                   icon: CupertinoIcons.device_phone_portrait,
                   isConnected: _setupStatusService.currentStatus.hasDevice,
@@ -237,8 +252,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Future.delayed(const Duration(milliseconds: 300), () {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('📱 Tap "Connect Device" button to link your device'),
+                          SnackBar(
+                            content: Text(AppLocalizations.of(context)!['dashboard']['connectDeviceSnackbar']),
                             duration: Duration(seconds: 3),
                           ),
                         );
@@ -248,8 +263,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildSetupItem(
-                  label: 'Profile',
-                  status: _setupStatusService.currentStatus.hasProfile ? 'Connected' : 'Not connected',
+                  label: AppLocalizations.of(context)!['dashboard']['profile'],
+                  status: _setupStatusService.currentStatus.hasProfile ? AppLocalizations.of(context)!['dashboard']['profileConnected'] : AppLocalizations.of(context)!['dashboard']['deviceNotConnected'],
                   statusColor: _setupStatusService.currentStatus.hasProfile ? Colors.green : Colors.red,
                   icon: CupertinoIcons.person,
                   isConnected: _setupStatusService.currentStatus.hasProfile,
@@ -342,14 +357,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Setup Incomplete',
+              AppLocalizations.of(context)!['dashboard']['setupIncomplete'],
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 12),
             Text(
-              'Complete your profile and connect a device to access Stats',
+              AppLocalizations.of(context)!['dashboard']['setupIncompleteDesc'],
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[600],
@@ -363,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 });
               },
               icon: const Icon(Icons.arrow_back),
-              label: const Text('Back to Setup'),
+              label: Text(AppLocalizations.of(context)!['dashboard']['backToSetup']),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,

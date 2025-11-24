@@ -8,6 +8,7 @@ import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/features/stats/stats.dart';
 import 'package:genius_hormo/features/store/store.dart';
 import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -131,14 +132,14 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Setup Incomplete',
+              AppLocalizations.of(context)!['dashboard']['setupIncomplete'],
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 12),
             Text(
-              'Complete your profile and connect a device to access Stats',
+              AppLocalizations.of(context)!['dashboard']['setupIncompleteDesc'],
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[600],
@@ -152,7 +153,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 });
               },
               icon: const Icon(Icons.arrow_back),
-              label: const Text('Back to Setup'),
+              label: Text(AppLocalizations.of(context)!['dashboard']['backToSetup']),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -191,8 +192,8 @@ class _SetupScreenState extends State<SetupScreen> {
                       children: [
                         _buildClickableItem(
                           isConnected: _hasDevice,
-                          label: 'Device',
-                          status: _hasDevice ? 'Connected' : 'Not connected',
+                          label: AppLocalizations.of(context)!['dashboard']['device'],
+                          status: _hasDevice ? AppLocalizations.of(context)!['dashboard']['deviceConnected'] : AppLocalizations.of(context)!['dashboard']['deviceNotConnected'],
                           statusColor: _hasDevice ? Colors.green : Colors.red,
                           icon: Icon(
                             CupertinoIcons.device_phone_portrait,
@@ -204,8 +205,8 @@ class _SetupScreenState extends State<SetupScreen> {
                         const SizedBox(height: 16),
                         _buildClickableItem(
                           isConnected: _hasProfile,
-                          label: 'Profile',
-                          status: _hasProfile ? 'Connected' : 'Not connected',
+                          label: AppLocalizations.of(context)!['dashboard']['profile'],
+                          status: _hasProfile ? AppLocalizations.of(context)!['dashboard']['profileConnected'] : AppLocalizations.of(context)!['dashboard']['deviceNotConnected'],
                           statusColor: _hasProfile
                               ? Colors.green
                               : Colors.red,
@@ -265,22 +266,22 @@ class _SetupScreenState extends State<SetupScreen> {
           elevation: 0,
           selectedFontSize: 12,
           unselectedFontSize: 12,
-          items: const [
+          items: [
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.square_grid_2x2, size: 24),
-              label: 'Dashboard',
+              label: AppLocalizations.of(context)!['dashboard']['overview'],
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.chart_bar, size: 24),
-              label: 'Stats',
+              label: AppLocalizations.of(context)!['dashboard']['stats'],
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.shopping_cart, size: 24),
-              label: 'Store',
+              label: AppLocalizations.of(context)!['dashboard']['store'],
             ),
             BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.gear, size: 24),
-              label: 'Settings',
+              icon: Icon(CupertinoIcons.settings, size: 24),
+              label: AppLocalizations.of(context)!['dashboard']['settings'],
             ),
           ],
         ),
@@ -313,14 +314,14 @@ class _SetupScreenState extends State<SetupScreen> {
       child: Column(
         children: [
           Text(
-            'Configuration Setup',
+            AppLocalizations.of(context)!['dashboard']['configurationSetup'],
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            'Complete all steps to access the dashboard',
+            AppLocalizations.of(context)!['dashboard']['completeAllSteps'],
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),
@@ -360,8 +361,8 @@ class _SetupScreenState extends State<SetupScreen> {
           
           // Mostrar SnackBar indicando dónde encontrar la opción
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('📱 Tap "Connect Device" button to link your device'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!['dashboard']['connectDeviceSnackbar']),
               duration: Duration(seconds: 3),
             ),
           );

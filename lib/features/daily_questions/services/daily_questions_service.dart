@@ -1,36 +1,41 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:genius_hormo/features/daily_questions/models/daily_question.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class DailyQuestionsService {
   static const String _lastAnsweredKey = 'last_answered_date';
   
   // Lista de preguntas del cuestionario
-  List<DailyQuestion> getQuestions() {
+  List<DailyQuestion> getQuestions(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final questions = localizations['dailyQuestions']['questions'];
+    
     return [
       DailyQuestion(
         id: 'alcohol_consumption',
-        title: 'Alcohol consumption',
-        subtitle: 'Do you currently consume alcohol?',
+        title: questions['alcoholConsumption']['title'],
+        subtitle: questions['alcoholConsumption']['subtitle'],
       ),
       DailyQuestion(
         id: 'drug_use',
-        title: 'Drug use',
-        subtitle: 'Do you use recreational drugs?',
+        title: questions['drugUse']['title'],
+        subtitle: questions['drugUse']['subtitle'],
       ),
       DailyQuestion(
         id: 'poor_diet',
-        title: 'Poor diet',
-        subtitle: 'Do you currently have a poor diet?',
+        title: questions['poorDiet']['title'],
+        subtitle: questions['poorDiet']['subtitle'],
       ),
       DailyQuestion(
         id: 'testosterone_therapy',
-        title: 'Testosterone therapy attendance',
-        subtitle: 'Are you attending testosterone therapy sessions?',
+        title: questions['testosteroneTherapy']['title'],
+        subtitle: questions['testosteroneTherapy']['subtitle'],
       ),
       DailyQuestion(
         id: 'health_conditions',
-        title: 'Other health conditions',
-        subtitle: 'Do you have any other conditions (e.g., diabetes, varicocele)?',
+        title: questions['healthConditions']['title'],
+        subtitle: questions['healthConditions']['subtitle'],
       ),
     ];
   }

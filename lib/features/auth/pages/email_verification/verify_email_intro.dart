@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/pages/email_verification/verify_email.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class VerifyEmailIntroScreen extends StatelessWidget {
   final String email;
@@ -50,7 +51,7 @@ class VerifyEmailIntroScreen extends StatelessWidget {
                       
                       // Title
                       Text(
-                        'Verify your Email',
+                        AppLocalizations.of(context)!['auth']['emailVerification']['verifyIntroTitle'],
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -61,7 +62,7 @@ class VerifyEmailIntroScreen extends StatelessWidget {
                       
                       // Description
                       Text(
-                        'We have sent a verification code to',
+                        AppLocalizations.of(context)!['auth']['emailVerification']['verifyIntroMessage'],
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey[400],
                         ),
@@ -84,7 +85,7 @@ class VerifyEmailIntroScreen extends StatelessWidget {
                       
                       // Additional info
                       Text(
-                        'Check your email and enter the code below',
+                        AppLocalizations.of(context)!['auth']['emailVerification']['verifyIntroHelper'],
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey[400],
                         ),
@@ -113,7 +114,7 @@ class VerifyEmailIntroScreen extends StatelessWidget {
                     );
                   },
                   child: Text(
-                    'Continue',
+                    AppLocalizations.of(context)!['auth']['emailVerification']['continueButton'],
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

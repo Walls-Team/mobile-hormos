@@ -4,6 +4,7 @@ import 'package:genius_hormo/features/auth/pages/email_verification/email_verifi
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
   final String email;
@@ -155,7 +156,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '🎉 Registration successful! Welcome!',
+                      AppLocalizations.of(context)!['auth']['emailVerification']['verifySuccess'],
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
@@ -186,7 +187,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Error al verificar el código'),
+              content: Text(result.error ?? AppLocalizations.of(context)!['auth']['emailVerification']['verifyError']),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -206,7 +207,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error de conexión: $e'),
+            content: Text('${AppLocalizations.of(context)!['auth']['emailVerification']['connectionError']}: $e'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
@@ -271,7 +272,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message ?? 'Código reenviado exitosamente'),
+              content: Text(result.message ?? AppLocalizations.of(context)!['auth']['emailVerification']['resendSuccess']),
               duration: Duration(seconds: 3),
             ),
           );
@@ -282,7 +283,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Error al reenviar el código'),
+              content: Text(result.error ?? AppLocalizations.of(context)!['auth']['emailVerification']['resendError']),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -298,7 +299,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error de conexión: $e'),
+            content: Text('${AppLocalizations.of(context)!['auth']['emailVerification']['connectionError']}: $e'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
@@ -410,12 +411,12 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       child: Column(
         children: [
           Text(
-            'Enter verification Code',
+            AppLocalizations.of(context)!['auth']['emailVerification']['enterCodeTitle'],
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(),
           ),
           const SizedBox(height: 8),
           Text(
-            'We have sent a verification code to ${widget.email}',
+            '${AppLocalizations.of(context)!['auth']['emailVerification']['sentCodeMessage']} ${widget.email}',
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: Colors.grey[400]),
@@ -431,7 +432,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
       children: [
         _resendCountdown > 0
             ? Text(
-                'You can resend in $_resendCountdown seconds',
+                '${AppLocalizations.of(context)!['auth']['emailVerification']['resendIn']} $_resendCountdown ${AppLocalizations.of(context)!['auth']['emailVerification']['seconds']}',
                 style: TextStyle(fontSize: 12, color: Colors.grey[400]),
               )
             : TextButton(
@@ -448,7 +449,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                         ),
                       )
                     : Text(
-                        "If you didn't receive a code, Resend",
+                        AppLocalizations.of(context)!['auth']['emailVerification']['resendButton'],
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -478,7 +479,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
                       ),
                     )
                   : Text(
-                      'Send',
+                      AppLocalizations.of(context)!['auth']['emailVerification']['sendButton'],
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

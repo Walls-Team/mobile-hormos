@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,8 +40,20 @@ class LanguageService {
     final prefs = await SharedPreferences.getInstance();
     final languageCode = prefs.getString(_languageKey);
     
-    // Si no hay idioma guardado, usar inglés por defecto
+    // Si no hay idioma guardado, usar el idioma del sistema
     if (languageCode == null) {
+      final systemLocale = ui.window.locale;
+      final systemLanguage = systemLocale.languageCode;
+      
+      // Verificar si el idioma del sistema está soportado
+      final supportedCodes = ['en', 'es'];
+      if (supportedCodes.contains(systemLanguage)) {
+        debugPrint('🌐 Idioma del sistema detectado: $systemLanguage');
+        return Locale(systemLanguage);
+      }
+      
+      // Si no está soportado, usar inglés por defecto
+      debugPrint('🌐 Idioma del sistema no soportado, usando inglés por defecto');
       return const Locale('en');
     }
     

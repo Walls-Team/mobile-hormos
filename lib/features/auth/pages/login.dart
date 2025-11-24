@@ -8,6 +8,8 @@ import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/features/auth/services/biometric_auth_service.dart';
+import 'package:genius_hormo/features/auth/widgets/biometric_login_button.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:genius_hormo/features/auth/utils/validators/password_validator.dart';
 import 'package:genius_hormo/features/auth/pages/setup_screen.dart';
@@ -16,6 +18,7 @@ import 'package:genius_hormo/welcome.dart';
 import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,12 +36,65 @@ class _LoginScreenState extends State<LoginScreen> {
   final UserStorageService _userStorageServic =
       GetIt.instance<UserStorageService>();
   final AuthService _authService = GetIt.instance<AuthService>();
+  final BiometricAuthService _biometricService = GetIt.instance<BiometricAuthService>();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showEnableBiometricDialog(String email, String password) async {
+    final biometricType = await _biometricService.getBiometricTypeMessage();
+    
+    if (!mounted) return;
+    
+    final shouldEnable = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('🔐 Habilitar $biometricType'),
+        content: Text(
+          '¿Deseas habilitar $biometricType para iniciar sesión más rápido en el futuro?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Ahora no'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Habilitar'),
+          ),
+        ],
+      ),
+    );
+    
+    if (shouldEnable == true) {
+      debugPrint('👆 Usuario eligió habilitar biometría');
+      final success = await _biometricService.enableBiometricAuth(
+        email: email,
+        password: password,
+      );
+      
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ $biometricType habilitado exitosamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ No se pudo habilitar la autenticación biométrica'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } else {
+      debugPrint('👎 Usuario eligió no habilitar biometría');
+    }
   }
 
   void _submitForm() async {
@@ -87,9 +143,21 @@ class _LoginScreenState extends State<LoginScreen> {
             debugPrint('✅ AuthStateProvider actualizado');
 
             // NO navegar inmediatamente - esperar a que se complete el build
-            Future.microtask(() {
+            Future.microtask(() async {
               if (!mounted) return;
               
+              // Preguntar si quiere habilitar biometría (solo si no está ya habilitada)
+              final biometricEnabled = await _biometricService.isBiometricEnabled();
+              final biometricAvailable = await _biometricService.isBiometricAvailable();
+              
+              if (!biometricEnabled && biometricAvailable && mounted) {
+                await _showEnableBiometricDialog(
+                  _emailController.text,
+                  _passwordController.text,
+                );
+              }
+              
+              if (!mounted) return;
               debugPrint('✅ Perfil completo - Navegando a HomeScreen');
               SafeNavigation.go(context, privateRoutes.dashboard);
               debugPrint('✅ NAVEGACIÓN COMPLETADA');
@@ -101,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(loginResponse.error ?? 'Error en el login'),
+                content: Text(loginResponse.error ?? AppLocalizations.of(context)!['auth']['loginScreen']['loginErrorGeneric']),
                 backgroundColor: Colors.red,
               ),
             );
@@ -116,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error de conexión: $e'),
+              content: Text('${AppLocalizations.of(context)!['auth']['loginScreen']['connectionError']}: $e'),
               backgroundColor: Colors.red,
             ),
           );
@@ -187,11 +255,11 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
-            Text('Email'),
+            Text(AppLocalizations.of(context)!['auth']['email']),
             TextFormField(
               controller: _emailController,
               validator: validateEmail,
-              decoration: InputDecoration(hintText: 'you@example.com'),
+              decoration: InputDecoration(hintText: AppLocalizations.of(context)!['auth']['loginScreen']['emailPlaceholder']),
             ),
           ],
         ),
@@ -201,10 +269,10 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
-            Text('Password'),
+            Text(AppLocalizations.of(context)!['auth']['password']),
             InputPassword(
               controller: _passwordController,
-              hintText: '********',
+              hintText: AppLocalizations.of(context)!['auth']['loginScreen']['passwordPlaceholder'],
               validator: validatePassword,
             ),
           ],
@@ -238,9 +306,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     )
-                  : const Text('Log In'),
+                  : Text(AppLocalizations.of(context)!['auth']['loginScreen']['loginButton']),
             ),
           ),
+
+          // Botón de Face ID / Touch ID (solo aparece si está habilitado)
+          const BiometricLoginButton(),
 
           // Botón Register
           SizedBox(
@@ -249,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () {
                 SafeNavigation.goNamed(context, 'register');
               },
-              child: const Text('Register'),
+              child: Text(AppLocalizations.of(context)!['auth']['loginScreen']['registerButton']),
             ),
           ),
         ],
@@ -273,14 +344,14 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         children: [
           Text(
-            'Log In Genius Testosterone',
+            AppLocalizations.of(context)!['auth']['loginScreen']['title'],
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            'Good to see you.',
+            AppLocalizations.of(context)!['auth']['loginScreen']['subtitle'],
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
             ),
@@ -299,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SafeNavigation.goNamed(context, 'forgot_password');
           },
           child: Text(
-            'Forgot Password?',
+            AppLocalizations.of(context)!['auth']['loginScreen']['forgotPassword'],
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface,
               decoration: TextDecoration.underline,

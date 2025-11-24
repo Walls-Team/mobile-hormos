@@ -6,6 +6,7 @@ import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/utils/validators/email_validator.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -66,7 +67,7 @@ void _submitForm() async {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(resetResponse.error ?? 'Error al enviar el código'),
+              content: Text(resetResponse.error ?? AppLocalizations.of(context)!['auth']['resetPassword']['sendCodeError']),
               backgroundColor: Colors.red,
             ),
           );
@@ -80,7 +81,7 @@ void _submitForm() async {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error de conexión: $e'),
+            content: Text('${AppLocalizations.of(context)!['auth']['resetPassword']['connectionError']}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -145,10 +146,10 @@ void _submitForm() async {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
-            Text('Email'),
+            Text(AppLocalizations.of(context)!['auth']['email']),
             TextFormField(
               controller: _emailController,
-              decoration: InputDecoration(hintText: 'you@example.com'),
+              decoration: InputDecoration(hintText: AppLocalizations.of(context)!['auth']['resetPassword']['emailPlaceholder']),
               validator:validateEmail,
             ),
           ],
@@ -179,7 +180,7 @@ void _submitForm() async {
                         ),
                       ),
                     )
-                  : const Text('Send'),
+                  : Text(AppLocalizations.of(context)!['auth']['resetPassword']['sendButton']),
             ),
           ),
 
@@ -190,7 +191,7 @@ void _submitForm() async {
               onPressed: () {
                 context.goNamed('login');
               },
-              child: const Text('Do you have an account?'),
+              child: Text(AppLocalizations.of(context)!['auth']['resetPassword']['haveAccountButton']),
             ),
           ),
         ],
@@ -214,14 +215,14 @@ void _submitForm() async {
       child: Column(
         children: [
           Text(
-            'Forgot Password',
+            AppLocalizations.of(context)!['auth']['resetPassword']['forgotPasswordTitle'],
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            'We\'ll send you a verification code',
+            AppLocalizations.of(context)!['auth']['resetPassword']['forgotPasswordSubtitle'],
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurface,
             ),

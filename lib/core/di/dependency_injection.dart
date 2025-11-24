@@ -2,11 +2,13 @@ import 'package:genius_hormo/core/deep_link/genius_hormo_deep_link_service.dart'
 import 'package:genius_hormo/core/navigation/navigation_service.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/features/auth/services/biometric_auth_service.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/features/stats/service/stats_service.dart';
 import 'package:genius_hormo/providers/lang_service.dart';
+import 'package:genius_hormo/services/whoop_promo_service.dart';
 import 'package:get_it/get_it.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -25,6 +27,7 @@ Future<void> setupDependencies() async {
   // getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<AuthService>(() => AuthService());
   getIt.registerLazySingleton<UserStorageService>(() => UserStorageService());
+  getIt.registerLazySingleton<BiometricAuthService>(() => BiometricAuthService());
 
   getIt.registerLazySingleton<SpikeApiService>(
     () => SpikeApiService(),
@@ -34,4 +37,5 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton<SetupStatusService>(() => SetupStatusService());
   getIt.registerLazySingleton<DashBoardService>(() => DashBoardService());
   getIt.registerLazySingleton<StatsService>(() => StatsService());
+  getIt.registerLazySingleton<WhoopPromoService>(() => WhoopPromoService());
 }

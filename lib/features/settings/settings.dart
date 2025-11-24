@@ -167,6 +167,8 @@ import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
+import 'package:genius_hormo/features/settings/widgets/biometric_settings.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback? onDeviceStatusChanged;
@@ -291,6 +293,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 spacing: 20,
                 children: [
                   _buildDeviceButton(),
+                  
+                  // Configuración de Face ID / Touch ID
+                  BiometricSettings(
+                    userEmail: _userProfile?.email,
+                  ),
+                  
                   _buildFaqsButton(),
                   _buildLogout(),
                   SizedBox(height: 0),
@@ -321,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadUserProfile,
-                child: Text('Retry'),
+                child: Text(AppLocalizations.of(context)!['errors']['retry']),
               ),
             ],
           ),
@@ -333,7 +341,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Text('Could not load profile'),
+          child: Text(AppLocalizations.of(context)!['errors']['profileLoadError']),
         ),
       );
     }
@@ -554,7 +562,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                       Text(
-                        'Connect Device',
+                        AppLocalizations.of(context)!['dashboard']['connectDevice'],
                         style: TextStyle(
                           color: isProfileComplete 
                               ? Colors.black 
@@ -575,14 +583,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final token = await _userStorageService.getJWTToken();
       if (token == null) {
-        throw Exception('No active session');
+        throw Exception(AppLocalizations.of(context)!['settings']['deviceConnection']['noActiveSession']);
       }
 
       // Step 1: Start integration and get task_id
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🚀 Starting integration...'),
+          SnackBar(
+            content: Text('🚀 ${AppLocalizations.of(context)!['settings']['deviceConnection']['startingIntegration']}'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -594,7 +602,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (!initResult.success || initResult.data == null) {
-        throw Exception(initResult.message ?? 'Error starting integration');
+        final localizations = AppLocalizations.of(context)!;
+        throw Exception(initResult.message ?? localizations['settings']['deviceConnection']['errorStartingIntegration']);
       }
 
       final taskId = initResult.data!.taskId;
@@ -603,8 +612,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Paso 2: Hacer polling hasta obtener integration_url
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⏳ Getting integration URL...'),
+          SnackBar(
+            content: Text('⏳ ${AppLocalizations.of(context)!['settings']['deviceConnection']['gettingUrl']}'),
             duration: Duration(seconds: 3),
           ),
         );
@@ -618,7 +627,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (!pollResult.success || pollResult.data == null) {
-        throw Exception(pollResult.message ?? 'Error getting integration URL');
+        throw Exception(pollResult.message ?? AppLocalizations.of(context)!['settings']['deviceConnection']['errorGettingUrl']);
       }
 
       final integrationData = pollResult.data!;
@@ -629,8 +638,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Paso 3: Abrir URL en el navegador
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🌐 Opening browser...'),
+          SnackBar(
+            content: Text('🌐 ${AppLocalizations.of(context)!['settings']['deviceConnection']['openingBrowser']}'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -640,7 +649,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final canLaunch = await canLaunchUrl(uri);
       
       if (!canLaunch) {
-        throw Exception('Cannot open integration URL');
+        throw Exception(AppLocalizations.of(context)!['settings']['deviceConnection']['cannotOpenUrl']);
       }
 
       final launched = await launchUrl(
@@ -649,7 +658,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (!launched) {
-        throw Exception('Could not open browser');
+        throw Exception(AppLocalizations.of(context)!['settings']['deviceConnection']['couldNotOpenBrowser']);
       }
 
       if (mounted) {
@@ -659,13 +668,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '✅ Browser opened',
+                Text(
+                  '✅ ${AppLocalizations.of(context)!['settings']['deviceConnection']['browserOpened']}',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text('Spike ID: ${integrationData.spikeId}'),
-                const Text('Complete login in browser'),
+                Text(AppLocalizations.of(context)!['settings']['deviceConnection']['completeBrowserLogin']),
               ],
             ),
             backgroundColor: Colors.green,
@@ -714,26 +723,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final token = await _userStorageService.getJWTToken();
       if (token == null) {
-        throw Exception('No active session');
+        throw Exception(AppLocalizations.of(context)!['settings']['deviceConnection']['noActiveSession']);
       }
 
       // Confirmar desconexión
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Disconnect Device'),
-          content: const Text(
-            'Are you sure you want to disconnect your device? You will need to reconnect it to sync data.',
+          title: Text(AppLocalizations.of(context)!['settings']['deviceConnection']['disconnectConfirmTitle']),
+          content: Text(
+            AppLocalizations.of(context)!['settings']['deviceConnection']['disconnectConfirmMessage'],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!['common']['cancel']),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Disconnect'),
+              child: Text(AppLocalizations.of(context)!['settings']['deviceConnection']['disconnect']),
             ),
           ],
         ),
@@ -746,15 +755,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🔌 Disconnecting device...'),
+          SnackBar(
+            content: Text('🔌 ${AppLocalizations.of(context)!['settings']['deviceConnection']['disconnecting']}'),
             duration: Duration(seconds: 2),
           ),
         );
       }
 
       if (_spikeId == null || _spikeId!.isEmpty) {
-        throw Exception('No spike ID available');
+        throw Exception(AppLocalizations.of(context)!['settings']['deviceConnection']['noSpikeId']);
       }
 
       final result = await _spikeApiService.disconnectDevice(
@@ -763,7 +772,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (!result.success) {
-        throw Exception(result.message ?? 'Error disconnecting device');
+        throw Exception(result.message ?? AppLocalizations.of(context)!['settings']['deviceConnection']['errorDisconnecting']);
       }
 
       debugPrint('✅ DEVICE DISCONNECTED SUCCESSFULLY');
@@ -771,7 +780,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('✅ Device disconnected successfully'),
+            content: Text('✅ ${AppLocalizations.of(context)!['settings']['deviceConnection']['disconnectSuccess']}'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
           ),
@@ -834,8 +843,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             elevation: 4,
           ),
           onPressed: _showDeleteAccountConfirmation,
-          child: const Text(
-            'Delete Account',
+          child: Text(
+            AppLocalizations.of(context)!['settings']['deleteAccount'],
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -856,7 +865,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
               SizedBox(width: 12),
-              Text('Delete Account'),
+              Text(AppLocalizations.of(context)!['settings']['deleteAccountModal']['title']),
             ],
           ),
           content: Column(
@@ -864,7 +873,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Are you sure you want to delete your account?',
+                AppLocalizations.of(context)!['settings']['deleteAccountModal']['questionTitle'],
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -872,21 +881,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               SizedBox(height: 16),
               Text(
-                'This action is irreversible and will result in:',
+                AppLocalizations.of(context)!['settings']['deleteAccountModal']['message'],
                 style: TextStyle(fontSize: 14),
               ),
               SizedBox(height: 8),
-              _buildWarningItem('• Permanent loss of all your data'),
-              _buildWarningItem('• Deletion of your profile and settings'),
-              _buildWarningItem('• Disconnection of linked devices'),
-              _buildWarningItem('• You will not be able to recover this account'),
+              _buildWarningItem(AppLocalizations.of(context)!['settings']['deleteAccountModal']['warning1']),
+              _buildWarningItem(AppLocalizations.of(context)!['settings']['deleteAccountModal']['warning2']),
+              _buildWarningItem(AppLocalizations.of(context)!['settings']['deleteAccountModal']['warning3']),
+              _buildWarningItem(AppLocalizations.of(context)!['settings']['deleteAccountModal']['warning4']),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
               child: Text(
-                'Cancel',
+                AppLocalizations.of(context)!['common']['cancel'],
                 style: TextStyle(color: Colors.grey),
               ),
             ),
@@ -896,7 +905,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              child: Text('Delete Account'),
+              child: Text(AppLocalizations.of(context)!['settings']['deleteAccountModal']['confirm']),
             ),
           ],
         );
@@ -936,7 +945,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Deleting account...'),
+                  Text(AppLocalizations.of(context)!['settings']['deleteAccountModal']['deleting']),
                 ],
               ),
             ),
@@ -956,7 +965,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Authentication token not found'),
+              content: Text(AppLocalizations.of(context)!['settings']['profileForm']['noTokenAvailable']),
               backgroundColor: Colors.red,
             ),
           );
@@ -1030,7 +1039,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             width: 2.0,
           ),
         ),
-        child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+        child: Text(AppLocalizations.of(context)!['settings']['logOut'], style: TextStyle(color: Colors.red)),
       ),
     );
   }

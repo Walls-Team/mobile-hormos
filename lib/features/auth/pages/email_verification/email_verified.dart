@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/app/route_names.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class EmailVerifiedScreen extends StatelessWidget {
   final String email;
@@ -28,13 +29,13 @@ class EmailVerifiedScreen extends StatelessWidget {
                         // Título
                         _buildIcon(context),
                         Text(
-                          'You’re ready to go',
+                          AppLocalizations.of(context)!['auth']['emailVerification']['verifiedTitle'],
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
 
                         // Mensaje
                         Text(
-                          'Email successfully verified.\nYou’re all set to continue.',
+                          AppLocalizations.of(context)!['auth']['emailVerification']['verifiedMessage'],
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
@@ -55,7 +56,7 @@ class EmailVerifiedScreen extends StatelessWidget {
                 onPressed: () {
                   context.goNamed('login');
                 },
-                child: Text('Continue'),
+                child: Text(AppLocalizations.of(context)!['auth']['emailVerification']['continueButton']),
               ),
             ),
           ),

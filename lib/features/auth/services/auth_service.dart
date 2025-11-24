@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show Locale;
 import 'package:genius_hormo/core/api/api_helpers.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
 import 'package:genius_hormo/core/config/app_config.dart';
@@ -13,6 +14,8 @@ import 'package:genius_hormo/features/auth/dto/verify-account_dto.dart';
 import 'package:genius_hormo/features/dashboard/dto/update_profile_dto.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/providers/lang_service.dart';
 import 'user_storage_service.dart';
 
 class AuthService {
@@ -316,8 +319,24 @@ class AuthService {
         final userJson = json.encode(userData.toJson());
         await prefs.setString('cached_user_profile', userJson);
         debugPrint('✅ Caché actualizado');
+        
+        // Setear idioma del usuario
+        final userLanguage = userData.language;
+        if (userLanguage != null && userLanguage.isNotEmpty) {
+          try {
+            final languageService = GetIt.instance<LanguageService>();
+            final currentLang = await languageService.getCurrentLanguage();
+            if (currentLang.languageCode != userLanguage) {
+              debugPrint('🌐 Aplicando idioma del usuario: $userLanguage');
+              await languageService.changeLanguage(Locale(userLanguage));
+            }
+          } catch (e) {
+            debugPrint('⚠️ Error al setear idioma del usuario: $e');
+          }
+        }
       } else {
         debugPrint('❌ Error: ${result.error}');
+        throw Exception('Error al obtener perfil: ${result.error ?? "No data received"}');
       }
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
@@ -503,7 +522,7 @@ class AuthService {
         debugPrint('   Completion %: ${userData.profileCompletionPercentage}');
         
         // Actualizar caché
-        debugPrint('\n💾 Actualizando caché...');
+        debugPrint('\n💾 Guardando perfil en caché...');
         final prefs = await SharedPreferences.getInstance();
         final userJson = json.encode(userData.toJson());
         await prefs.setString('cached_user_profile', userJson);
@@ -524,6 +543,59 @@ class AuthService {
   }
 
   // ========== MÉTODOS PRIVADOS ==========
+
+  /// Actualizar idioma del usuario
+  /// Endpoint: POST /v1/api/me/update/
+  Future<void> updateLanguage({
+    required String token,
+    required String language,
+  }) async {
+    try {
+      final url = AppConfig.getApiUrl('me/update/');
+      final headers = AppConfig.getCommonHeaders(withAuth: true, token: token);
+      
+      final body = json.encode({
+        'language': language,
+      });
+
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🌐 UPDATE LANGUAGE REQUEST');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📍 ENDPOINT: me/update/');
+      debugPrint('🌐 FULL URL: $url');
+      debugPrint('📦 REQUEST BODY: $body');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      final response = await _client
+          .post(
+            Uri.parse(url),
+            headers: headers,
+            body: body,
+          )
+          .timeout(AppConfig.defaultTimeout);
+
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📥 RESPONSE FROM updateLanguage');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint('📄 Response Body: ${response.body}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update language: ${response.statusCode}');
+      }
+
+      debugPrint('✅ Idioma actualizado exitosamente en el servidor');
+    } catch (e, stackTrace) {
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('💥 ERROR EN updateLanguage');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ Error: $e');
+      debugPrint('📍 StackTrace: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      throw Exception('Error al actualizar idioma: $e');
+    }
+  }
 
   bool isValidEmail(String email) {
     // More permissive regular expression that allows:

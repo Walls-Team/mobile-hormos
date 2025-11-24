@@ -13,76 +13,85 @@ class QuestionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallDevice = screenWidth < 400;
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: isSmallDevice ? 12 : 16),
+      padding: EdgeInsets.all(isSmallDevice ? 12 : 16),
       decoration: BoxDecoration(
         color: const Color(0xFF4A5568),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  question.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+          // Texto de la pregunta
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                question.title,
+                style: TextStyle(
+                  fontSize: isSmallDevice ? 14 : 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  question.subtitle,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFFE2E8F0),
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                question.subtitle,
+                style: TextStyle(
+                  fontSize: isSmallDevice ? 12 : 14,
+                  color: const Color(0xFFE2E8F0),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
+          
+          SizedBox(height: isSmallDevice ? 12 : 16),
+          
+          // Botones de respuesta
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               // Botón Check
               GestureDetector(
                 onTap: () => onAnswer(true),
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  width: isSmallDevice ? 48 : 52,
+                  height: isSmallDevice ? 48 : 52,
                   decoration: BoxDecoration(
                     color: question.answer == true
                         ? const Color(0xFF9AE6B4)
                         : const Color(0xFF718096),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.check,
+                    size: isSmallDevice ? 24 : 28,
                     color: question.answer == true
                         ? const Color(0xFF22543D)
                         : Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: isSmallDevice ? 12 : 16),
               // Botón X
               GestureDetector(
                 onTap: () => onAnswer(false),
                 child: Container(
-                  width: 40,
-                  height: 40,
+                  width: isSmallDevice ? 48 : 52,
+                  height: isSmallDevice ? 48 : 52,
                   decoration: BoxDecoration(
                     color: question.answer == false
                         ? const Color(0xFFFEB2B2)
                         : const Color(0xFF718096),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.close,
+                    size: isSmallDevice ? 24 : 28,
                     color: question.answer == false
                         ? const Color(0xFF742A2A)
                         : Colors.white,

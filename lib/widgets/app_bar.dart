@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String userName;
@@ -20,7 +21,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final formattedDate = _formatDate(now);
+    final formattedDate = _formatDate(context, now);
 
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -77,7 +78,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    'Hey, $userName',
+                    '${AppLocalizations.of(context)!['header']['greeting']}, $userName',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -119,34 +120,17 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    final dayName = days[date.weekday - 1];
+  String _formatDate(BuildContext context, DateTime date) {
+    final localizations = AppLocalizations.of(context)!;
+    final daysMap = localizations['header']['days'];
+    final monthsMap = localizations['header']['months'];
+    
+    final dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    final monthKeys = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    
+    final dayName = daysMap[dayKeys[date.weekday - 1]];
     final day = date.day;
-    final month = months[date.month - 1];
+    final month = monthsMap[monthKeys[date.month - 1]];
     final year = date.year;
 
     return '$dayName, $day $month $year';

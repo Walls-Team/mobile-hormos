@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/services/profile_service.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class AvatarSelectorModal extends StatefulWidget {
   final String? currentAvatarUrl;
@@ -43,7 +44,8 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
       final token = await _storageService.getJWTToken();
       if (token == null) {
         setState(() {
-          _error = 'Authentication token not found';
+          final localizations = AppLocalizations.of(context)!;
+          _error = localizations['settings']['avatarModal']['tokenNotFound'];
           _isLoading = false;
         });
         return;
@@ -58,13 +60,15 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
         });
       } else {
         setState(() {
-          _error = response.message ?? 'Error loading avatars';
+          final localizations = AppLocalizations.of(context)!;
+          _error = response.message ?? localizations['settings']['avatarModal']['loadError'];
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _error = 'Connection error: $e';
+        final localizations = AppLocalizations.of(context)!;
+        _error = '${localizations['settings']['avatarModal']['connectionError']}: $e';
         _isLoading = false;
       });
     }
@@ -94,8 +98,8 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Select Your Avatar',
+                Text(
+                  AppLocalizations.of(context)!['settings']['avatarModal']['title'],
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -142,16 +146,16 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue,
                                 ),
-                                child: const Text('Retry'),
+                                child: Text(AppLocalizations.of(context)!['settings']['avatarModal']['retry']),
                               ),
                             ],
                           ),
                         ),
                       )
                     : _avatars.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'No avatars available',
+                              AppLocalizations.of(context)!['settings']['avatarModal']['noAvatars'],
                               style: TextStyle(color: Colors.white70),
                             ),
                           )
@@ -264,8 +268,8 @@ class _AvatarSelectorModalState extends State<AvatarSelectorModal> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Confirm Selection',
+                child: Text(
+                  AppLocalizations.of(context)!['settings']['avatarModal']['confirm'],
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

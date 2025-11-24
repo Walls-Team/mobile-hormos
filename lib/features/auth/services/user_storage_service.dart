@@ -1,5 +1,6 @@
 // lib/services/user_storage_service.dart
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -113,16 +114,33 @@ class UserStorageService {
 
   Future<void> clearAllStorage() async {
     try {
-      // Limpiar secure storage (tokens y datos de usuario)
-      await _secureStorage.deleteAll();
-      print('✅ SecureStorage limpiado completamente');
+      debugPrint('\n🗑️ Limpiando almacenamiento (preservando credenciales biométricas)...');
+      
+      // En lugar de deleteAll(), borrar solo las keys específicas
+      // para preservar las credenciales biométricas (Face ID/Touch ID)
+      await _secureStorage.delete(key: _jwtTokenKey);
+      debugPrint('   ✅ JWT Token eliminado');
+      
+      await _secureStorage.delete(key: _refreshTokenKey);
+      debugPrint('   ✅ Refresh Token eliminado');
+      
+      await _secureStorage.delete(key: _userDataKey);
+      debugPrint('   ✅ User Data eliminado');
+      
+      // NO borrar:
+      // - biometric_enabled
+      // - biometric_email
+      // - biometric_password
+      debugPrint('   💾 Credenciales biométricas preservadas');
       
       // Limpiar caché de SharedPreferences (perfil en caché)
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('cached_user_profile');
-      print('✅ Caché de perfil eliminado');
+      debugPrint('   ✅ Caché de perfil eliminado');
+      
+      debugPrint('✅ Logout completado - Credenciales biométricas intactas\n');
     } catch (e) {
-      print('❌ Error limpiando almacenamiento: $e');
+      debugPrint('❌ Error limpiando almacenamiento: $e');
       rethrow;
     }
   }

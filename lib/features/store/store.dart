@@ -55,7 +55,7 @@ class StoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
+    final localizations = AppLocalizations.of(context)!;
 
     if (localizations == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));

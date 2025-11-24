@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/core/di/dependency_injection.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:genius_hormo/providers/lang_service.dart';
+import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:get_it/get_it.dart';
+
+final getIt = GetIt.instance;
 
 class LanguageSelector extends StatefulWidget {
   const LanguageSelector({super.key});
@@ -11,6 +16,8 @@ class LanguageSelector extends StatefulWidget {
 
 class _LanguageSelectorState extends State<LanguageSelector> {
   final LanguageService _languageService = getIt<LanguageService>();
+  final AuthService _authService = getIt<AuthService>();
+  final UserStorageService _userStorageService = getIt<UserStorageService>();
   String _currentLanguage = 'en';
 
   @override
@@ -33,15 +40,35 @@ class _LanguageSelectorState extends State<LanguageSelector> {
       _currentLanguage = languageCode;
     });
     
+    // Cambiar idioma localmente
     await _languageService.changeLanguage(Locale(languageCode));
     
+    // Si el usuario está logueado, actualizar en el servidor
+    try {
+      final token = await _userStorageService.getJWTToken();
+      if (token != null) {
+        debugPrint('🌐 Actualizando idioma en el servidor: $languageCode');
+        await _authService.updateLanguage(
+          token: token,
+          language: languageCode,
+        );
+        debugPrint('✅ Idioma actualizado en el servidor');
+      } else {
+        debugPrint('⚠️ Usuario no logueado, idioma solo cambiado localmente');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error al actualizar idioma en el servidor: $e');
+      // Continuar aunque falle el API, el cambio local ya se hizo
+    }
+    
     if (mounted) {
+      final localizations = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             languageCode == 'en' 
-              ? 'Language changed to English' 
-              : 'Idioma cambiado a Español'
+              ? localizations['settings']['languageSelector']['languageChangedToEnglish']
+              : localizations['settings']['languageSelector']['languageChangedToSpanish']
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -54,8 +81,8 @@ class _LanguageSelectorState extends State<LanguageSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Language',
+        Text(
+          AppLocalizations.of(context)!['settings']['languageSelector']['language'],
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -66,7 +93,7 @@ class _LanguageSelectorState extends State<LanguageSelector> {
           children: [
             Expanded(
               child: _buildLanguageButton(
-                label: 'English',
+                label: AppLocalizations.of(context)!['settings']['languageSelector']['english'],
                 languageCode: 'en',
                 isSelected: _currentLanguage == 'en',
               ),
@@ -74,7 +101,7 @@ class _LanguageSelectorState extends State<LanguageSelector> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildLanguageButton(
-                label: 'Spanish',
+                label: AppLocalizations.of(context)!['settings']['languageSelector']['spanish'],
                 languageCode: 'es',
                 isSelected: _currentLanguage == 'es',
               ),

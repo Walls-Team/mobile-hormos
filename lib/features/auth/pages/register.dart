@@ -9,6 +9,7 @@ import 'package:genius_hormo/welcome.dart';
 import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -52,7 +53,7 @@ class _RegistrationFormState extends State<RegisterScreen> {
       if (!_acceptTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Debes aceptar los términos y condiciones'),
+            content: Text(AppLocalizations.of(context)!['auth']['registerScreen']['mustAcceptTerms']),
             backgroundColor: Colors.red,
           ),
         );
@@ -93,14 +94,14 @@ class _RegistrationFormState extends State<RegisterScreen> {
           });
         } else {
           debugPrint('❌ REGISTRO FALLÓ: ${result.error}');
-          _showErrorDialog(result.error ?? 'Error en el registro');
+          _showErrorDialog(result.error ?? AppLocalizations.of(context)!['auth']['registerScreen']['registerErrorGeneric']);
         }
       } catch (e) {
         debugPrint('💥 EXCEPCIÓN: $e');
         setState(() {
           _isLoading = false;
         });
-        _showErrorDialog('Error de conexión: $e');
+        _showErrorDialog('${AppLocalizations.of(context)!['auth']['registerScreen']['connectionError']}: $e');
       }
     }
   }
@@ -109,12 +110,12 @@ class _RegistrationFormState extends State<RegisterScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Error de Registro'),
+        title: Text(AppLocalizations.of(context)!['auth']['registerScreen']['registerErrorTitle']),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+            child: Text(AppLocalizations.of(context)!['auth']['registerScreen']['ok']),
           ),
         ],
       ),
@@ -149,12 +150,12 @@ class _RegistrationFormState extends State<RegisterScreen> {
               if (!keyboardVisible) _buildHormoIcon(),
               if (!keyboardVisible) _buildWelcomeMessage(context),
 
-              Text('Username'),
+              Text(AppLocalizations.of(context)!['auth']['username']),
               TextFormField(
                 controller: _usernameController,
                 validator: validateUsername,
                 decoration: InputDecoration(
-                  hintText: 'user',
+                  hintText: AppLocalizations.of(context)!['auth']['registerScreen']['usernamePlaceholder'],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -165,12 +166,12 @@ class _RegistrationFormState extends State<RegisterScreen> {
                 ),
               ),
 
-              Text('Email'),
+              Text(AppLocalizations.of(context)!['auth']['email']),
               TextFormField(
                 controller: _emailController,
                 validator: validateEmail,
                 decoration: InputDecoration(
-                  hintText: 'you@example.com',
+                  hintText: AppLocalizations.of(context)!['auth']['registerScreen']['emailPlaceholder'],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -181,10 +182,10 @@ class _RegistrationFormState extends State<RegisterScreen> {
                 ),
               ),
 
-              Text('Password'),
+              Text(AppLocalizations.of(context)!['auth']['password']),
               _buildPasswordField(),
 
-              Text('Confirm Password'),
+              Text(AppLocalizations.of(context)!['auth']['confirmPassword']),
               _buildConfirmPasswordField(),
 
               _buildPasswordRequirements(),
@@ -208,13 +209,13 @@ class _RegistrationFormState extends State<RegisterScreen> {
       child: Column(
         children: [
           Text(
-            'Register Genius Testosterone',
+            AppLocalizations.of(context)!['auth']['registerScreen']['title'],
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           Text(
-            'Good to see you.',
+            AppLocalizations.of(context)!['auth']['registerScreen']['subtitle'],
             style: Theme.of(context).textTheme.titleSmall?.copyWith(),
           ),
         ],
@@ -229,22 +230,22 @@ class _RegistrationFormState extends State<RegisterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Password requirements:',
+          AppLocalizations.of(context)!['auth']['registerScreen']['passwordRequirements'],
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         SizedBox(height: 8),
-        _buildRequirementItem('At least 8 characters', password.length >= 8),
+        _buildRequirementItem(AppLocalizations.of(context)!['auth']['registerScreen']['atLeast8Chars'], password.length >= 8),
         _buildRequirementItem(
-          'One uppercase letter',
+          AppLocalizations.of(context)!['auth']['registerScreen']['oneUppercase'],
           RegExp(r'[A-Z]').hasMatch(password),
         ),
         _buildRequirementItem(
-          'One lowercase letter',
+          AppLocalizations.of(context)!['auth']['registerScreen']['oneLowercase'],
           RegExp(r'[a-z]').hasMatch(password),
         ),
-        _buildRequirementItem('One number', RegExp(r'\d').hasMatch(password)),
+        _buildRequirementItem(AppLocalizations.of(context)!['auth']['registerScreen']['oneNumber'], RegExp(r'\d').hasMatch(password)),
         _buildRequirementItem(
-          'One special character (!@#\$%^&*)',
+          AppLocalizations.of(context)!['auth']['registerScreen']['oneSpecialChar'],
           RegExp(r'[!@#\$%^&*]').hasMatch(password),
           isRecommended: true,
         ),
@@ -303,11 +304,11 @@ class _RegistrationFormState extends State<RegisterScreen> {
             Expanded(
               child: Wrap(
                 children: [
-                  Text('I accept the ', style: TextStyle(color: Colors.white)),
+                  Text(AppLocalizations.of(context)!['auth']['registerScreen']['iAcceptThe'], style: TextStyle(color: Colors.white)),
                   GestureDetector(
                     onTap: _navigateToTermsAndConditions,
                     child: Text(
-                      'terms and conditions',
+                      AppLocalizations.of(context)!['auth']['registerScreen']['termsAndConditions'],
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         decoration: TextDecoration.underline,
@@ -340,14 +341,14 @@ class _RegistrationFormState extends State<RegisterScreen> {
                 ),
               ),
             )
-          : Text('Register'),
+          : Text(AppLocalizations.of(context)!['auth']['registerScreen']['registerButton']),
     );
   }
 
   Widget _buildPasswordField() {
     return InputPassword(
       controller: _passwordController,
-      hintText: '********',
+      hintText: AppLocalizations.of(context)!['auth']['registerScreen']['passwordPlaceholder'],
       onChanged: (value) {
         setState(() {});
       },
@@ -358,16 +359,16 @@ class _RegistrationFormState extends State<RegisterScreen> {
   Widget _buildConfirmPasswordField() {
     return InputPassword(
       controller: _confirmPasswordController,
-      hintText: '********',
+      hintText: AppLocalizations.of(context)!['auth']['registerScreen']['passwordPlaceholder'],
       onChanged: (value) {
         setState(() {});
       },
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Por favor confirma tu contraseña';
+          return AppLocalizations.of(context)!['auth']['registerScreen']['confirmPasswordRequired'];
         }
         if (value != _passwordController.text) {
-          return 'Las contraseñas no coinciden';
+          return AppLocalizations.of(context)!['auth']['registerScreen']['passwordsDoNotMatch'];
         }
         return null;
       },

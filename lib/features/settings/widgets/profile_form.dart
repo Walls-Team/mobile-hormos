@@ -6,6 +6,7 @@ import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/settings/widgets/avatar_selector_modal.dart';
 import 'package:genius_hormo/features/settings/widgets/language_selector.dart';
 import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class UserProfileForm extends StatefulWidget {
   final UserProfileData initialData;
@@ -92,7 +93,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
       try {
         final token = await _storageService.getJWTToken();
         if (token == null) {
-          throw Exception('No token available');
+          final localizations = AppLocalizations.of(context)!;
+          throw Exception(localizations['settings']['profileForm']['noTokenAvailable']);
         }
 
         final updatedData = UserProfileData(
@@ -131,9 +133,10 @@ class _UserProfileFormState extends State<UserProfileForm> {
         
         // Si llegamos aquí, el update fue exitoso
         if (mounted) {
+          final localizations = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ Profile updated successfully'),
+              content: Text('✅ ${localizations['settings']['profileForm']['profileUpdateSuccess']}'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             ),
@@ -146,7 +149,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
         debugPrint('💥 Error updating profile: $e');
         if (mounted) {
           // Try to parse backend error
-          final errorMessage = _parseErrorMessage(e.toString());
+          final localizations = AppLocalizations.of(context)!;
+          final errorMessage = _parseErrorMessage(e.toString(), localizations);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('❌ $errorMessage'),
@@ -165,27 +169,28 @@ class _UserProfileFormState extends State<UserProfileForm> {
   
   bool _validateRequiredFields() {
     List<String> missingFields = [];
+    final localizations = AppLocalizations.of(context)!;
     
     if (_usernameController.text.trim().isEmpty) {
-      missingFields.add('Username');
+      missingFields.add(localizations['settings']['user']);
     }
     if (_heightController.text.trim().isEmpty) {
-      missingFields.add('Height');
+      missingFields.add(localizations['settings']['height']);
     }
     if (_weightController.text.trim().isEmpty) {
-      missingFields.add('Weight');
+      missingFields.add(localizations['settings']['weight']);
     }
     if (_birthDateController.text.trim().isEmpty) {
-      missingFields.add('BirthDay');
+      missingFields.add(localizations['settings']['birthDay']);
     }
     if (_selectedGender.isEmpty) {
-      missingFields.add('Gender');
+      missingFields.add(localizations['settings']['gender']);
     }
     
     if (missingFields.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⚠️ Please complete: ${missingFields.join(", ")}'),
+          content: Text('⚠️ ${localizations['settings']['profileForm']['pleaseComplete']} ${missingFields.join(", ")}'),
           backgroundColor: Colors.orange,
           duration: Duration(seconds: 3),
         ),
@@ -214,13 +219,14 @@ class _UserProfileFormState extends State<UserProfileForm> {
         });
         
         if (errorMessages.isNotEmpty) {
+          final localizations = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('❌ Validation Errors:', 
+                  Text('❌ ${localizations['settings']['profileForm']['validationErrors']}', 
                     style: TextStyle(fontWeight: FontWeight.bold)),
                   SizedBox(height: 4),
                   ...errorMessages.map((msg) => Text('• $msg')),
@@ -266,13 +272,13 @@ class _UserProfileFormState extends State<UserProfileForm> {
     return null;
   }
   
-  String _parseErrorMessage(String error) {
+  String _parseErrorMessage(String error, dynamic localizations) {
     // Extract readable message from error
     if (error.contains('altura') || error.contains('height')) {
-      return 'Height must be between 3.0 and 9.0 ft';
+      return localizations['settings']['profileForm']['heightRange'];
     }
     if (error.contains('peso') || error.contains('weight')) {
-      return 'Weight must be at least 40.0 lbs';
+      return localizations['settings']['profileForm']['weightMin'];
     }
     return error;
   }
@@ -336,53 +342,53 @@ class _UserProfileFormState extends State<UserProfileForm> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Tap avatar to change it',
+              AppLocalizations.of(context)!['settings']['profileForm']['tapAvatarToChange'],
               style: TextStyle(color: Colors.white60, fontSize: 12),
               textAlign: TextAlign.center,
             ),
 
             // Username field
-            Text('Username'),
+            Text(AppLocalizations.of(context)!['settings']['user']),
             TextFormField(controller: _usernameController),
 
-            Text('Height'),
+            Text(AppLocalizations.of(context)!['settings']['height']),
             TextFormField(
               controller: _heightController,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Height is required';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['heightRequired'];
                 }
                 final height = double.tryParse(value);
                 if (height == null) {
-                  return 'Please enter a valid number';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['heightInvalidNumber'];
                 }
                 if (height < 3.0 || height > 9.0) {
-                  return 'Height must be between 3.0 and 9.0 ft';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['heightRange'];
                 }
                 return null;
               },
             ),
-            Text('Weight'),
+            Text(AppLocalizations.of(context)!['settings']['weight']),
             TextFormField(
               controller: _weightController,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Weight is required';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['weightRequired'];
                 }
                 final weight = double.tryParse(value);
                 if (weight == null) {
-                  return 'Please enter a valid number';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['weightInvalidNumber'];
                 }
                 if (weight < 40.0) {
-                  return 'Weight must be at least 40.0 lbs';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['weightMin'];
                 }
                 return null;
               },
             ),
 
-            Text('BirthDay'),
+            Text(AppLocalizations.of(context)!['settings']['birthDay']),
             // Birth Date field
             TextFormField(
               controller: _birthDateController,
@@ -396,8 +402,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
                   initialDate: maxDate,
                   firstDate: DateTime(1900),
                   lastDate: maxDate, // Don't allow dates under 18 years old
-                  helpText: 'Select your birth date',
-                  errorFormatText: 'Invalid date',
+                  helpText: AppLocalizations.of(context)!['settings']['profileForm']['birthDateHelper'],
+                  errorFormatText: AppLocalizations.of(context)!['settings']['profileForm']['birthDateInvalid'],
                 );
                 if (date != null) {
                   _birthDateController.text =
@@ -406,14 +412,14 @@ class _UserProfileFormState extends State<UserProfileForm> {
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Birth date is required';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['birthDateRequired'];
                 }
                 
                 // Validate date format
                 try {
                   final parts = value.split('-');
                   if (parts.length != 3) {
-                    return 'Invalid date format';
+                    return AppLocalizations.of(context)!['settings']['profileForm']['birthDateInvalid'];
                   }
                   
                   final year = int.parse(parts[0]);
@@ -430,17 +436,17 @@ class _UserProfileFormState extends State<UserProfileForm> {
                   }
                   
                   if (age < 18) {
-                    return 'You must be at least 18 years old';
+                    return AppLocalizations.of(context)!['settings']['minAge'];
                   }
                   
                   return null;
                 } catch (e) {
-                  return 'Invalid date format';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['birthDateInvalid'];
                 }
               },
             ),
 
-            Text('Gender'),
+            Text(AppLocalizations.of(context)!['settings']['gender']),
             // Dropdown Gender
             DropdownButtonFormField<String>(
               initialValue: _selectedGender,
@@ -457,7 +463,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
               },
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please select a gender';
+                  return AppLocalizations.of(context)!['settings']['profileForm']['genderRequired'];
                 }
                 return null;
               },
@@ -479,8 +485,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text(
-                      'Save Data',
+                  : Text(
+                      AppLocalizations.of(context)!['common']['save'],
                       style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
             ),
@@ -597,13 +603,14 @@ class _UserProfileFormState extends State<UserProfileForm> {
   }
 
   String _getGenderDisplayName(String gender) {
+    final localizations = AppLocalizations.of(context)!;
     switch (gender) {
       case 'male':
-        return 'Male';
+        return localizations['gender']['male'];
       case 'female':
-        return 'Female';
+        return localizations['gender']['female'];
       case 'other':
-        return 'Other';
+        return localizations['gender']['other'];
       default:
         return gender;
     }

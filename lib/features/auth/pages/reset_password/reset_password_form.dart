@@ -6,6 +6,7 @@ import 'package:genius_hormo/features/auth/utils/validators/password_validator.d
 import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -79,7 +80,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        '🎉 Password changed successfully!',
+                        AppLocalizations.of(context)!['auth']['resetPassword']['resetSuccess'],
                         style: TextStyle(fontSize: 16),
                       ),
                     ),
@@ -95,7 +96,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                resetResponse.error ?? 'Error al restablecer la contraseña',
+                resetResponse.error ?? AppLocalizations.of(context)!['auth']['resetPassword']['resetError'],
               ),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
@@ -109,7 +110,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error de conexión: $e'),
+            content: Text('${AppLocalizations.of(context)!['auth']['resetPassword']['connectionError']}: $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -168,10 +169,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
             _buildInstructions(),
 
-            Text('Password', style: TextStyle(color: Colors.white)),
+            Text(AppLocalizations.of(context)!['auth']['resetPassword']['password'], style: TextStyle(color: Colors.white)),
             _buildPasswordField(),
 
-            Text('Confirm Password', style: TextStyle(color: Colors.white)),
+            Text(AppLocalizations.of(context)!['auth']['resetPassword']['confirmPassword'], style: TextStyle(color: Colors.white)),
             _buildConfirmPasswordField(),
 
             _buildPasswordRequirements(),
@@ -198,7 +199,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget _buildInstructions() {
     return Center(
       child: Text(
-        'New Password',
+        AppLocalizations.of(context)!['auth']['resetPassword']['newPasswordTitle'],
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
@@ -212,7 +213,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget _buildPasswordField() {
     return InputPassword(
       controller: _passwordController,
-      hintText: '********',
+      hintText: AppLocalizations.of(context)!['auth']['resetPassword']['passwordPlaceholder'],
       onChanged: (value) {
         setState(() {}); // Para actualizar los requisitos en tiempo real
       },
@@ -227,7 +228,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Requisitos de la contraseña:',
+          AppLocalizations.of(context)!['auth']['resetPassword']['passwordRequirements'],
           style: TextStyle(
             // color: Colors.grey[300],
             fontWeight: FontWeight.bold,
@@ -235,18 +236,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
         ),
         SizedBox(height: 8),
-        _buildRequirementItem('Al menos 8 caracteres', password.length >= 8),
+        _buildRequirementItem(AppLocalizations.of(context)!['auth']['resetPassword']['atLeast8Chars'], password.length >= 8),
         _buildRequirementItem(
-          'Una letra mayúscula',
+          AppLocalizations.of(context)!['auth']['resetPassword']['oneUppercase'],
           RegExp(r'[A-Z]').hasMatch(password),
         ),
         _buildRequirementItem(
-          'Una letra minúscula',
+          AppLocalizations.of(context)!['auth']['resetPassword']['oneLowercase'],
           RegExp(r'[a-z]').hasMatch(password),
         ),
-        _buildRequirementItem('Un número', RegExp(r'\d').hasMatch(password)),
+        _buildRequirementItem(AppLocalizations.of(context)!['auth']['resetPassword']['oneNumber'], RegExp(r'\d').hasMatch(password)),
         _buildRequirementItem(
-          'Un carácter especial (!@#\$%^&*)',
+          AppLocalizations.of(context)!['auth']['resetPassword']['oneSpecialChar'],
           RegExp(r'[!@#\$%^&*]').hasMatch(password),
           isRecommended: true,
         ),
@@ -292,16 +293,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget _buildConfirmPasswordField() {
     return InputPassword(
       controller: _confirmPasswordController,
-      hintText: '********',
+      hintText: AppLocalizations.of(context)!['auth']['resetPassword']['passwordPlaceholder'],
       onChanged: (value) {
         setState(() {}); // Para actualizar los requisitos en tiempo real
       },
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Por favor confirma tu contraseña';
+          return AppLocalizations.of(context)!['auth']['resetPassword']['confirmPasswordRequired'];
         }
         if (value != _passwordController.text) {
-          return 'Las contraseñas no coinciden';
+          return AppLocalizations.of(context)!['auth']['resetPassword']['passwordsDoNotMatch'];
         }
         return null;
       },
@@ -324,7 +325,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               ),
             )
-          : Text('Send'),
+          : Text(AppLocalizations.of(context)!['auth']['resetPassword']['sendButton']),
     );
   }
 
@@ -347,7 +348,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                       // Título
                       Text(
-                        'Password Changed!',
+                        AppLocalizations.of(context)!['auth']['resetPassword']['successTitle'],
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
@@ -358,7 +359,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                       // Mensaje
                       Text(
-                        'Your password has been successfully changed.\nYou can now login with your new password.',
+                        AppLocalizations.of(context)!['auth']['resetPassword']['successMessage'],
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.white70,
@@ -390,7 +391,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 });
               },
               child: Text(
-                'Go to Login',
+                AppLocalizations.of(context)!['auth']['resetPassword']['goToLogin'],
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

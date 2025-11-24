@@ -5,6 +5,7 @@ import 'package:genius_hormo/features/auth/pages/reset_password/reset_password_f
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class ResetPasswordVerificationCodeScreen extends StatefulWidget {
   final String email;
@@ -165,7 +166,7 @@ class _VerificationCodeScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Invalid verification code'),
+              content: Text(result.error ?? AppLocalizations.of(context)!['auth']['resetPassword']['invalidCode']),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -186,7 +187,7 @@ class _VerificationCodeScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Connection error: $e'),
+            content: Text('${AppLocalizations.of(context)!['auth']['resetPassword']['connectionError']}: $e'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
@@ -243,7 +244,7 @@ class _VerificationCodeScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message ?? 'Code resent successfully'),
+              content: Text(result.message ?? AppLocalizations.of(context)!['auth']['resetPassword']['resendSuccess']),
               duration: Duration(seconds: 3),
             ),
           );
@@ -253,7 +254,7 @@ class _VerificationCodeScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Error resending code'),
+              content: Text(result.error ?? AppLocalizations.of(context)!['auth']['resetPassword']['resendError']),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -268,7 +269,7 @@ class _VerificationCodeScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error de conexión: $e'),
+            content: Text('${AppLocalizations.of(context)!['auth']['resetPassword']['connectionError']}: $e'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
@@ -392,7 +393,7 @@ class _VerificationCodeScreenState
       child: Column(
         children: [
           Text(
-            'Enter verification Code',
+            AppLocalizations.of(context)!['auth']['resetPassword']['enterCodeTitle'],
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(),
           ),
         ],
@@ -405,7 +406,7 @@ class _VerificationCodeScreenState
       children: [
         _resendCountdown > 0
             ? Text(
-                'You can resend in $_resendCountdown seconds',
+                '${AppLocalizations.of(context)!['auth']['resetPassword']['resendIn']} $_resendCountdown ${AppLocalizations.of(context)!['auth']['resetPassword']['seconds']}',
                 style: TextStyle(fontSize: 12, color: Colors.grey[400]),
               )
             : TextButton(
@@ -422,7 +423,7 @@ class _VerificationCodeScreenState
                         ),
                       )
                     : Text(
-                        "If you didn't receive a code, Resend",
+                        AppLocalizations.of(context)!['auth']['resetPassword']['resendButton'],
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -452,7 +453,7 @@ class _VerificationCodeScreenState
                       ),
                     )
                   : Text(
-                      'Send',
+                      AppLocalizations.of(context)!['auth']['resetPassword']['sendButton'],
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

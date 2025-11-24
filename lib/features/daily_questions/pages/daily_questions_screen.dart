@@ -4,6 +4,7 @@ import 'package:genius_hormo/features/daily_questions/models/daily_question.dart
 import 'package:genius_hormo/features/daily_questions/services/daily_questions_service.dart';
 import 'package:genius_hormo/features/daily_questions/widgets/question_item.dart';
 import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class DailyQuestionsScreen extends StatefulWidget {
   const DailyQuestionsScreen({super.key});
@@ -22,7 +23,15 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
   @override
   void initState() {
     super.initState();
-    _questions = _questionsService.getQuestions();
+    // Note: We'll get questions after the widget builds to access context
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_questions.isEmpty) {
+      _questions = _questionsService.getQuestions(context);
+    }
   }
 
   void _updateAnswer(int index, bool answer) {
@@ -37,9 +46,10 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
 
   Future<void> _submitAnswers() async {
     if (!_allQuestionsAnswered()) {
+      final localizations = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please answer all questions'),
+        SnackBar(
+          content: Text(localizations['dailyQuestions']['answerAll']),
           backgroundColor: Colors.orange,
         ),
       );
@@ -51,8 +61,9 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
     try {
       final token = await _userStorageService.getJWTToken();
       
+      final localizations = AppLocalizations.of(context)!;
       if (token == null) {
-        throw Exception('No authentication token found');
+        throw Exception(localizations['dailyQuestions']['noToken']);
       }
 
       final success = await _questionsService.submitAnswers(
@@ -64,9 +75,10 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
         // ✅ Marcar como respondido hoy para que no vuelva a aparecer
         await _questionsService.markAsAnsweredToday();
         
+        final localizations = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Answers saved successfully'),
+          SnackBar(
+            content: Text('✅ ${localizations['dailyQuestions']['saveSuccess']}'),
             backgroundColor: Colors.green,
           ),
         );
@@ -78,13 +90,15 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
           }
         });
       } else {
-        throw Exception('Failed to save answers');
+        final localizations = AppLocalizations.of(context)!;
+        throw Exception(localizations['dailyQuestions']['saveFailed']);
       }
     } catch (e) {
       if (mounted) {
+        final localizations = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: $e'),
+            content: Text('❌ ${localizations['dailyQuestions']['error']}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -98,14 +112,25 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallDevice = screenWidth < 400 || screenHeight < 700;
+    
     return Dialog(
       backgroundColor: const Color(0xFF2D3748),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isSmallDevice ? 16 : 40,
+        vertical: isSmallDevice ? 24 : 40,
+      ),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
-        padding: const EdgeInsets.all(24),
+        constraints: BoxConstraints(
+          maxWidth: 400,
+          maxHeight: screenHeight * 0.85, // Max 85% del alto de pantalla
+        ),
+        padding: EdgeInsets.all(isSmallDevice ? 16 : 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -113,24 +138,30 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: isSmallDevice ? 20 : 24,
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Daily Questions',
+                    AppLocalizations.of(context)!['dailyQuestions']['title'],
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: isSmallDevice ? 18 : 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 48), // Balance para centrar el título
+                SizedBox(width: isSmallDevice ? 40 : 48), // Balance para centrar el título
               ],
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmallDevice ? 16 : 24),
             
             // Lista de preguntas
             Flexible(
@@ -147,7 +178,7 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
               ),
             ),
             
-            const SizedBox(height: 24),
+            SizedBox(height: isSmallDevice ? 16 : 24),
             
             // Botón Save
             SizedBox(
@@ -157,7 +188,7 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF9AE6B4),
                   foregroundColor: const Color(0xFF22543D),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: isSmallDevice ? 12 : 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -172,10 +203,10 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text(
-                        'Save',
+                    : Text(
+                        AppLocalizations.of(context)!['dailyQuestions']['save'],
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: isSmallDevice ? 14 : 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

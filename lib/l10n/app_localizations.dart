@@ -70,6 +70,12 @@ class AppLocalizations {
     return _getTranslation(key, _localizedValues[locale.languageCode]!);
   }
 
+  // Operator [] to allow map-like access
+  dynamic operator [](String key) {
+    final value = _localizedValues[locale.languageCode]![key];
+    return value;
+  }
+
   // Common
   String get commonLoading => t('common.loading');
   String get commonSave => t('common.save');
