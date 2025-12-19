@@ -132,10 +132,16 @@ class _LoginScreenState extends State<LoginScreen> {
             _userStorageServic.saveRefreshToken(data.refreshToken);
             debugPrint('✅ Tokens guardados');
             
+            // Intentar obtener perfil, pero NO fallar si falla
             debugPrint('👤 Obteniendo perfil...');
-            final userProfile = await _authService.getMyProfile(token: data.accessToken);
-            debugPrint('✅ Perfil obtenido');
-            debugPrint('📋 Perfil completo: ${userProfile.isComplete}');
+            try {
+              final userProfile = await _authService.getMyProfile(token: data.accessToken);
+              debugPrint('✅ Perfil obtenido');
+              debugPrint('📋 Perfil completo: ${userProfile.isComplete}');
+            } catch (profileError) {
+              debugPrint('⚠️ Error obteniendo perfil (continuando login): $profileError');
+              // NO mostramos error al usuario, solo en logs
+            }
 
             // Marcar como autenticado en el AuthStateProvider
             final authStateProvider = GetIt.instance<AuthStateProvider>();
@@ -158,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
               }
               
               if (!mounted) return;
-              debugPrint('✅ Perfil completo - Navegando a HomeScreen');
+              debugPrint('✅ Navegando a Dashboard (login exitoso)');
               SafeNavigation.go(context, privateRoutes.dashboard);
               debugPrint('✅ NAVEGACIÓN COMPLETADA');
             });

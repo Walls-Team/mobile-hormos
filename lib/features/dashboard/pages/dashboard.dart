@@ -42,6 +42,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return _dashboardService.getHealthData(token: token);
   }
 
+  Future<void> _refreshMetrics() async {
+    setState(() {
+      _metricsFuture = _loadMetrics();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
@@ -53,29 +59,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error, size: 64, color: Colors.red),
-                SizedBox(height: 16),
-                Text(localizations['dashboardScreen']['errorLoading']),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _metricsFuture = _loadMetrics();
-                    });
-                  },
-                  child: Text(localizations['dashboardScreen']['retry']),
+          return RefreshIndicator(
+            onRefresh: _refreshMetrics,
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Container(
+                height: MediaQuery.of(context).size.height - 200,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange),
+                      SizedBox(height: 16),
+                      Text(
+                        localizations['dashboardScreen']['errorLoading'],
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Desliza hacia abajo para reintentar',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           );
         }
 
         if (snapshot.hasData) {
-          return _buildCharts(snapshot.data!);
+          return RefreshIndicator(
+            onRefresh: _refreshMetrics,
+            child: _buildCharts(snapshot.data!),
+          );
         }
 
         return Center(child: Text(localizations['dashboardScreen']['couldNotLoad']));

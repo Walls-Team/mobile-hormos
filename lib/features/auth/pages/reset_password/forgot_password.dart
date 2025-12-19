@@ -93,6 +93,7 @@ void _submitForm() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
@@ -106,23 +107,34 @@ void _submitForm() async {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // LOGO ARRIBA
-            _buildLogoSection(),
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - 
+                        MediaQuery.of(context).padding.top - 
+                        kToolbarHeight,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  // LOGO ARRIBA
+                  _buildLogoSection(),
 
-            // FORMULARIO EN EL CENTRO
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(20),
-                child: Form(key: _formKey, child: _buildForgotPasswordForm()),
+                  // FORMULARIO EN EL CENTRO
+                  Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Form(key: _formKey, child: _buildForgotPasswordForm()),
+                  ),
+
+                  // Spacer para empujar botones abajo cuando no hay teclado
+                  Spacer(),
+
+                  // BOTÓN ABAJO
+                  _buildBottomButtonSection(context),
+                ],
               ),
             ),
-
-            // BOTÓN ABAJO
-            _buildBottomButtonSection(context),
-          ],
+          ),
         ),
       ),
     );

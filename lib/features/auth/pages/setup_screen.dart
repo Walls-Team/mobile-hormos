@@ -126,9 +126,9 @@ class _SetupScreenState extends State<SetupScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              CupertinoIcons.exclamationmark_circle,
-              size: 64,
-              color: Colors.orange,
+              CupertinoIcons.info_circle,
+              size: 80,
+              color: Colors.blue.withOpacity(0.7),
             ),
             const SizedBox(height: 24),
             Text(
@@ -143,22 +143,6 @@ class _SetupScreenState extends State<SetupScreen> {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                setState(() {
-                  _currentIndex = 0; // Volver a Dashboard/Setup
-                });
-              },
-              icon: const Icon(Icons.arrow_back),
-              label: Text(AppLocalizations.of(context)!['dashboard']['backToSetup']),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
               ),
             ),
           ],

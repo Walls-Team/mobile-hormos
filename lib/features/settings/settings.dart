@@ -320,16 +320,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_profileError != null) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(32),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.red),
-              SizedBox(height: 16),
-              Text('Error: $_profileError'),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadUserProfile,
-                child: Text(AppLocalizations.of(context)!['errors']['retry']),
+              Icon(
+                Icons.cloud_off_outlined, 
+                size: 64, 
+                color: Colors.orange.withOpacity(0.7),
+              ),
+              SizedBox(height: 24),
+              Text(
+                'Sin conexión',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'No se pudo cargar tu perfil. Verifica tu conexión a internet.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[400],
+                ),
               ),
             ],
           ),

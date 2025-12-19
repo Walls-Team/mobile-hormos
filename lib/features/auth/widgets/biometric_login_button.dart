@@ -104,10 +104,15 @@ class _BiometricLoginButtonState extends State<BiometricLoginButton> {
         await _userStorageService.saveJWTToken(loginResponse.data!.accessToken);
         await _userStorageService.saveRefreshToken(loginResponse.data!.refreshToken);
         
-        // Obtener perfil
-        final userProfile = await _authService.getMyProfile(
-          token: loginResponse.data!.accessToken,
-        );
+        // Intentar obtener perfil, pero NO fallar si falla
+        try {
+          final userProfile = await _authService.getMyProfile(
+            token: loginResponse.data!.accessToken,
+          );
+          debugPrint('✅ Perfil obtenido en login biométrico');
+        } catch (profileError) {
+          debugPrint('⚠️ Error obteniendo perfil (continuando login biométrico): $profileError');
+        }
         
         // Marcar como autenticado
         _authStateProvider.setAuthenticated();

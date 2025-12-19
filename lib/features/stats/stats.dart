@@ -40,6 +40,12 @@ class _StatsScreenState extends State<StatsScreen> {
     return _statsService.getAllStatsParallel(token: token);
   }
 
+  Future<void> _refreshStats() async {
+    setState(() {
+      _statsFuture = _loadAllStats();
+    });
+  }
+
   void _changeFilter(bool forward) {
     setState(() {
       final index = TimeFilter.values.indexOf(_currentFilter);
@@ -105,29 +111,40 @@ class _StatsScreenState extends State<StatsScreen> {
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error, size: 64, color: Colors.red),
-                SizedBox(height: 16),
-                Text(localizations['statsScreen']['errorLoading']),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _statsFuture = _loadAllStats();
-                    });
-                  },
-                  child: Text(localizations['statsScreen']['retry']),
+          return RefreshIndicator(
+            onRefresh: _refreshStats,
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Container(
+                height: MediaQuery.of(context).size.height - 200,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange),
+                      SizedBox(height: 16),
+                      Text(
+                        localizations['statsScreen']['errorLoading'],
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Desliza hacia abajo para reintentar',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           );
         }
 
         if (snapshot.hasData) {
-          return _buildContent(snapshot.data!);
+          return RefreshIndicator(
+            onRefresh: _refreshStats,
+            child: _buildContent(snapshot.data!),
+          );
         }
 
         return Center(child: Text(localizations['statsScreen']['couldNotLoad']));
