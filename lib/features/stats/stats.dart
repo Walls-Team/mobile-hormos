@@ -9,6 +9,7 @@ import 'package:genius_hormo/features/stats/components/calories_burned_chart.dar
 import 'package:genius_hormo/features/stats/dto/dtos.dart';
 import 'package:genius_hormo/features/stats/service/stats_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 enum TimeFilter { oneWeek, twoWeeks, threeWeeks, fourWeeks }
 
@@ -95,6 +96,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return FutureBuilder<AllStats>(
       future: _statsFuture,
       builder: (context, snapshot) {
@@ -109,7 +111,7 @@ class _StatsScreenState extends State<StatsScreen> {
               children: [
                 Icon(Icons.error, size: 64, color: Colors.red),
                 SizedBox(height: 16),
-                Text('Error al cargar los datos'),
+                Text(localizations['statsScreen']['errorLoading']),
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
@@ -117,7 +119,7 @@ class _StatsScreenState extends State<StatsScreen> {
                       _statsFuture = _loadAllStats();
                     });
                   },
-                  child: Text('Reintentar'),
+                  child: Text(localizations['statsScreen']['retry']),
                 ),
               ],
             ),
@@ -128,7 +130,7 @@ class _StatsScreenState extends State<StatsScreen> {
           return _buildContent(snapshot.data!);
         }
 
-        return Center(child: Text('No se pudieron cargar los datos'));
+        return Center(child: Text(localizations['statsScreen']['couldNotLoad']));
       },
     );
   }
@@ -156,7 +158,7 @@ class _StatsScreenState extends State<StatsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Sleep',
+              AppLocalizations.of(context)!['statsScreen']['sleep'],
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -277,7 +279,7 @@ class _StatsScreenState extends State<StatsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recovery & nervous system',
+              AppLocalizations.of(context)!['statsScreen']['recoveryNervous'],
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -389,7 +391,7 @@ class _StatsScreenState extends State<StatsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Activity and context',
+              AppLocalizations.of(context)!['statsScreen']['activityContext'],
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

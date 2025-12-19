@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class WhoopPromoModal extends StatelessWidget {
   const WhoopPromoModal({super.key});
@@ -12,7 +13,8 @@ class WhoopPromoModal extends StatelessWidget {
     );
   }
 
-  Future<void> _openWhoopLink() async {
+  Future<void> _openWhoopLink(BuildContext context) async {
+    final localizations = AppLocalizations.of(context)!;
     final uri = Uri.parse('https://join.whoop.com/GENIUS');
     
     try {
@@ -21,17 +23,18 @@ class WhoopPromoModal extends StatelessWidget {
           uri,
           mode: LaunchMode.externalApplication,
         );
-        debugPrint('✅ Abriendo enlace de WHOOP');
+        debugPrint('✅ ${localizations['whoopPromo']['linkOpening']}');
       } else {
-        debugPrint('❌ No se puede abrir el enlace');
+        debugPrint('❌ ${localizations['whoopPromo']['linkError']}');
       }
     } catch (e) {
-      debugPrint('❌ Error al abrir enlace: $e');
+      debugPrint('❌ Error: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallDevice = screenWidth < 400 || screenHeight < 700;
@@ -146,7 +149,7 @@ class WhoopPromoModal extends StatelessWidget {
                   
                   // Title
                   Text(
-                    '¡Oferta Exclusiva! 🎁',
+                    localizations['whoopPromo']['title'],
                     style: TextStyle(
                       fontSize: isSmallDevice ? 20 : 24,
                       fontWeight: FontWeight.bold,
@@ -170,17 +173,7 @@ class WhoopPromoModal extends StatelessWidget {
                     child: Column(
                       children: [
                         Text(
-                          'Obtén un WHOOP gratis',
-                          style: TextStyle(
-                            fontSize: isSmallDevice ? 16 : 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: isSmallDevice ? 6 : 8),
-                        Text(
-                          '+ 1 mes gratis',
+                          localizations['whoopPromo']['monthFree'],
                           style: TextStyle(
                             fontSize: isSmallDevice ? 14 : 16,
                             fontWeight: FontWeight.w500,
@@ -190,7 +183,7 @@ class WhoopPromoModal extends StatelessWidget {
                         ),
                         SizedBox(height: isSmallDevice ? 8 : 12),
                         Text(
-                          'al unirte a través de nuestro enlace exclusivo',
+                          localizations['whoopPromo']['description'],
                           style: TextStyle(
                             fontSize: isSmallDevice ? 12 : 14,
                             color: Colors.white70,
@@ -225,7 +218,7 @@ class WhoopPromoModal extends StatelessWidget {
                     ),
                     child: ElevatedButton(
                       onPressed: () {
-                        _openWhoopLink();
+                        _openWhoopLink(context);
                         Navigator.of(context).pop();
                       },
                       style: ElevatedButton.styleFrom(
@@ -240,7 +233,7 @@ class WhoopPromoModal extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              '¡Quiero mi WHOOP gratis!',
+                              localizations['whoopPromo']['ctaButton'],
                               style: TextStyle(
                                 fontSize: isSmallDevice ? 14 : 16,
                                 fontWeight: FontWeight.bold,
@@ -266,7 +259,7 @@ class WhoopPromoModal extends StatelessWidget {
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text(
-                      'Ahora no',
+                      localizations['whoopPromo']['notNow'],
                       style: TextStyle(
                         color: Colors.white54,
                         fontSize: isSmallDevice ? 13 : 14,

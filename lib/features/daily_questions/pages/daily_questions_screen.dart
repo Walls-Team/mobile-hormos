@@ -116,15 +116,30 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallDevice = screenWidth < 400 || screenHeight < 700;
     
-    return Dialog(
-      backgroundColor: const Color(0xFF2D3748),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      insetPadding: EdgeInsets.symmetric(
-        horizontal: isSmallDevice ? 16 : 40,
-        vertical: isSmallDevice ? 24 : 40,
-      ),
+    return WillPopScope(
+      onWillPop: () async {
+        // Prevent closing with back button if not all answered
+        if (!_allQuestionsAnswered()) {
+          final localizations = AppLocalizations.of(context)!;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(localizations['dailyQuestions']['answerAll']),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          return false;
+        }
+        return true;
+      },
+      child: Dialog(
+        backgroundColor: const Color(0xFF2D3748),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: isSmallDevice ? 16 : 40,
+          vertical: isSmallDevice ? 24 : 40,
+        ),
       child: Container(
         constraints: BoxConstraints(
           maxWidth: 400,
@@ -140,10 +155,20 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.arrow_back,
-                    color: Colors.white,
+                    color: _allQuestionsAnswered() ? Colors.white : Colors.grey,
                     size: isSmallDevice ? 20 : 24,
                   ),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: _allQuestionsAnswered()
+                    ? () => Navigator.of(context).pop()
+                    : () {
+                        final localizations = AppLocalizations.of(context)!;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(localizations['dailyQuestions']['answerAll']),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      },
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -214,6 +239,7 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

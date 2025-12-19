@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:genius_hormo/features/daily_questions/models/daily_question.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
+import 'package:genius_hormo/core/config/app_config.dart';
+import 'package:http/http.dart' as http;
 
 class DailyQuestionsService {
   static const String _lastAnsweredKey = 'last_answered_date';
@@ -77,40 +80,73 @@ class DailyQuestionsService {
     print('🔄 Cuestionario reseteado - volverá a aparecer');
   }
   
-  // Función lista para enviar las respuestas al API
-  // TODO: Implementar llamada al API cuando esté disponible
+  // Enviar las respuestas al API de Spike FAQ
   Future<bool> submitAnswers({
     required String token,
     required List<DailyQuestion> questions,
   }) async {
     try {
-      // Preparar datos para enviar
-      final answers = questions.map((q) => q.toJson()).toList();
+      // Mapear las preguntas a los campos esperados por el API
+      final Map<String, bool> faqData = {
+        'alcohol': false,
+        'drugs': false,
+        'poor_diet': false,
+        'attendance': false,
+        'others': false,
+      };
       
-      // TODO: Hacer el llamado HTTP al endpoint
-      // final response = await http.post(
-      //   Uri.parse('YOUR_API_ENDPOINT/daily-questions'),
-      //   headers: {
-      //     'Authorization': 'Bearer $token',
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: jsonEncode({
-      //     'date': DateTime.now().toIso8601String(),
-      //     'answers': answers,
-      //   }),
-      // );
+      // Mapear cada pregunta a su campo correspondiente
+      for (final question in questions) {
+        if (question.answer == null) continue;
+        
+        switch (question.id) {
+          case 'alcohol_consumption':
+            faqData['alcohol'] = question.answer!;
+            break;
+          case 'drug_use':
+            faqData['drugs'] = question.answer!;
+            break;
+          case 'poor_diet':
+            faqData['poor_diet'] = question.answer!;
+            break;
+          case 'testosterone_therapy':
+            faqData['attendance'] = question.answer!;
+            break;
+          case 'health_conditions':
+            faqData['others'] = question.answer!;
+            break;
+        }
+      }
       
-      // if (response.statusCode == 200) {
-      //   await markAsAnsweredToday();
-      //   return true;
-      // }
+      print('📤 Enviando FAQ data: $faqData');
       
-      // Por ahora, simular éxito y marcar como respondido
-      await markAsAnsweredToday();
-      return true;
+      // Hacer la llamada PATCH al endpoint
+      final url = AppConfig.getApiUrl('spike/faq/');
+      print('🌐 URL: $url');
+      
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(faqData),
+      );
+      
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+      
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('✅ FAQ actualizado exitosamente');
+        await markAsAnsweredToday();
+        return true;
+      } else {
+        print('❌ Error al actualizar FAQ: ${response.statusCode}');
+        return false;
+      }
       
     } catch (e) {
-      print('Error submitting daily questions: $e');
+      print('❌ Error submitting daily questions: $e');
       return false;
     }
   }

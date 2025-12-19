@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/theme/colors_pallete.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class SleepSummaryChart extends StatelessWidget {
   final int interruptions;
@@ -18,6 +19,7 @@ class SleepSummaryChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -34,7 +36,7 @@ class SleepSummaryChart extends StatelessWidget {
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
 
-                Text('Sleep score and efficiency between interruption'),
+                Text(localizations['dashboardScreen']['sleepScoreEfficiency']),
               ],
             ),
           ),

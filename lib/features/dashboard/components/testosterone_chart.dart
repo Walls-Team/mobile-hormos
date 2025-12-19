@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/dashboard/dto/energy_levels/energy_stats.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class TestosteroneChart extends StatelessWidget {
   final EnergyStats energyData;
@@ -30,6 +31,7 @@ class TestosteroneChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final localizations = AppLocalizations.of(context)!;
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -71,7 +73,7 @@ class TestosteroneChart extends StatelessWidget {
                         widget: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('Current', style: TextStyle(fontSize: 14)),
+                            Text(localizations['dashboardScreen']['current'], style: TextStyle(fontSize: 14)),
                             Text(
                               '$currentValue',
                               style: TextStyle(
@@ -79,7 +81,7 @@ class TestosteroneChart extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text('ng/dL', style: TextStyle(fontSize: 14)),
+                            Text(localizations['dashboardScreen']['ngdl'], style: TextStyle(fontSize: 14)),
                           ],
                         ),
                       ),

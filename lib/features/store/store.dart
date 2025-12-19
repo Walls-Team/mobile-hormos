@@ -19,25 +19,24 @@ class StoreScreen extends StatelessWidget {
     final Uri uri = Uri.parse(url);
 
     if (await canLaunchUrl(uri)) {
+      final localizations = AppLocalizations.of(context)!;
       await showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Open external link'),
-            content: const Text(
-              'You are about to leave the app to visit an external website. Do you want to continue?',
-            ),
+            title: Text(localizations['store']['externalLinkTitle']),
+            content: Text(localizations['store']['externalLinkMessage']),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(localizations['common']['cancel']),
               ),
               TextButton(
                 onPressed: () async {
                   Navigator.of(context).pop(true);
                   await launchUrl(uri);
                 },
-                child: const Text('Open link'),
+                child: Text(localizations['store']['continue']),
               ),
             ],
           );
@@ -56,10 +55,6 @@ class StoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-
-    if (localizations == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
 
     return Scaffold(
       body: SingleChildScrollView(

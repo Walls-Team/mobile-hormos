@@ -10,6 +10,7 @@ import 'package:genius_hormo/features/auth/widgets/form/password_input.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
+import 'package:genius_hormo/widgets/terms_conditions_modal.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -41,7 +42,7 @@ class _RegistrationFormState extends State<RegisterScreen> {
   }
 
   Future<void> _navigateToTermsAndConditions() async {
-    context.pushNamed('terms_and_conditions');
+    await TermsConditionsModal.show(context);
     // Marcar como aceptado después de ver los términos
     setState(() {
       _acceptTerms = true;

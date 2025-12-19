@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/dashboard/components/progress_bar.dart';
 import 'package:genius_hormo/features/dashboard/dto/basic_metrics/rem_sleep_record_dto.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class RemChart extends StatelessWidget {
   final List<RemSleepRecord> data;
@@ -10,6 +11,7 @@ class RemChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
 
     return Column(
       spacing: 8.0,
@@ -25,7 +27,7 @@ class RemChart extends StatelessWidget {
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              Text('REM Avg: ${_calculateAverageDuration()}h', softWrap: true),
+              Text('${localizations['dashboardScreen']['remAvg']}: ${_calculateAverageDuration()}h', softWrap: true),
             ],
           ),
         ),

@@ -14,6 +14,7 @@ import 'package:genius_hormo/features/dashboard/dto/energy_levels/energy_stats.d
 import 'package:genius_hormo/features/dashboard/dto/health_data.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -43,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return FutureBuilder<HealthData>(
       future: _metricsFuture,
       builder: (context, snapshot) {
@@ -57,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Icon(Icons.error, size: 64, color: Colors.red),
                 SizedBox(height: 16),
-                Text('Error al cargar los datos'),
+                Text(localizations['dashboardScreen']['errorLoading']),
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
@@ -65,7 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _metricsFuture = _loadMetrics();
                     });
                   },
-                  child: Text('Reintentar'),
+                  child: Text(localizations['dashboardScreen']['retry']),
                 ),
               ],
             ),
@@ -76,7 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return _buildCharts(snapshot.data!);
         }
 
-        return Center(child: Text('No se pudieron cargar los datos'));
+        return Center(child: Text(localizations['dashboardScreen']['couldNotLoad']));
       },
     );
   }
