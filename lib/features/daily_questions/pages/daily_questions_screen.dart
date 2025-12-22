@@ -19,6 +19,7 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
   
   List<DailyQuestion> _questions = [];
   bool _isSaving = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -37,6 +38,8 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
   void _updateAnswer(int index, bool answer) {
     setState(() {
       _questions[index].answer = answer;
+      // Limpiar mensaje de error cuando se responde
+      _errorMessage = null;
     });
   }
 
@@ -47,16 +50,16 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
   Future<void> _submitAnswers() async {
     if (!_allQuestionsAnswered()) {
       final localizations = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(localizations['dailyQuestions']['answerAll']),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      setState(() {
+        _errorMessage = localizations['dailyQuestions']['answerAll'];
+      });
       return;
     }
 
-    setState(() => _isSaving = true);
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null; // Limpiar errores previos
+    });
 
     try {
       final token = await _userStorageService.getJWTToken();
@@ -75,20 +78,10 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
         // ✅ Marcar como respondido hoy para que no vuelva a aparecer
         await _questionsService.markAsAnsweredToday();
         
-        final localizations = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ ${localizations['dailyQuestions']['saveSuccess']}'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        
-        // Cerrar el diálogo después de guardar
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
-        });
+        // Cerrar el diálogo inmediatamente después de guardar
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
       } else {
         final localizations = AppLocalizations.of(context)!;
         throw Exception(localizations['dailyQuestions']['saveFailed']);
@@ -96,12 +89,9 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
     } catch (e) {
       if (mounted) {
         final localizations = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ ${localizations['dailyQuestions']['error']}: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        setState(() {
+          _errorMessage = '${localizations['dailyQuestions']['error']}: $e';
+        });
       }
     } finally {
       if (mounted) {
@@ -121,12 +111,9 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
         // Prevent closing with back button if not all answered
         if (!_allQuestionsAnswered()) {
           final localizations = AppLocalizations.of(context)!;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(localizations['dailyQuestions']['answerAll']),
-              backgroundColor: Colors.orange,
-            ),
-          );
+          setState(() {
+            _errorMessage = localizations['dailyQuestions']['answerAll'];
+          });
           return false;
         }
         return true;
@@ -149,42 +136,17 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
-            Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: _allQuestionsAnswered() ? Colors.white : Colors.grey,
-                    size: isSmallDevice ? 20 : 24,
-                  ),
-                  onPressed: _allQuestionsAnswered()
-                    ? () => Navigator.of(context).pop()
-                    : () {
-                        final localizations = AppLocalizations.of(context)!;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(localizations['dailyQuestions']['answerAll']),
-                            backgroundColor: Colors.orange,
-                          ),
-                        );
-                      },
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+            // Header (sin botón de atrás)
+            Center(
+              child: Text(
+                AppLocalizations.of(context)!['dailyQuestions']['title'],
+                style: TextStyle(
+                  fontSize: isSmallDevice ? 18 : 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                Expanded(
-                  child: Text(
-                    AppLocalizations.of(context)!['dailyQuestions']['title'],
-                    style: TextStyle(
-                      fontSize: isSmallDevice ? 18 : 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                SizedBox(width: isSmallDevice ? 40 : 48), // Balance para centrar el título
-              ],
+                textAlign: TextAlign.center,
+              ),
             ),
             SizedBox(height: isSmallDevice ? 16 : 24),
             
@@ -204,6 +166,40 @@ class _DailyQuestionsScreenState extends State<DailyQuestionsScreen> {
             ),
             
             SizedBox(height: isSmallDevice ? 16 : 24),
+            
+            // Mensaje de error (si existe)
+            if (_errorMessage != null)
+              Container(
+                margin: EdgeInsets.only(bottom: 16),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.orange,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange,
+                      size: 20,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             
             // Botón Save
             SizedBox(

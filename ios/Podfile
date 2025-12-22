@@ -41,6 +41,36 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      
+      # Configuración de firma de código
+      # Para targets que son bundles de recursos (Privacy bundles), deshabilitar firma
+      if target.name.end_with?('_Privacy', '_privacy', 'Privacy')
+        config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+        config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+        config.build_settings['CODE_SIGN_IDENTITY'] = ''
+        config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = ''
+      else
+        config.build_settings['CODE_SIGNING_REQUIRED'] = 'YES'
+        config.build_settings['CODE_SIGNING_ALLOWED'] = 'YES'
+        config.build_settings['CODE_SIGN_IDENTITY'] = ''
+        config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = ''
+      end
+      
+      # Deshabilitar sandboxing de scripts para CocoaPods
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+      
+      # Asegurar que ONLY_ACTIVE_ARCH esté configurado correctamente
+      if config.name == 'Debug'
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
+      else
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+      end
     end
   end
+  
+  # Limpiar metadatos de macOS que causan problemas de firma
+  # (resource forks, Finder information, etc.)
+  system("find #{installer.sandbox.root} -name '*.bundle' -exec xattr -cr {} \\; 2>/dev/null || true")
+  puts "✓ Metadatos de macOS limpiados de los bundles"
+  puts "✓ Firma de código deshabilitada para Privacy bundles"
 end

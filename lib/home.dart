@@ -5,13 +5,18 @@ import 'package:genius_hormo/features/dashboard/pages/dashboard.dart';
 import 'package:genius_hormo/features/daily_questions/services/daily_questions_dialog_service.dart';
 import 'package:genius_hormo/features/settings/settings.dart';
 import 'package:genius_hormo/services/whoop_promo_service.dart';
+import 'package:genius_hormo/services/firebase_messaging_service.dart';
+import 'package:genius_hormo/services/local_notifications_service.dart';
 import 'package:genius_hormo/widgets/whoop_promo_modal.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/stats/stats.dart';
 import 'package:genius_hormo/features/store/store.dart';
+import 'package:genius_hormo/features/notifications/notifications_screen.dart';
 import 'package:genius_hormo/widgets/app_bar.dart';
 import 'package:get_it/get_it.dart';
+import 'package:provider/provider.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
+import 'package:genius_hormo/features/chat/pages/chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,6 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final SetupStatusService _setupStatusService = GetIt.instance<SetupStatusService>();
   final DailyQuestionsDialogService _dailyQuestionsService = DailyQuestionsDialogService();
   final WhoopPromoService _whoopPromoService = GetIt.instance<WhoopPromoService>();
+  final FirebaseMessagingService _firebaseMessagingService = GetIt.instance<FirebaseMessagingService>();
+  final LocalNotificationsService _localNotificationsService = GetIt.instance<LocalNotificationsService>();
 
   UserProfileData? _userProfile;
   bool _isLoading = true;
@@ -52,19 +59,29 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading = false;
         });
         
-        // Mostrar cuestionario diario si el perfil está completo
-        // (no requiere dispositivo conectado)
+        // Mostrar cuestionario diario si el perfil está completo Y dispositivo conectado
         if (_userProfile != null) {
           // Esperar un poco más para que la UI esté lista
           Future.delayed(const Duration(seconds: 2), () async {
             if (mounted) {
               debugPrint('📋 Verificando cuestionario diario...');
-              _dailyQuestionsService.checkAndShowDailyQuestions(context);
+              final hasDevice = _setupStatusService.currentStatus.hasDevice;
+              final hasProfile = _userProfile?.isComplete ?? false;
+              
+              _dailyQuestionsService.checkAndShowDailyQuestions(
+                context,
+                hasProfile: hasProfile,
+                hasDevice: hasDevice,
+              );
               
               // Mostrar modal de WHOOP después del cuestionario (si corresponde)
+              // Solo si NO tiene dispositivo conectado
               Future.delayed(const Duration(milliseconds: 500), () async {
                 if (mounted) {
-                  final shouldShow = await _whoopPromoService.shouldShowPromo();
+                  final hasDevice = _setupStatusService.currentStatus.hasDevice;
+                  final shouldShow = await _whoopPromoService.shouldShowPromo(
+                    hasDevice: hasDevice,
+                  );
                   if (shouldShow && mounted) {
                     await WhoopPromoModal.show(context);
                     await _whoopPromoService.markAsShown();
@@ -77,6 +94,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       debugPrint('✅ Setup verificado - Completo: $_isSetupComplete');
+      
+      // Inicializar Firebase Messaging después de la autenticación
+      _initializeFirebaseMessaging();
     } catch (e) {
       debugPrint('❌ Error al verificar setup: $e');
       if (mounted) {
@@ -85,6 +105,35 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+  
+  Future<void> _initializeFirebaseMessaging() async {
+    try {
+      debugPrint('🔔 Inicializando sistema de notificaciones...');
+      
+      // 1. Inicializar servicio de notificaciones locales
+      await _localNotificationsService.initialize();
+      debugPrint('✅ Servicio de notificaciones locales inicializado');
+      
+      // 2. Conectar Firebase Messaging con servicio local
+      _firebaseMessagingService.setLocalNotificationsService(_localNotificationsService);
+      
+      // 3. Inicializar Firebase Messaging
+      await _firebaseMessagingService.initialize();
+      
+      // 4. Suscribirse a topics generales
+      await _firebaseMessagingService.subscribeToTopic('all_users');
+      
+      // 5. Suscribirse a topics específicos según el estado del usuario
+      if (_isSetupComplete) {
+        await _firebaseMessagingService.subscribeToTopic('complete_profiles');
+      }
+      
+      debugPrint('✅ Sistema de notificaciones configurado correctamente');
+    } catch (e) {
+      debugPrint('⚠️ Error configurando notificaciones: $e');
+      // No bloquear la app si las notificaciones fallan
     }
   }
 
@@ -125,19 +174,62 @@ class _HomeScreenState extends State<HomeScreen> {
       ), // Settings siempre accesible
     ];
 
-    return Container(
+    return ChangeNotifierProvider<LocalNotificationsService>.value(
+      value: _localNotificationsService,
+      child: Container(
         decoration: BoxDecoration(),
         child: Scaffold(
-          appBar: _shouldShowAppBar(_currentIndex) && (_isSetupComplete || _currentIndex == 2)
-              ? ModernAppBar(
-                  userName: _userProfile?.username ?? 'Usuario',
-                  avatarUrl: _userProfile?.avatar,
-                )
-              : null,
+          appBar: _buildAppBar(context),
           body: _pages[_currentIndex],
           bottomNavigationBar: _buildBottomNavigationBar(theme),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ChatScreen(),
+                ),
+              );
+            },
+            backgroundColor: const Color(0xFFEDE954),
+            child: const Icon(
+              Icons.chat_bubble_rounded,
+              color: Colors.black,
+              size: 28,
+            ),
+          ),
         ),
-      );
+      ),
+    );
+  }
+
+  PreferredSizeWidget? _buildAppBar(BuildContext context) {
+    if (!_shouldShowAppBar(_currentIndex) || (!_isSetupComplete && _currentIndex != 2)) {
+      return null;
+    }
+
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(90),
+      child: Consumer<LocalNotificationsService>(
+        builder: (context, notificationService, child) {
+          return ModernAppBar(
+            userName: _userProfile?.username ?? 'Usuario',
+            avatarUrl: _userProfile?.avatar,
+            unreadCount: notificationService.unreadCount,
+            onNotificationPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChangeNotifierProvider<LocalNotificationsService>.value(
+                    value: _localNotificationsService,
+                    child: const NotificationsScreen(),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildBottomNavigationBar(ThemeData theme) {

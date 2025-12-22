@@ -90,7 +90,7 @@ class AuthService {
     return executeRequest<LoginResponse>(
       request: _client
           .post(
-            Uri.parse(url),
+            Uri.parse("http://api-staging.geniushpro.com/v1/api/login/"),
             headers: AppConfig.getCommonHeaders(),
             body: body,
           )

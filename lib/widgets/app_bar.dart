@@ -6,6 +6,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? avatarUrl;
   final VoidCallback? onNotificationPressed;
   final VoidCallback? onAvatarPressed;
+  final int unreadCount;
 
   const ModernAppBar({
     super.key,
@@ -13,6 +14,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.avatarUrl,
     this.onNotificationPressed,
     this.onAvatarPressed,
+    this.unreadCount = 0,
   });
 
   @override
@@ -93,26 +95,61 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
 
-            // Sección derecha - Notificaciones
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  width: 0.5,
+            // Sección derecha - Notificaciones con Badge
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 0.5,
+                    ),
+                  ),
+                  child: IconButton(
+                    onPressed: onNotificationPressed,
+                    icon: Icon(
+                      Icons.notifications_none,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      size: 30,
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
                 ),
-              ),
-              child: IconButton(
-                onPressed: onNotificationPressed,
-                icon: Icon(
-                  Icons.notifications_none,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  size: 30,
-                ),
-                padding: EdgeInsets.zero,
-              ),
+                // Badge con contador
+                if (unreadCount > 0)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          width: 2,
+                        ),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 20,
+                        minHeight: 20,
+                      ),
+                      child: Text(
+                        unreadCount > 99 ? '99+' : unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),

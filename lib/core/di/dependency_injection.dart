@@ -9,6 +9,8 @@ import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/features/stats/service/stats_service.dart';
 import 'package:genius_hormo/providers/lang_service.dart';
 import 'package:genius_hormo/services/whoop_promo_service.dart';
+import 'package:genius_hormo/services/firebase_messaging_service.dart';
+import 'package:genius_hormo/services/local_notifications_service.dart';
 import 'package:get_it/get_it.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -20,6 +22,16 @@ Future<void> setupDependencies() async {
   );
 
   getIt.registerLazySingleton<NavigationService>(() => NavigationService());
+  
+  // Local Notifications Service
+  getIt.registerLazySingleton<LocalNotificationsService>(
+    () => LocalNotificationsService(),
+  );
+  
+  // Firebase Messaging Service
+  getIt.registerLazySingleton<FirebaseMessagingService>(
+    () => FirebaseMessagingService(),
+  );
 
   // ✅ Registrar LanguageService
   getIt.registerLazySingleton<LanguageService>(() => LanguageService());

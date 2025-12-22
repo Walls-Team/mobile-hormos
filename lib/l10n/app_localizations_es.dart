@@ -282,6 +282,8 @@ const Map<String, dynamic> es = {
       'birthDateHelper': 'Selecciona tu fecha de nacimiento',
       'genderRequired': 'Por favor selecciona un género',
       'usernameRequired': 'El nombre de usuario es requerido',
+      'completeProfileTitle': 'Completa tu Perfil',
+      'completeProfileMessage': 'Necesitas completar tu perfil antes de conectar un dispositivo.',
     },
     'avatarModal': {
       'title': 'Selecciona tu Avatar',

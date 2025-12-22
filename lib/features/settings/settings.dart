@@ -520,7 +520,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Complete Your Profile',
+                        AppLocalizations.of(context)!['settings']['profileForm']['completeProfileTitle'],
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -529,7 +529,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'You need to complete your profile before connecting a device.',
+                        AppLocalizations.of(context)!['settings']['profileForm']['completeProfileMessage'],
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white70,

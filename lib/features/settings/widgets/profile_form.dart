@@ -5,6 +5,8 @@ import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/settings/widgets/avatar_selector_modal.dart';
 import 'package:genius_hormo/features/settings/widgets/language_selector.dart';
+import 'package:genius_hormo/features/settings/widgets/plans_badge.dart';
+import 'package:genius_hormo/features/settings/pages/plans_screen.dart';
 import 'package:get_it/get_it.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
 
@@ -489,6 +491,20 @@ class _UserProfileFormState extends State<UserProfileForm> {
                       AppLocalizations.of(context)!['common']['save'],
                       style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Botón de planes
+            PlansBadge(
+              onTap: () {
+                print('🟢 Navegando a PlansScreen'); // DEBUG
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (context) => const PlansScreen(),
+                  ),
+                );
+              },
             ),
             
             const SizedBox(height: 20),

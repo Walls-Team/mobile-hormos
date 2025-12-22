@@ -8,8 +8,17 @@ class WhoopPromoService {
   bool _shownInCurrentSession = false;
   
   /// Verifica si debe mostrar el modal de promoción
-  /// Lógica: Mostrar una vez por sesión de la app
-  Future<bool> shouldShowPromo() async {
+  /// Lógica: Mostrar solo si NO tiene dispositivo conectado y una vez por sesión
+  Future<bool> shouldShowPromo({required bool hasDevice}) async {
+    debugPrint('🎁 WHOOP Promo: Verificando condiciones...');
+    debugPrint('   ✓ Tiene dispositivo conectado: $hasDevice');
+    
+    // VALIDACIÓN: NO mostrar si ya tiene dispositivo conectado
+    if (hasDevice) {
+      debugPrint('⚠️ WHOOP Promo: Ya tiene dispositivo, no mostrar');
+      return false;
+    }
+    
     // Si ya se mostró en esta sesión, no mostrar de nuevo
     if (_shownInCurrentSession) {
       debugPrint('🎁 WHOOP Promo: Ya se mostró en esta sesión');

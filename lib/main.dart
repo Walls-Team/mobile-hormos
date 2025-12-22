@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'app/app.dart';
 import 'core/auth/auth_state_provider.dart';
 import 'core/di/dependency_injection.dart';
+import 'services/firebase_messaging_service.dart';
 import 'package:get_it/get_it.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar Firebase
+  debugPrint('🔥 Inicializando Firebase...');
+  await Firebase.initializeApp();
+  debugPrint('✅ Firebase inicializado');
+  
+  // Configurar handler de notificaciones en background
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   
   // Configurar error handling para hot restart
   if (kDebugMode) {
