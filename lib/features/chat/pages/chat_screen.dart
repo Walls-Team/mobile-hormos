@@ -26,7 +26,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages.add(
         ChatMessage(
           id: '1',
-          text: '¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?',
+          text: '¡Hola! 👋 Soy Genius Bot. ¿En qué puedo ayudarte hoy?',
           isUser: false,
           timestamp: DateTime.now(),
         ),
@@ -157,7 +157,7 @@ class _ChatScreenState extends State<ChatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Asistente Virtual',
+                  'Genius Bot',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

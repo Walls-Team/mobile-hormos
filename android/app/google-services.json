@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "891136694234",
+    "project_id": "genius-hormos-app",
+    "storage_bucket": "genius-hormos-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:891136694234:android:32c1a48352d7b20c3752e3",
+        "android_client_info": {
+          "package_name": "com.wallsdev.genius_hormo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBw5NluD4nrczpbLQen0V2iSYP35SaSNlk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

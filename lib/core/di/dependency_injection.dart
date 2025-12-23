@@ -3,6 +3,7 @@ import 'package:genius_hormo/core/navigation/navigation_service.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/auth/services/biometric_auth_service.dart';
+import 'package:genius_hormo/features/settings/services/plans_api_service.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
@@ -50,4 +51,7 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton<DashBoardService>(() => DashBoardService());
   getIt.registerLazySingleton<StatsService>(() => StatsService());
   getIt.registerLazySingleton<WhoopPromoService>(() => WhoopPromoService());
+  
+  // Registrar PlansApiService
+  getIt.registerLazySingleton<PlansApiService>(() => PlansApiService());
 }

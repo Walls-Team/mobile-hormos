@@ -46,7 +46,7 @@ class ChatBadge extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Asistente Virtual',
+                    'Genius Bot',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

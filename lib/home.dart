@@ -179,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         decoration: BoxDecoration(),
         child: Scaffold(
-          appBar: _buildAppBar(context),
+          appBar: _buildAppBar(context, _localNotificationsService),
           body: _pages[_currentIndex],
           bottomNavigationBar: _buildBottomNavigationBar(theme),
           floatingActionButton: FloatingActionButton(
@@ -202,30 +202,28 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  PreferredSizeWidget? _buildAppBar(BuildContext context) {
+  // El método _shouldShowAppBar ya está definido más abajo
+
+  PreferredSizeWidget? _buildAppBar(BuildContext context, LocalNotificationsService notificationService) {
     if (!_shouldShowAppBar(_currentIndex) || (!_isSetupComplete && _currentIndex != 2)) {
       return null;
     }
 
     return PreferredSize(
       preferredSize: const Size.fromHeight(90),
-      child: Consumer<LocalNotificationsService>(
-        builder: (context, notificationService, child) {
-          return ModernAppBar(
-            userName: _userProfile?.username ?? 'Usuario',
-            avatarUrl: _userProfile?.avatar,
-            unreadCount: notificationService.unreadCount,
-            onNotificationPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeNotifierProvider<LocalNotificationsService>.value(
-                    value: _localNotificationsService,
-                    child: const NotificationsScreen(),
-                  ),
-                ),
-              );
-            },
+      child: ModernAppBar(
+        userName: _userProfile?.username ?? 'Usuario',
+        avatarUrl: _userProfile?.avatar,
+        unreadCount: notificationService.unreadCount,
+        onNotificationPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChangeNotifierProvider<LocalNotificationsService>.value(
+                value: _localNotificationsService,
+                child: const NotificationsScreen(),
+              ),
+            ),
           );
         },
       ),

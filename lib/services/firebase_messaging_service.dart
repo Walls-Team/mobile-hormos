@@ -1,14 +1,28 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:genius_hormo/core/api/api_response.dart';
+import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/services/local_notifications_service.dart';
+import 'package:genius_hormo/services/notification_api_service.dart';
 
 /// Servicio para manejar notificaciones push de Firebase Cloud Messaging
 class FirebaseMessagingService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  final NotificationApiService _notificationApiService;
+  final UserStorageService _userStorageService;
   LocalNotificationsService? _localNotificationsService;
   
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
+  
+  FirebaseMessagingService({
+    NotificationApiService? notificationApiService,
+    UserStorageService? userStorageService,
+  }) : 
+    _notificationApiService = notificationApiService ?? NotificationApiService(),
+    _userStorageService = userStorageService ?? UserStorageService();
   
   /// Establecer referencia al servicio de notificaciones locales
   void setLocalNotificationsService(LocalNotificationsService service) {
@@ -50,7 +64,6 @@ class FirebaseMessagingService {
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         debugPrint('🔄 FCM Token actualizado: $newToken');
         _fcmToken = newToken;
-        // TODO: Enviar el nuevo token al backend
         _sendTokenToBackend(newToken);
       });
 
@@ -145,10 +158,32 @@ class FirebaseMessagingService {
     try {
       debugPrint('📤 Enviando token al backend: $token');
       
-      // TODO: Implementar llamada al API para guardar el token
-      // final response = await apiService.saveDeviceToken(token: token);
+      // Obtener el token JWT del usuario
+      final jwtToken = await _userStorageService.getJWTToken();
       
-      debugPrint('✅ Token enviado al backend correctamente');
+      if (jwtToken == null || jwtToken.isEmpty) {
+        debugPrint('⚠️ No se pudo enviar token al backend: Usuario no autenticado');
+        return;
+      }
+      
+      // Información adicional del dispositivo
+      final deviceInfo = {
+        'platform': defaultTargetPlatform.toString(),
+        'appVersion': '1.0.0', // TODO: Obtener versión real de la app
+      };
+      
+      // Enviar token al backend
+      final response = await _notificationApiService.registerDeviceToken(
+        token: token,
+        authToken: jwtToken,
+        deviceInfo: deviceInfo,
+      );
+      
+      if (response.success) {
+        debugPrint('✅ Token enviado al backend correctamente');
+      } else {
+        debugPrint('⚠️ Error enviando token al backend: ${response.message}');
+      }
     } catch (e) {
       debugPrint('❌ Error enviando token al backend: $e');
     }
@@ -179,6 +214,9 @@ class FirebaseMessagingService {
 /// Debe ser una función top-level (no dentro de una clase)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // IMPORTANTE: Inicializar Firebase primero antes de cualquier operación
+  await Firebase.initializeApp();
+  
   debugPrint('🔔 Notificación recibida en background:');
   debugPrint('   Título: ${message.notification?.title}');
   debugPrint('   Cuerpo: ${message.notification?.body}');

@@ -11,15 +11,7 @@ import 'package:get_it/get_it.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Inicializar Firebase
-  debugPrint('🔥 Inicializando Firebase...');
-  await Firebase.initializeApp();
-  debugPrint('✅ Firebase inicializado');
-  
-  // Configurar handler de notificaciones en background
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  
-  // Configurar error handling para hot restart
+  // Configurar error handling para hot restart y fallos generales
   if (kDebugMode) {
     FlutterError.onError = (FlutterErrorDetails details) {
       final errorString = details.exception.toString();
@@ -36,10 +28,36 @@ void main() async {
         return;
       }
       
+      // Mostrar los errores en la consola
+      debugPrint('🚨 ERROR: ${details.exceptionAsString()}');
+      debugPrint('📄 Stack trace: ${details.stack}');
+      
       // Para otros errores, usar el handler default
       FlutterError.presentError(details);
     };
   }
+  
+  // Inicializar Firebase primero, antes de cualquier otra cosa
+  try {
+    debugPrint('🔥 Inicializando Firebase...');
+    await Firebase.initializeApp();
+    debugPrint('✅ Firebase inicializado correctamente');
+  } catch (e) {
+    debugPrint('❌ Error inicializando Firebase: $e');
+    // Continuar la ejecución de la app aunque Firebase falle
+  }
+  
+  // Registrar handler de notificaciones en background de manera segura
+  try {
+    // El handler debe estar registrado fuera de cualquier clase
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    debugPrint('✅ Handler de notificaciones en background registrado');
+  } catch (e) {
+    debugPrint('❌ Error registrando handler de notificaciones en background: $e');
+    // Continuar la ejecución aunque falle el registro del handler
+  }
+  
+  // Error handling ya está configurado arriba
   
   await setupDependencies();
   
