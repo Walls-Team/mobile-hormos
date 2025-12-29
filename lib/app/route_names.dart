@@ -8,6 +8,11 @@ class privateRoutes {
   static const String resetPassword = '/auth/reset_password';
   static const String verifyEmail = '/auth/verify_email/:email';
   static const String acceptDevice = '/auth/spike/acceptdevice';
+  static const String plans = '/settings/plans';
+  
+  // Rutas para pagos con Stripe
+  static const String stripePaymentSuccess = '/stripe/success';
+  static const String stripePaymentCancel = '/stripe/cancel';
 }
 
 class publicRoutes {

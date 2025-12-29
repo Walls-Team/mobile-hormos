@@ -11,9 +11,16 @@ class DeepLinkMapper {
   DeepLinkRouteConfig? mapDeepLinkToRoute(
     GeniusHormoDeepLinkData deepLinkData,
   ) {
-    final context = _getNavigationContext();
-    if (context == null) return null;
-
+    // Get navigation context - may be null
+    final BuildContext? context = _getNavigationContext();
+    
+    // If context is null, we can't create a DeepLinkRouteConfig
+    if (context == null) {
+      print('❌ No navigation context available for deep linking');
+      return null;
+    }
+    // Context is already retrieved and checked above
+    print('🔗 context ${context}');
     print('🔗 Mapping deep link - Path: ${deepLinkData.path}');
     print('🔗 Host: ${deepLinkData.host}');
     print('🔗 Segments: ${deepLinkData.segments}');
@@ -43,6 +50,60 @@ class DeepLinkMapper {
       );
     }
 
+    // ✅ STRIPE - CUSTOM SCHEME
+    // Para geniushormo://stripe/success?session_id=...
+    // - Scheme: geniushormo
+    // - Host: stripe
+    // - Path: /success o /cancel
+    // - Segments: [success] o [cancel]
+    if (deepLinkData.linkType == GeniusHormoLinkType.customScheme &&
+        deepLinkData.host == 'stripe' &&
+        deepLinkData.segments.isNotEmpty &&
+        (deepLinkData.segments[0] == 'success' ||
+            deepLinkData.segments[0] == 'cancel')) {
+      final stripePath = deepLinkData.segments[0] == 'success'
+          ? '/stripe/success'
+          : '/stripe/cancel';
+
+      print('✅ Ruta Stripe detectada via custom scheme: $stripePath');
+
+      final sessionId = deepLinkData.getQueryParam('session_id');
+      return DeepLinkRouteConfig(
+        context: context,
+        path: stripePath,
+        queryParameters: {
+          if (sessionId != null && sessionId.isNotEmpty) 'session_id': sessionId,
+        },
+      );
+    }
+
+    // ✅ STRIPE - UNIVERSAL LINK
+    // Para https://geniushormo.com/stripe/success?session_id=...
+    // - Scheme: https
+    // - Host: geniushormo.com
+    // - Path: /stripe/success o /stripe/cancel
+    // - Segments: [stripe, success] o [stripe, cancel]
+    if (deepLinkData.linkType == GeniusHormoLinkType.universalLink &&
+        deepLinkData.segments.length >= 2 &&
+        deepLinkData.segments[0] == 'stripe' &&
+        (deepLinkData.segments[1] == 'success' ||
+            deepLinkData.segments[1] == 'cancel')) {
+      final stripePath = deepLinkData.segments[1] == 'success'
+          ? '/stripe/success'
+          : '/stripe/cancel';
+
+      print('✅ Ruta Stripe detectada via universal link: $stripePath');
+
+      final sessionId = deepLinkData.getQueryParam('session_id');
+      return DeepLinkRouteConfig(
+        context: context,
+        path: stripePath,
+        queryParameters: {
+          if (sessionId != null && sessionId.isNotEmpty) 'session_id': sessionId,
+        },
+      );
+    }
+
     // ✅ DETECCIÓN PARA UNIVERSAL LINKS
     // Para https://geniushormo.com/auth/spike/acceptdevice
     if (deepLinkData.linkType == GeniusHormoLinkType.universalLink &&
@@ -66,7 +127,7 @@ class DeepLinkMapper {
     // ... el resto de tus rutas existentes ...
 
     print('❌ Ruta no reconocida');
-    return DeepLinkRouteConfig(context: context, path: '/');
+    return DeepLinkRouteConfig(context: context, path: '/'); // context is non-null here due to the check above
   }
 
   BuildContext? _getNavigationContext() {

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
+import 'package:genius_hormo/core/utils/url_launcher_utils.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/settings/models/plan.dart';
+import 'package:genius_hormo/features/settings/models/stripe_checkout_response.dart';
 import 'package:genius_hormo/features/settings/services/plans_api_service.dart';
+import 'package:genius_hormo/features/settings/services/stripe_api_service.dart';
 import 'package:get_it/get_it.dart';
 
 class PlansScreen extends StatefulWidget {
@@ -15,9 +18,12 @@ class PlansScreen extends StatefulWidget {
 class _PlansScreenState extends State<PlansScreen> {
   final PlansApiService _plansApiService = GetIt.instance<PlansApiService>();
   final UserStorageService _userStorageService = GetIt.instance<UserStorageService>();
+  final StripeApiService _stripeApiService = GetIt.instance<StripeApiService>();
   
   bool _isLoading = true;
+  bool _isPurchasing = false;
   String? _error;
+  String? _purchaseError;
   List<Plan>? _plans;
   
   @override
@@ -62,6 +68,204 @@ class _PlansScreenState extends State<PlansScreen> {
         _isLoading = false;
       });
     }
+  }
+  
+  /// Compra un plan mediante Stripe
+  Future<void> _purchasePlan(Plan plan) async {
+    setState(() {
+      _isPurchasing = true;
+      _purchaseError = null;
+    });
+    
+    try {
+      // Mostrar un diálogo de confirmación
+      final shouldProceed = await _showPurchaseConfirmationDialog(plan);
+      
+      if (!shouldProceed) {
+        setState(() {
+          _isPurchasing = false;
+        });
+        return;
+      }
+      
+      // Mostrar indicador de carga durante el proceso
+      _showLoadingDialog();
+      
+      // Obtener el token de autenticación
+      final token = await _userStorageService.getJWTToken();
+      
+      if (token == null || token.isEmpty) {
+        _dismissLoadingDialog();
+        setState(() {
+          _purchaseError = 'No se pudo obtener el token de autenticación';
+          _isPurchasing = false;
+        });
+        _showErrorDialog('No se pudo obtener el token de autenticación');
+        return;
+      }
+      
+      // Crear sesión de checkout con Stripe - el backend maneja los deeplinks
+      final response = await _stripeApiService.createCheckoutSession(
+        authToken: token,
+        planId: plan.id,
+      );
+      
+      _dismissLoadingDialog();
+      
+      // Verificar que tengamos una URL de checkout válida
+      if (response.success && response.data != null) {
+        debugPrint('Datos de respuesta: ${response.data}');
+        debugPrint('URL de checkout: ${response.data!.checkoutUrl}');
+        
+        // Verificar que la URL no sea nula
+        if (response.data!.checkoutUrl == null) {
+          setState(() {
+            _purchaseError = 'No se encontró URL de checkout en la respuesta';
+            _isPurchasing = false;
+          });
+          _showErrorDialog(_purchaseError!);
+          return;
+        }
+        
+        final checkoutUrl = response.data!.checkoutUrl!;
+        debugPrint('💳 URL de checkout encontrada: $checkoutUrl');
+        
+        // Abrir URL de Stripe en el navegador
+        final launched = await UrlLauncherUtils.launchURL(checkoutUrl);
+        
+        if (!launched) {
+          setState(() {
+            _purchaseError = 'No se pudo abrir el enlace de pago';
+            _isPurchasing = false;
+          });
+          _showErrorDialog('No se pudo abrir el enlace de pago');
+          return;
+        }
+        
+        // Mostrar mensaje de éxito
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Se ha abierto la página de pago para el plan ${plan.title}'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        setState(() {
+          _purchaseError = response.error ?? 'Error al crear la sesión de pago';
+          _isPurchasing = false;
+        });
+        _showErrorDialog(_purchaseError!);
+      }
+    } catch (e) {
+      _dismissLoadingDialog();
+      setState(() {
+        _purchaseError = e.toString();
+        _isPurchasing = false;
+      });
+      _showErrorDialog('Error: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isPurchasing = false;
+      });
+    }
+  }
+  
+  /// Muestra un diálogo de confirmación para la compra
+  Future<bool> _showPurchaseConfirmationDialog(Plan plan) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF1C1D23),
+        title: Text('Confirmar suscripción', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '¿Deseas suscribirte al plan ${plan.title}?',
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Precio: ${plan.price}',
+              style: TextStyle(color: Colors.white70),
+            ),
+            Text(
+              'Duración: ${plan.days} días',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancelar', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFEDE954),
+              foregroundColor: Colors.black,
+            ),
+            child: Text('Confirmar'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+  
+  /// Muestra un diálogo de carga durante el proceso de pago
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          backgroundColor: Color(0xFF1C1D23),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Color(0xFFEDE954)),
+              SizedBox(height: 16),
+              Text(
+                'Procesando pago...',
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  /// Cierra el diálogo de carga
+  void _dismissLoadingDialog() {
+    if (mounted && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+  }
+  
+  /// Muestra un diálogo de error
+  void _showErrorDialog(String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF1C1D23),
+        title: Text('Error', style: TextStyle(color: Colors.white)),
+        content: Text(errorMessage, style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: TextButton.styleFrom(foregroundColor: Color(0xFFEDE954)),
+            child: Text('Aceptar'),
+          ),
+        ],
+      ),
+    );
   }
   
   @override
@@ -146,15 +350,7 @@ class _PlansScreenState extends State<PlansScreen> {
                     ),
                     SizedBox(height: 12),
                     ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Suscribiéndose al plan ${plan.title}'),
-                            backgroundColor: Colors.green,
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      },
+                      onPressed: () => _purchasePlan(plan),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black, // Botón negro
                         foregroundColor: Color(0xFFEDE954), // Texto amarillo

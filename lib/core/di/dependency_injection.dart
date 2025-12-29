@@ -4,6 +4,7 @@ import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/auth/services/biometric_auth_service.dart';
 import 'package:genius_hormo/features/settings/services/plans_api_service.dart';
+import 'package:genius_hormo/features/settings/services/stripe_api_service.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
@@ -12,6 +13,7 @@ import 'package:genius_hormo/providers/lang_service.dart';
 import 'package:genius_hormo/services/whoop_promo_service.dart';
 import 'package:genius_hormo/services/firebase_messaging_service.dart';
 import 'package:genius_hormo/services/local_notifications_service.dart';
+import 'package:genius_hormo/services/notification_api_service.dart';
 import 'package:get_it/get_it.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -32,6 +34,11 @@ Future<void> setupDependencies() async {
   // Firebase Messaging Service
   getIt.registerLazySingleton<FirebaseMessagingService>(
     () => FirebaseMessagingService(),
+  );
+  
+  // Notification API Service
+  getIt.registerLazySingleton<NotificationApiService>(
+    () => NotificationApiService(),
   );
 
   // ✅ Registrar LanguageService
@@ -54,4 +61,7 @@ Future<void> setupDependencies() async {
   
   // Registrar PlansApiService
   getIt.registerLazySingleton<PlansApiService>(() => PlansApiService());
+  
+  // Registrar StripeApiService
+  getIt.registerLazySingleton<StripeApiService>(() => StripeApiService());
 }

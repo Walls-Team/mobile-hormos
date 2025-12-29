@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/features/chat/services/noa_bot_service.dart';
+import 'package:get_it/get_it.dart';
 import '../models/chat_message.dart';
 import '../widgets/chat_bubble.dart';
 
@@ -14,11 +17,28 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isTyping = false;
+  final NoaBotService _noaBotService = NoaBotService();
+  String? _userName;
 
   @override
   void initState() {
     super.initState();
+    _loadUserName();
     _addWelcomeMessage();
+  }
+  
+  Future<void> _loadUserName() async {
+    try {
+      final userStorageService = GetIt.instance<UserStorageService>();
+      final userProfile = await userStorageService.getCurrentUser();
+      if (userProfile != null && mounted) {
+        setState(() {
+          _userName = userProfile.username;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error cargando nombre de usuario: $e');
+    }
   }
 
   void _addWelcomeMessage() {
@@ -26,7 +46,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages.add(
         ChatMessage(
           id: '1',
-          text: '¡Hola! 👋 Soy Genius Bot. ¿En qué puedo ayudarte hoy?',
+          text: '¡Hola! 👋 Soy Noa, tu asistente de Genius Hormo. ¿En qué puedo ayudarte hoy?',
           isUser: false,
           timestamp: DateTime.now(),
         ),
@@ -54,8 +74,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _simulateResponse(text);
   }
 
-  void _simulateResponse(String userText) {
-    // Simular indicador de escritura
+  void _simulateResponse(String userText) async {
+    // Mostrar indicador de escritura
     setState(() {
       _isTyping = true;
       _messages.add(
@@ -71,46 +91,67 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _scrollToBottom();
 
-    // Simular respuesta del bot después de 1-2 segundos
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    try {
+      // Llamar al servicio del bot Noa Genius
+      final response = await _noaBotService.sendMessage(
+        message: userText,
+        userName: _userName,
+        type: 'text',
+      );
+
       if (!mounted) return;
 
       setState(() {
         _messages.removeWhere((msg) => msg.id == 'typing');
         _isTyping = false;
 
-        // Aquí conectarás tu API de chatbot
-        // Por ahora, respuesta de ejemplo
-        String botResponse = _generateBotResponse(userText);
+        if (response.success && response.data != null) {
+          // Respuesta exitosa del bot
+          _messages.add(
+            ChatMessage(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              text: response.data!.message,
+              isUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
+        } else {
+          // Error al obtener respuesta
+          _messages.add(
+            ChatMessage(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              text: 'Lo siento, tuve un problema al procesar tu mensaje. ¿Podrías intentarlo de nuevo?',
+              isUser: false,
+              timestamp: DateTime.now(),
+            ),
+          );
+        }
+      });
 
+      _scrollToBottom();
+    } catch (e) {
+      debugPrint('Error al obtener respuesta del bot: $e');
+      
+      if (!mounted) return;
+      
+      setState(() {
+        _messages.removeWhere((msg) => msg.id == 'typing');
+        _isTyping = false;
+        
         _messages.add(
           ChatMessage(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
-            text: botResponse,
+            text: 'Lo siento, hubo un error al conectarme con el servidor. Por favor, intenta de nuevo.',
             isUser: false,
             timestamp: DateTime.now(),
           ),
         );
       });
-
+      
       _scrollToBottom();
-    });
-  }
-
-  String _generateBotResponse(String userText) {
-    // Respuestas de ejemplo - Reemplaza esto con tu API
-    final lowerText = userText.toLowerCase();
-
-    if (lowerText.contains('hola') || lowerText.contains('hey')) {
-      return '¡Hola! ¿Cómo estás? ¿En qué puedo ayudarte?';
-    } else if (lowerText.contains('plan') || lowerText.contains('precio')) {
-      return 'Tenemos varios planes disponibles. ¿Te gustaría ver nuestros planes de suscripción?';
-    } else if (lowerText.contains('ayuda') || lowerText.contains('help')) {
-      return 'Estoy aquí para ayudarte. Puedo responder preguntas sobre planes, funcionalidades y más. ¿Qué necesitas saber?';
-    } else {
-      return 'Entiendo. ¿Podrías darme más detalles para ayudarte mejor?';
     }
   }
+
 
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -157,7 +198,7 @@ class _ChatScreenState extends State<ChatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Genius Bot',
+                  'Noa - Genius Hormo',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

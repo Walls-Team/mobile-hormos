@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:genius_hormo/app/route_names.dart';
 import 'package:genius_hormo/app/safe_navigation.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
 import 'package:genius_hormo/core/auth/auth_state_provider.dart';
 import 'package:genius_hormo/features/auth/dto/login_dto.dart';
+import 'package:genius_hormo/services/firebase_messaging_service.dart';
+import 'package:genius_hormo/services/notification_api_service.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
@@ -147,6 +150,58 @@ class _LoginScreenState extends State<LoginScreen> {
             final authStateProvider = GetIt.instance<AuthStateProvider>();
             authStateProvider.setAuthenticated();
             debugPrint('✅ AuthStateProvider actualizado');
+            
+            // Registrar FCM token
+            try {
+              debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              debugPrint('🔔 INICIO DE REGISTRO FCM TOKEN');
+              debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              
+              debugPrint('1. Obteniendo servicio Firebase...');
+              final firebaseMessagingService = GetIt.instance<FirebaseMessagingService>();
+              debugPrint('   ✅ FirebaseMessagingService obtenido');
+              
+              debugPrint('2. Inicializando Firebase Messaging...');
+              await firebaseMessagingService.initialize();
+              debugPrint('   ✅ Firebase Messaging inicializado');
+              
+              debugPrint('3. Obteniendo FCM token...');
+              final fcmToken = firebaseMessagingService.fcmToken;
+              
+              if (fcmToken != null && fcmToken.isNotEmpty) {
+                debugPrint('   ✅ Token obtenido: ${fcmToken.substring(0, 20)}...');
+                
+                debugPrint('4. Obteniendo NotificationApiService...');
+                final notificationApiService = GetIt.instance<NotificationApiService>();
+                debugPrint('   ✅ NotificationApiService obtenido');
+                
+                debugPrint('5. Enviando token al endpoint...');
+                final Map<String, dynamic> deviceInfo = {
+                  'app_version': '1.0.0',
+                  'platform': defaultTargetPlatform.toString(),
+                  'device_name': 'Flutter Device'
+                };
+                
+                final result = await notificationApiService.registerDeviceToken(
+                  token: fcmToken,
+                  authToken: data.accessToken,
+                  deviceInfo: deviceInfo
+                );
+                
+                debugPrint('6. Procesando respuesta...');
+                if (result.success) {
+                  debugPrint('   ✅ FCM TOKEN REGISTRADO EXITOSAMENTE');
+                } else {
+                  debugPrint('   ❌ ERROR: ${result.message}');
+                }
+              } else {
+                debugPrint('   ❌ NO SE PUDO OBTENER EL FCM TOKEN');
+              }
+              debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+            } catch (fcmError) {
+              debugPrint('\n❌ ERROR REGISTRANDO FCM TOKEN: $fcmError');
+              // No interrumpir el flujo de login por errores de FCM
+            }
 
             // NO navegar inmediatamente - esperar a que se complete el build
             Future.microtask(() async {

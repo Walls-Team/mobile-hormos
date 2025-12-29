@@ -22,16 +22,16 @@ class NotificationApiService {
     Map<String, dynamic>? deviceInfo,
   }) async {
     try {
-      final url = AppConfig.getApiUrl('notifications/device/');
+      final url = AppConfig.getApiUrl('notifications/register-token/');
       
       final Map<String, dynamic> body = {
-        'token': token,
-        'platform': _getPlatform(),
+        'fcm_token': token,
+        'device_type': _getPlatform(),
       };
       
       // Añadir información del dispositivo si está disponible
       if (deviceInfo != null) {
-        body['deviceInfo'] = deviceInfo;
+        body['device_info'] = deviceInfo;
       }
       
       debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

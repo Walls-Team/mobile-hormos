@@ -7,6 +7,8 @@ import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:genius_hormo/features/auth/pages/reset_password/forgot_password.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
+import 'package:genius_hormo/features/payments/pages/payment_success_screen.dart';
+import 'package:genius_hormo/features/payments/pages/payment_cancelled_screen.dart';
 import 'package:genius_hormo/home.dart';
 import 'package:genius_hormo/features/faqs/faqs.dart';
 import 'package:genius_hormo/features/settings/settings.dart';
@@ -119,6 +121,24 @@ class AppRouter {
       //     // return ResetPasswordForm(token: token);
       //   },
       // ),
+      
+      // Rutas para pagos con Stripe
+      GoRoute(
+        path: privateRoutes.stripePaymentSuccess,
+        name: 'stripe_payment_success',
+        builder: (context, state) {
+          final sessionId = state.uri.queryParameters['session_id'];
+          return PaymentSuccessScreen(sessionId: sessionId);
+        },
+      ),
+      GoRoute(
+        path: privateRoutes.stripePaymentCancel,
+        name: 'stripe_payment_cancel',
+        builder: (context, state) {
+          final sessionId = state.uri.queryParameters['session_id'];
+          return PaymentCancelledScreen(sessionId: sessionId);
+        },
+      ),
     ],
 
     // MÉTODO REDIRECT FUNCIONAL - Maneja autenticación sin Navigator locks

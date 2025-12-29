@@ -53,15 +53,6 @@ class GeniusHormoDeepLinkService {
            uri.toString().contains('geniushormo');
   }
 
-  // void _processDeepLink(Uri uri) {
-  //   try {
-  //     final deepLinkData = GeniusHormoDeepLinkData.fromUri(uri);
-  //     _deepLinkController.add(deepLinkData);
-  //     _logInfo('Deep link processed: ${deepLinkData.path}');
-  //   } catch (e) {
-  //     _logError('Error processing deep link: $e');
-  //   }
-  // }
 
   void _processDeepLink(Uri uri) {
   try {

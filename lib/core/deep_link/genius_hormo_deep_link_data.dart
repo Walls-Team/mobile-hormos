@@ -46,6 +46,9 @@ class GeniusHormoDeepLinkData {
   String? getQueryParam(String key) => queryParameters[key];
   bool hasSegment(String segment) => segments.contains(segment);
   
+  // ID de la sesión de pago (para Stripe)
+  String? get sessionId => getQueryParam('session_id');
+  
   // 🔥 PROPIEDADES BASADAS EN TUS RUTAS REALES
   bool get isHome => path == '/' || path.isEmpty;
   bool get isTermsAndConditions => firstSegment == 'terms_and_conditions';
@@ -67,6 +70,11 @@ class GeniusHormoDeepLinkData {
   bool get isAcceptDevice => isAuthRoute && 
                            secondSegment == 'spike' && 
                            thirdSegment == 'acceptdevice';
+                           
+  // Rutas de pagos Stripe
+  bool get isStripeRoute => firstSegment == 'stripe';
+  bool get isStripeSuccess => isStripeRoute && secondSegment == 'success';
+  bool get isStripeCancel => isStripeRoute && secondSegment == 'cancel';
 
   @override
   String toString() {
