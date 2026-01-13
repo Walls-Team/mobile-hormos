@@ -38,14 +38,40 @@ class AuthRedirectService {
   Future<String?> handleRedirect(GoRouterState state) async {
     try {
       final currentLocation = state.matchedLocation;
+      final urlPath = state.uri.path;
+      final rawUri = state.uri.toString();
       
+      debugPrint('🔄 === REDIRECT DEBUG === ');
       debugPrint('🔄 Evaluando redirect para: $currentLocation');
+      debugPrint('🔄 URI path completo: $urlPath');
+      debugPrint('🔄 URI completo: $rawUri');
+      debugPrint('🔄 state info: ${state.fullPath}, params: ${state.pathParameters}, query: ${state.uri.queryParameters}');
 
       // Verificar si hay token
       final token = await _userStorageService.getJWTToken();
       final hasToken = token != null && token.isNotEmpty;
 
       debugPrint('🔐 Token presente: $hasToken');
+      
+      // CASO ESPECIAL: Redireccionar rutas de Stripe incorrectas
+      if (currentLocation == '/success' || urlPath == '/success' || rawUri.contains('/success')) {
+        debugPrint('✅ REDIRIGIENDO /success a /stripe/success');
+        return '/stripe/success';
+      }
+      if (currentLocation == '/cancel' || urlPath == '/cancel' || rawUri.contains('/cancel')) {
+        debugPrint('✅ REDIRIGIENDO /cancel a /stripe/cancel');
+        return '/stripe/cancel';
+      }
+      
+      // También verificar versiones sin barra inicial
+      if (currentLocation == 'success' || urlPath == 'success') {
+        debugPrint('✅ REDIRIGIENDO success (sin barra) a /stripe/success');
+        return '/stripe/success';
+      }
+      if (currentLocation == 'cancel' || urlPath == 'cancel') {
+        debugPrint('✅ REDIRIGIENDO cancel (sin barra) a /stripe/cancel');
+        return '/stripe/cancel';
+      }
 
       // CASO 1: Usuario NO autenticado intentando acceder a ruta privada
       if (!hasToken && _isPrivateRoute(currentLocation)) {

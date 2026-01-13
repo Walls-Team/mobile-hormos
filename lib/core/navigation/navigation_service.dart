@@ -14,6 +14,33 @@ class NavigationService {
 
   /// Maneja los deep links recibidos y los convierte en navegación
   void handleDeepLink(GeniusHormoDeepLinkData deepLinkData) {
+    print(deepLinkData.fragment);
+
+    // Manejo especial para Stripe
+    if ((deepLinkData.host == 'stripe' && 
+         deepLinkData.segments.isNotEmpty && 
+         (deepLinkData.segments[0] == 'success' || deepLinkData.segments[0] == 'cancel')) ||
+        (deepLinkData.segments.length >= 2 && 
+         deepLinkData.segments[0] == 'stripe' && 
+         (deepLinkData.segments[1] == 'success' || deepLinkData.segments[1] == 'cancel'))) {
+      
+      // Determinar la ruta correcta para Stripe
+      String stripePath;
+      if (deepLinkData.host == 'stripe') {
+        stripePath = deepLinkData.segments[0] == 'success' ? '/stripe/success' : '/stripe/cancel';
+      } else {
+        stripePath = deepLinkData.segments[1] == 'success' ? '/stripe/success' : '/stripe/cancel';
+      }
+      
+      print('✅ Redirigiendo directamente a: $stripePath');
+      _navigate(stripePath, {
+        if (deepLinkData.getQueryParam('session_id') != null) 
+          'session_id': deepLinkData.getQueryParam('session_id')!,
+      });
+      return;
+    }
+    
+    // Procesamiento normal para otros deeplinks
     final routeConfig = _deepLinkMapper.mapDeepLinkToRoute(deepLinkData);
 
     print(deepLinkData.fragment);
@@ -28,7 +55,17 @@ class NavigationService {
   /// Navega a la ruta configurada desde un deep link
   void _navigateToRoute(DeepLinkRouteConfig routeConfig) {
     try {
-      final GoRouter? router = GoRouter.of(routeConfig.context);
+      // Si el contexto de la ruta es nulo, intentamos usar el contexto global
+      final context = routeConfig.context ?? navigatorKey.currentContext;
+      
+      if (context == null) {
+        _logError('No hay contexto disponible para navegación');
+        // Intentamos usar _navigate con el path directamente
+        _navigate(routeConfig.path, routeConfig.queryParameters);
+        return;
+      }
+      
+      final GoRouter? router = GoRouter.of(context);
       if (router != null) {
         if (routeConfig.queryParameters.isNotEmpty) {
           final uri = Uri(
@@ -43,13 +80,15 @@ class NavigationService {
         }
       } else {
         _logError('Router no disponible para navegación');
+        // Si no hay router, intentamos usar _navigate como fallback
+        _navigate(routeConfig.path, routeConfig.queryParameters);
       }
     } catch (e) {
       _logError('Error en navegación: $e');
+      // En caso de error, intentamos usar _navigate como último recurso
+      _navigate(routeConfig.path, routeConfig.queryParameters);
     }
   }
-
-  // ========== MÉTODOS DE NAVEGACIÓN DIRECTA ==========
 
   /// Navega a la pantalla de inicio
   void navigateToHome() {
@@ -281,12 +320,12 @@ class NavigationService {
 
 /// Configuración de ruta para deep links
 class DeepLinkRouteConfig {
-  final BuildContext context;
+  final BuildContext? context; 
   final String path;
   final Map<String, String> queryParameters;
 
   DeepLinkRouteConfig({
-    required this.context,
+    this.context, 
     required this.path,
     this.queryParameters = const {},
   });

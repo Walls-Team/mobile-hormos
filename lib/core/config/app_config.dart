@@ -61,9 +61,15 @@ class AppConfig {
   }
   
   /// Construye una URL del API de Login
-  /// Ejemplo: getLoginUrl('login') => 'https://api.geniushpro.com/login'
+  /// Ejemplo: getLoginUrl('login') => 'https://api.geniushpro.com/v1/api/login/'
   static String getLoginUrl(String endpoint) {
-    return '$loginBaseUrl';
+    // Remover slash inicial si existe
+    final cleanEndpoint = endpoint.startsWith('/') 
+        ? endpoint.substring(1) 
+        : endpoint;
+    
+    // Asegurarse que la URL termine con una barra diagonal
+    return '$loginBaseUrl/$cleanEndpoint/';
   }
   
   /// Retorna headers comunes para todas las requests

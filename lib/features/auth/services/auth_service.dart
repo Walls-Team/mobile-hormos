@@ -90,7 +90,7 @@ class AuthService {
     return executeRequest<LoginResponse>(
       request: _client
           .post(
-            Uri.parse("http://api-staging.geniushpro.com/v1/api/login/"),
+            Uri.parse(url),
             headers: AppConfig.getCommonHeaders(),
             body: body,
           )
@@ -256,14 +256,6 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     final cachedUserData = prefs.getString('cached_user_profile');
 
-    // SIEMPRE hacer request para debugging (comentar el caché temporalmente)
-    // if (cachedUserData != null) {
-    //   debugPrint('📦 Usando perfil en caché');
-    //   final userMap = json.decode(cachedUserData);
-    //   final user = UserProfileData.fromJson(userMap);
-    //   return user;
-    // }
-
     try {
       final url = AppConfig.getApiUrl('me/');
       final headers = AppConfig.getCommonHeaders(withAuth: true, token: token);
@@ -352,63 +344,7 @@ class AuthService {
     }
   }
 
-  // Future<ApiResponse<User>> updateProfile({
-  //   required Map<String, dynamic> updateData,
-  // }) async {
-  //   try {
-  //     final String? token = await _storageService.getJWTToken();
-
-  //     if (token == null) {
-  //       return ApiResponse.error(message: 'No hay token de autenticación');
-  //     }
-
-  //     final response = await _client.put(
-  //       Uri.parse('$_baseUrl/v1/api/me/update'),
-  //       headers: _getHeaders(withAuth: true, token: token),
-  //       body: json.encode(updateData),
-  //     );
-
-  //     print('📝 Update Profile Response status: ${response.statusCode}');
-  //     print('📝 Update Profile Response body: ${response.body}');
-
-  //     final Map<String, dynamic> responseData = json.decode(response.body);
-
-  //     if (response.statusCode == 200) {
-  //       final String? error = responseData['error'];
-  //       final bool hasError = error != null && error.isNotEmpty;
-
-  //       if (!hasError && responseData['data'] != null) {
-  //         final user = User.fromJson(responseData['data']);
-  //         await _storageService.saveUserProfile(user);
-
-  //         return ApiResponse.success(
-  //           message:
-  //               responseData['message'] ?? 'Perfil actualizado exitosamente',
-  //           data: user,
-  //         );
-  //       } else {
-  //         return ApiResponse.error(
-  //           message: error ?? 'Error al actualizar el perfil',
-  //         );
-  //       }
-  //     } else if (response.statusCode == 401) {
-  //       return ApiResponse.error(
-  //         message: 'Sesión expirada. Por favor, inicia sesión nuevamente.',
-  //       );
-  //     } else {
-  //       return ApiResponse.error(
-  //         message:
-  //             responseData['message'] ??
-  //             responseData['error'] ??
-  //             'Error al actualizar el perfil - Código: ${response.statusCode}',
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print('❌ Error en updateProfile: $e');
-  //     return ApiResponse.error(message: 'Error de conexión: $e');
-  //   }
-  // }
-
+  
   /// Obtener usuario actual (delegado al storage service)
   // Future<User?> getCurrentUser() => _storageService.getCurrentUser();
 

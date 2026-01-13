@@ -1,14 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/app/route_names.dart';
+import 'package:genius_hormo/core/di/dependency_injection.dart';
+import 'package:genius_hormo/providers/subscription_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-class PaymentSuccessScreen extends StatelessWidget {
+class PaymentSuccessScreen extends StatefulWidget {
   final String? sessionId;
   
   const PaymentSuccessScreen({
     super.key,
     this.sessionId,
   });
+
+  @override
+  State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
+}
+
+class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Actualizar el plan después de la compra exitosa
+    _refreshSubscription();
+  }
+
+  Future<void> _refreshSubscription() async {
+    try {
+      final subscriptionProvider = getIt<SubscriptionProvider>();
+      debugPrint('🔄 Actualizando plan después de compra exitosa...');
+      await subscriptionProvider.refreshAfterPurchase();
+      debugPrint('✅ Plan actualizado correctamente');
+    } catch (e) {
+      debugPrint('❌ Error actualizando plan: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,10 +91,10 @@ class PaymentSuccessScreen extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (sessionId != null) ...[
+                if (widget.sessionId != null) ...[
                   SizedBox(height: 8),
                   Text(
-                    'ID de transacción: $sessionId',
+                    'ID de transacción: ${widget.sessionId}',
                     style: TextStyle(
                       color: Colors.white38,
                       fontSize: 12,

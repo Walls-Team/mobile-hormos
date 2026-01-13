@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/core/guards/subscription_guard.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/dashboard/pages/dashboard.dart';
 import 'package:genius_hormo/features/daily_questions/services/daily_questions_dialog_service.dart';
 import 'package:genius_hormo/features/settings/settings.dart';
+import 'package:genius_hormo/features/subscription/pages/subscription_required_screen.dart';
+import 'package:genius_hormo/providers/subscription_provider.dart';
 import 'package:genius_hormo/services/whoop_promo_service.dart';
 import 'package:genius_hormo/services/firebase_messaging_service.dart';
 import 'package:genius_hormo/services/local_notifications_service.dart';
@@ -32,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final WhoopPromoService _whoopPromoService = GetIt.instance<WhoopPromoService>();
   final FirebaseMessagingService _firebaseMessagingService = GetIt.instance<FirebaseMessagingService>();
   final LocalNotificationsService _localNotificationsService = GetIt.instance<LocalNotificationsService>();
+  final SubscriptionProvider _subscriptionProvider = GetIt.instance<SubscriptionProvider>();
 
   UserProfileData? _userProfile;
   bool _isLoading = true;
@@ -50,6 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
     debugPrint('📱 Verificando estado del setup...');
 
     try {
+      // Primero cargar el plan actual del usuario
+      await _subscriptionProvider.fetchCurrentPlan();
+      
       final setupStatus = await _setupStatusService.checkSetupStatus();
       
       if (mounted) {
@@ -153,12 +160,20 @@ class _HomeScreenState extends State<HomeScreen> {
     // Determinar qué mostrar en cada tab basado en el estado de setup
     final Widget dashboardPage = !_isSetupComplete 
         ? _buildSetupContent(context)
-        : DashboardScreen();
+        : SubscriptionGuard.requireSubscription(
+          context: context,
+          featureName: 'dashboard',
+          child: const DashboardScreen(),
+        );
     
     // Páginas con condicional solo para Stats
     final List<Widget> _pages = [
       dashboardPage,
-      !_isSetupComplete ? _buildSetupIncompleteMessage(context) : StatsScreen(),
+      !_isSetupComplete ? _buildSetupIncompleteMessage(context) : SubscriptionGuard.requireSubscription(
+        context: context,
+        featureName: 'estadísticas',
+        child: StatsScreen(),
+      ),
       StoreScreen(), // Store siempre accesible
       SettingsScreen(
         onDeviceStatusChanged: () {
@@ -184,11 +199,14 @@ class _HomeScreenState extends State<HomeScreen> {
           bottomNavigationBar: _buildBottomNavigationBar(theme),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const ChatScreen(),
-                ),
-              );
+              // Verificar si el usuario tiene plan activo para acceder al ChatBot
+              if (SubscriptionGuard.canAccess(context, 'chat con NOA')) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ChatScreen(),
+                  ),
+                );
+              }
             },
             backgroundColor: const Color(0xFFEDE954),
             child: const Icon(
@@ -215,6 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
         userName: _userProfile?.username ?? 'Usuario',
         avatarUrl: _userProfile?.avatar,
         unreadCount: notificationService.unreadCount,
+        showNotifications: _subscriptionProvider.hasActivePlan, // Ocultar notificaciones si no hay plan activo
         onNotificationPressed: () {
           Navigator.push(
             context,
@@ -338,17 +357,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: CupertinoIcons.device_phone_portrait,
                   isConnected: _setupStatusService.currentStatus.hasDevice,
                   onTap: () {
-                    setState(() => _currentIndex = 3);
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(AppLocalizations.of(context)!['dashboard']['connectDeviceSnackbar']),
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                      }
-                    });
+                    // Verificar si tiene plan activo antes de permitir conectar un dispositivo
+                    if (SubscriptionGuard.canAccess(context, 'conexión de dispositivos')) {
+                      setState(() => _currentIndex = 3);
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(AppLocalizations.of(context)!['dashboard']['connectDeviceSnackbar']),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      });
+                    }
                   },
                 ),
                 const SizedBox(height: 16),

@@ -18,9 +18,24 @@ class GeniusHormoDeepLinkData {
   });
 
   factory GeniusHormoDeepLinkData.fromUri(Uri uri) {
+    // Construir el path correcto para Stripe y otros casos especiales
+    String path = uri.path;
+    List<String> segments = List<String>.from(uri.pathSegments);
+    
+    // CASO ESPECIAL: Corregir path para links de Stripe
+    // Para geniushormo://stripe/success -> path debe ser /stripe/success 
+    if (uri.scheme == 'geniushormo' && uri.host == 'stripe') {
+      print('🚨 CORRIGIENDO PATH: agregando /stripe a $path');
+      path = '/stripe' + path; // Agregar /stripe al path
+      // Corregir los segmentos para incluir 'stripe' al inicio
+      segments = ['stripe', ...segments];
+      print('✅ PATH CORREGIDO: $path');
+      print('✅ SEGMENTS CORREGIDOS: $segments');
+    }
+    
     return GeniusHormoDeepLinkData(
-      path: uri.path,
-      segments: uri.pathSegments,
+      path: path, // Path corregido
+      segments: segments, // Segmentos corregidos
       queryParameters: uri.queryParameters,
       fragment: uri.fragment,
       scheme: uri.scheme,

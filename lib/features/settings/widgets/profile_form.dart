@@ -7,6 +7,7 @@ import 'package:genius_hormo/features/settings/widgets/avatar_selector_modal.dar
 import 'package:genius_hormo/features/settings/widgets/language_selector.dart';
 import 'package:genius_hormo/features/settings/widgets/plans_badge.dart';
 import 'package:genius_hormo/features/settings/pages/plans_screen.dart';
+import 'package:genius_hormo/providers/subscription_provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
 
@@ -30,6 +31,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
   final _formKey = GlobalKey<FormState>();
   final AuthService _authService = GetIt.instance<AuthService>();
   final UserStorageService _storageService = GetIt.instance<UserStorageService>();
+  final SubscriptionProvider _subscriptionProvider = GetIt.instance<SubscriptionProvider>();
 
   late TextEditingController _usernameController;
   late TextEditingController _heightController;
@@ -72,6 +74,18 @@ class _UserProfileFormState extends State<UserProfileForm> {
         : 'male';
     _age = widget.initialData.age;
     _selectedAvatar = widget.initialData.avatar;
+    
+    // Asegurarnos de que el plan se cargue cuando se inicia el formulario
+    _loadPlanData();
+  }
+  
+  // Método para cargar datos del plan
+  Future<void> _loadPlanData() async {
+    // Si el plan está cargando o no está inicializado, forzar la actualización
+    if (_subscriptionProvider.isLoading || !_subscriptionProvider.hasCheckedPlan) {
+      debugPrint('🔄 UserProfileForm: Solicitando actualización del plan...');
+      await _subscriptionProvider.fetchCurrentPlan();
+    }
   }
 
   @override
@@ -81,6 +95,15 @@ class _UserProfileFormState extends State<UserProfileForm> {
     _weightController.dispose();
     _birthDateController.dispose();
     super.dispose();
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Verificar si necesitamos actualizar el plan cuando se muestra de nuevo
+    if (mounted) {
+      _loadPlanData();
+    }
   }
 
   Future<void> _submitForm() async {
@@ -495,13 +518,328 @@ class _UserProfileFormState extends State<UserProfileForm> {
             
             const SizedBox(height: 20),
             
-            // Botón de planes
-            PlansBadge(
-              onTap: () {
-                print('🟢 Navegando a PlansScreen'); // DEBUG
-                Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute(
-                    builder: (context) => const PlansScreen(),
+            // Card del plan por encima del selector de idioma
+            ListenableBuilder(
+              listenable: _subscriptionProvider,
+              builder: (context, _) {
+                final plan = _subscriptionProvider.currentPlan;
+                final isLoading = _subscriptionProvider.isLoading;
+                final error = _subscriptionProvider.error;
+                
+                // Si no tenemos datos del plan y no está cargando actualmente
+                // solicitamos una actualización
+                if (plan == null && !isLoading && mounted) {
+                  debugPrint('🔄 Card de Plan: No hay datos de plan, solicitando actualización...');
+                  Future.microtask(() => _loadPlanData());
+                }
+                
+                if (isLoading) {
+                  return Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2A2C3B),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Mi Plan',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Spacer(),
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFFEDE954),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Cargando información del plan...',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                
+                // Cuando no hay plan disponible
+                if (plan == null) {
+                  return Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2A2C3B),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Mi Plan',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'NO ACTIVO',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          error ?? 'No tienes ningún plan contratado actualmente.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => PlansScreen(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEDE954),
+                              foregroundColor: Colors.black,
+                            ),
+                            child: Text(
+                              'Ver Planes',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                
+                // Plan gratuito o con información incompleta
+                if (plan.plan_details == null) {
+                  return Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEDE954),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Mi Plan',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'ACTIVO',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Plan Free',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Plan básico sin costo',
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.7),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context, rootNavigator: true).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PlansScreen(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text('Ver Planes Premium'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                
+                // Plan activo con datos completos
+                final daysRemaining = plan.daysRemaining ?? 0;
+                final planTitle = plan.plan_details?.title ?? 'Plan Desconocido';
+                final expirationDate = plan.currentPeriodEnd != null 
+                  ? _formatDate(plan.currentPeriodEnd!) 
+                  : 'No disponible';
+                
+                return Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDE954),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Mi Plan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'ACTIVO',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        planTitle,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today, size: 16, color: Colors.black.withOpacity(0.7)),
+                          SizedBox(width: 6),
+                          Text(
+                            'Expira: $expirationDate',
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.timelapse, size: 16, color: Colors.black.withOpacity(0.7)),
+                          SizedBox(width: 6),
+                          Text(
+                            'Días restantes: $daysRemaining',
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context, rootNavigator: true).push(
+                              MaterialPageRoute(
+                                builder: (context) => const PlansScreen(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: Text('Cambiar Plan'),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -629,6 +967,15 @@ class _UserProfileFormState extends State<UserProfileForm> {
         return localizations['gender']['other'];
       default:
         return gender;
+    }
+  }
+
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return dateStr;
     }
   }
 }

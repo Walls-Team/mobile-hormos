@@ -18,7 +18,7 @@ class StripeApiService {
   /// [planId] - ID del plan que se quiere comprar
   Future<ApiResponse<StripeCheckoutResponse>> createCheckoutSession({
     required String authToken,
-    required int planId,
+    required String planId,
   }) async {
     try {
       final url = AppConfig.getApiUrl('stripe/checkout/');

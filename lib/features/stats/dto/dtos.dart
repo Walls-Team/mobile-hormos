@@ -35,7 +35,7 @@ class SleepEfficiencyRecord {
     return SleepEfficiencyRecord(
       date: DateTime.parse(json['date'] as String),
       sleepEfficiency: (json['sleep_efficiency'] as num).toDouble(),
-      dayIndex: (json['day_index'] as num).toInt(),
+      dayIndex: json['day_index'] != null ? (json['day_index'] as num).toInt() : 0,
     );
   }
 
@@ -106,7 +106,7 @@ class SleepDurationRecord {
       sleepDuration: (json['sleep_duration'] as num).toDouble(),
       sleepDurationDeep: (json['sleep_duration_deep'] as num).toDouble(),
       sleepDurationRem: (json['sleep_duration_rem'] as num).toDouble(),
-      dayIndex: (json['day_index'] as num).toInt(),
+      dayIndex: json['day_index'] != null ? (json['day_index'] as num).toInt() : 0,
     );
   }
 
@@ -193,7 +193,7 @@ class HeartRateRecord {
       heartRateResting: (json['heartrate_resting'] as num?)?.toDouble(),
       heartRateMax: (json['heartrate_max'] as num?)?.toDouble(),
       hrvRmssd: (json['hrv_rmssd'] as num?)?.toDouble(),
-      dayIndex: (json['day_index'] as num).toInt(),
+      dayIndex: json['day_index'] != null ? (json['day_index'] as num).toInt() : 0,
     );
   }
 
@@ -276,7 +276,7 @@ class Spo2Record {
     return Spo2Record(
       date: DateTime.parse(json['date'] as String),
       spo2: (json['spo2'] as num).toDouble(),
-      dayIndex: (json['day_index'] as num).toInt(),
+      dayIndex: json['day_index'] != null ? (json['day_index'] as num).toInt() : 0,
     );
   }
 
@@ -351,7 +351,7 @@ class CalorieRecord {
     return CalorieRecord(
       date: DateTime.parse(json['date'] as String),
       caloriesBurned: (json['calories_burned'] as num?)?.toDouble(),
-      dayIndex: (json['day_index'] as num).toInt(),
+      dayIndex: json['day_index'] != null ? (json['day_index'] as num).toInt() : 0,
     );
   }
 
@@ -421,7 +421,7 @@ class SleepInterruptionRecord {
     return SleepInterruptionRecord(
       date: DateTime.parse(json['date'] as String),
       sleepInterruptions: (json['sleep_interruptions'] as num).toInt(),
-      dayIndex: (json['day_index'] as num).toInt(),
+      dayIndex: json['day_index'] != null ? (json['day_index'] as num).toInt() : 0,
     );
   }
 

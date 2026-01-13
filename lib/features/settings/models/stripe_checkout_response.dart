@@ -59,7 +59,7 @@ class StripeCheckoutResponse {
 }
 
 class CreateCheckoutSessionRequest {
-  final int planId;
+  final String planId;
 
   CreateCheckoutSessionRequest({
     required this.planId,

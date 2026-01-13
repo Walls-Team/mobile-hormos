@@ -159,11 +159,14 @@ import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
 import 'package:genius_hormo/features/faqs/faqs.dart';
+import 'package:genius_hormo/features/settings/models/plan.dart';
+import 'package:genius_hormo/features/settings/pages/plans_screen.dart';
 import 'package:genius_hormo/features/settings/widgets/faqs_badge.dart';
 import 'package:genius_hormo/features/settings/widgets/profile_form.dart';
 import 'package:genius_hormo/features/settings/widgets/profile_skeleton_loader.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
+import 'package:genius_hormo/providers/subscription_provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -185,11 +188,15 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  // Para navegar a la tab de Store
+  int _currentIndex = 0;
+  
   final UserStorageService _userStorageService =
       GetIt.instance<UserStorageService>();
   final AuthService _authService = GetIt.instance<AuthService>();
   final SpikeApiService _spikeApiService = GetIt.instance<SpikeApiService>();
   final SetupStatusService _setupStatusService = GetIt.instance<SetupStatusService>();
+  final SubscriptionProvider _subscriptionProvider = GetIt.instance<SubscriptionProvider>();
   
   bool _isLoadingProfile = true;
   bool _isConnectingDevice = false;
@@ -205,6 +212,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _loadUserProfile();
     _loadDeviceStatus();
+    _loadCurrentPlan();
+  }
+  
+  Future<void> _loadCurrentPlan() async {
+    // El plan ya debería estar cargado en el provider desde App.dart
+    // pero hacemos un refresh para asegurarnos de tener datos actualizados
+    // Este plan ahora se muestra en el formulario de perfil, por encima de la sección de idioma
+    
+    // Solo cargamos si no se ha verificado antes o si han pasado más de 2 minutos
+    // para evitar hacer demasiadas llamadas innecesarias a la API
+    if (!_subscriptionProvider.hasCheckedPlan) {
+      debugPrint('🔄 SettingsScreen: Cargando plan por primera vez');
+      await _subscriptionProvider.fetchCurrentPlan();
+    } else {
+      debugPrint('✅ SettingsScreen: Plan ya verificado anteriormente');
+      
+      // Programamos una actualización asíncrona del plan para mantenerlo actualizado
+      // pero sin bloquear la interfaz de usuario
+      Future.microtask(() => _subscriptionProvider.fetchCurrentPlan());
+    }
   }
 
   Future<void> _loadUserProfile() async {
@@ -293,6 +320,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 spacing: 20,
                 children: [
                   _buildDeviceButton(),
+                  const SizedBox(height: 16),
                   
                   // Configuración de Face ID / Touch ID
                   BiometricSettings(
@@ -377,6 +405,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onAvatarChanged: widget.onAvatarChanged,
     );
   }
+
+  // La tarjeta del plan ahora se muestra en el formulario de perfil,
+  // por encima de la sección de idioma
 
   Widget _buildFaqsButton() {
     return FaqsBadge(
@@ -790,12 +821,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
         throw Exception(result.message ?? AppLocalizations.of(context)!['settings']['deviceConnection']['errorDisconnecting']);
       }
 
-      debugPrint('✅ DEVICE DISCONNECTED SUCCESSFULLY');
+      debugPrint('✅ DISCONNECT REQUEST SUCCESSFUL');
+      
+      // Añadir un pequeño retraso para permitir que el backend procese la desconexión
+      await Future.delayed(Duration(seconds: 1));
+      
+      // Validar que el dispositivo realmente esté desconectado
+      debugPrint('🔍 Verificando estado de desconexión del dispositivo...');
+      
+      // Intentar verificar hasta 3 veces
+      bool disconnectionConfirmed = false;
+      String? verificationError;
+      int maxRetries = 3;
+      
+      for (int i = 0; i < maxRetries; i++) {
+        try {
+          // Obtener el estado actual del dispositivo
+          final userDeviceResult = await _spikeApiService.getUserDevice(
+            token: token,
+          );
+          
+          if (!userDeviceResult.success) {
+            // Si no hay éxito pero es porque no hay dispositivo, es correcto
+            final errorMessage = userDeviceResult.message.toLowerCase();
+            
+            // Verificar diferentes variantes de mensajes de "no hay dispositivos"
+            if (errorMessage.contains('no device') || 
+                errorMessage.contains('no hay dispositivo') ||
+                errorMessage.contains('do not have any device') ||
+                errorMessage.contains('you do not have any devices')) {
+              disconnectionConfirmed = true;
+              debugPrint('✅ Desconexión confirmada: No hay dispositivo conectado');
+              debugPrint('✅ Mensaje de API: ${userDeviceResult.message}');
+              break;
+            } else {
+              // Otro tipo de error
+              throw Exception('Error verificando estado del dispositivo: ${userDeviceResult.message}');
+            }
+          }
+          
+          // Si hay un dispositivo devuelto pero es null o tiene ID distinto, también está desconectado
+          // Primero verificar que data no sea null y que sea un Map
+          if (userDeviceResult.data == null) {
+            disconnectionConfirmed = true;
+            debugPrint('✅ Desconexión confirmada: No hay datos de dispositivo (null)');
+            break;
+          }
+          
+          // Verificar que data contenga spike_id
+          final spikeId = userDeviceResult.data?['spike_id'];
+          if (spikeId == null || spikeId != _spikeId) {
+            disconnectionConfirmed = true;
+            debugPrint('✅ Desconexión confirmada: ID diferente o no encontrado');
+            break;
+          }
+          
+          // Si aún detectamos el mismo dispositivo, esperar y reintentar
+          debugPrint('⚠️ Aún se detecta el mismo dispositivo. Reintentando... ${i+1}/$maxRetries');
+          await Future.delayed(Duration(seconds: 2)); // Esperar antes de reintentar
+          
+        } catch (e) {
+          verificationError = e.toString();
+          debugPrint('❌ Error verificando desconexión: $e');
+          await Future.delayed(Duration(seconds: 2)); // Esperar antes de reintentar
+        }
+      }
+      
+      if (!disconnectionConfirmed) {
+        throw Exception(verificationError ?? AppLocalizations.of(context)!["device"]["connection"]["disconnectMaxRetries"]);
+      }
+
+      debugPrint('✅ DEVICE DISCONNECTED AND VERIFIED SUCCESSFULLY');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ ${AppLocalizations.of(context)!['settings']['deviceConnection']['disconnectSuccess']}'),
+            content: Text('✅ ${AppLocalizations.of(context)!["settings"]["deviceConnection"]["disconnectSuccess"]}'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 3),
           ),

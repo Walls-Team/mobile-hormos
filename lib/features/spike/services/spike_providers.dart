@@ -532,8 +532,132 @@ class SpikeApiService {
     }
   }
 
-  /// Desconectar el dispositivo del usuario
-  /// Endpoint: DELETE /v1/api/spike/delete/:spike_id/
+  /// Obtiene información del dispositivo conectado del usuario
+  /// Endpoint: GET /v1/api/spike/my_device/
+  Future<ApiResponse<Map<String, dynamic>>> getUserDevice({
+    required String token,
+  }) async {
+    try {
+      final url = AppConfig.getApiUrl('spike/my_device/');
+      final headers = AppConfig.getCommonHeaders(withAuth: true, token: token);
+
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔍 GET USER DEVICE REQUEST');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📍 ENDPOINT: spike/my_device/');
+      debugPrint('🌐 FULL URL: $url');
+      debugPrint('🔧 METHOD: GET');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      final response = await _client
+          .get(
+            Uri.parse(url),
+            headers: headers,
+          )
+          .timeout(AppConfig.defaultTimeout);
+
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📥 GET USER DEVICE RESPONSE');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint('📄 Response Body:');
+      debugPrint(response.body);
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      // En caso de 404, consideramos que es normal cuando no hay dispositivos
+      if (response.statusCode == 404) {
+        debugPrint('✅ CÓDIGO 404 RECIBIDO: Usuario probablemente no tiene dispositivos');
+        
+        try {
+          // Intentar parsear la respuesta como JSON (puede fallar si no es JSON válido)
+          Map<String, dynamic> responseData;
+          try {
+            responseData = json.decode(response.body);
+          } catch (e) {
+            debugPrint('❌ Error al decodificar JSON: $e');
+            responseData = {
+              'message': 'No device found',
+              'error': 'Error parsing response: ${response.body}'
+            };
+          }
+          
+          final errorMessage = responseData['error']?.toString() ?? 'No device found';
+          final message = responseData['message']?.toString() ?? 'No device connected';
+          
+          // Si contiene mensaje sobre dispositivos, consideramos que es el caso normal
+          if (errorMessage.toLowerCase().contains('do not have any device') ||
+              errorMessage.toLowerCase().contains('you do not have any devices')) {
+              
+            debugPrint('✅ CONFIRMADO: Usuario no tiene dispositivo conectado');
+            debugPrint('   Mensaje: $message');
+            debugPrint('   Error: $errorMessage\n');
+            
+            // Devolver un ApiResponse con success=false pero con un mensaje claro
+            return ApiResponse.error(
+              message: 'You do not have any devices',
+            );
+          } else {
+            // Otro tipo de error 404
+            debugPrint('❌ Error 404 no esperado: $errorMessage');
+            return ApiResponse.error(
+              message: message,
+            );
+          }
+        } catch (parseError) {
+          // Si hay error al procesar la respuesta 404
+          debugPrint('❌ Error procesando respuesta 404: $parseError');
+          return ApiResponse.error(
+            message: 'No device found. Error: $parseError',
+          );
+        }
+      }
+      
+      // Para otras respuestas HTTP
+      try {
+        // Intentar parsear la respuesta como JSON
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        
+        // Si el código de estado es 200, devolver los datos del dispositivo
+        if (response.statusCode == 200) {
+          final data = responseData['data'];
+          final message = responseData['message'] ?? 'Device retrieved successfully';
+          
+          debugPrint('✅ DISPOSITIVO OBTENIDO EXITOSAMENTE\n');
+          
+          return ApiResponse.success(
+            message: message,
+            data: data,
+          );
+        } else {
+          // Cualquier otro error HTTP
+          final message = responseData['message'] ?? 'Error retrieving device';
+          final error = responseData['error'] ?? 'Unknown error';
+          
+          debugPrint('❌ Error HTTP ${response.statusCode}: $message, $error');
+          
+          return ApiResponse.error(
+            message: message,
+          );
+        }
+      } catch (jsonError) {
+        // Si hay error al parsear el JSON
+        debugPrint('❌ Error al parsear JSON: $jsonError');
+        return ApiResponse.error(
+          message: 'Error parsing response: $jsonError',
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('💥 ERROR EN GET USER DEVICE');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ Error: $e');
+      debugPrint('📍 StackTrace: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      return ApiResponse.error(message: 'Error al obtener dispositivo: $e');
+    }
+  }
+
   Future<ApiResponse<void>> disconnectDevice({
     required String token,
     required String spikeId,

@@ -6,6 +6,7 @@ import 'package:genius_hormo/features/auth/services/biometric_auth_service.dart'
 import 'package:genius_hormo/features/settings/services/plans_api_service.dart';
 import 'package:genius_hormo/features/settings/services/stripe_api_service.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
+import 'package:genius_hormo/providers/subscription_provider.dart';
 import 'package:genius_hormo/features/setup/services/setup_status_service.dart';
 import 'package:genius_hormo/features/spike/services/spike_providers.dart';
 import 'package:genius_hormo/features/stats/service/stats_service.dart';
@@ -64,4 +65,12 @@ Future<void> setupDependencies() async {
   
   // Registrar StripeApiService
   getIt.registerLazySingleton<StripeApiService>(() => StripeApiService());
+  
+  // Registrar SubscriptionProvider
+  getIt.registerLazySingleton<SubscriptionProvider>(
+    () => SubscriptionProvider(
+      plansApiService: getIt<PlansApiService>(),
+      userStorageService: getIt<UserStorageService>(),
+    ),
+  );
 }

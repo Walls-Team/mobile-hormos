@@ -139,6 +139,24 @@ class AppRouter {
           return PaymentCancelledScreen(sessionId: sessionId);
         },
       ),
+      
+      // Rutas ADICIONALES para Stripe sin el prefijo /stripe
+      // Esto captura deeplinks que llegan como /success en lugar de /stripe/success
+      GoRoute(
+        path: '/success',
+        builder: (context, state) {
+          final sessionId = state.uri.queryParameters['session_id'];
+          print('🟢 Capturando deeplink directo /success con session_id: $sessionId');
+          return PaymentSuccessScreen(sessionId: sessionId);
+        },
+      ),
+      GoRoute(
+        path: '/cancel',
+        builder: (context, state) {
+          final sessionId = state.uri.queryParameters['session_id'];
+          return PaymentCancelledScreen(sessionId: sessionId);
+        },
+      ),
     ],
 
     // MÉTODO REDIRECT FUNCIONAL - Maneja autenticación sin Navigator locks

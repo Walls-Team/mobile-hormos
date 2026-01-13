@@ -1,11 +1,11 @@
 import 'dart:convert';
+import 'package:genius_hormo/core/config/app_config.dart';
 import 'package:genius_hormo/features/stats/dto/dtos.dart';
 import 'package:http/http.dart' as http;
 
 
 
 class StatsService {
-  static const String _baseUrl = 'https://main.geniushpro.com/v1/api/stats';
   final http.Client client;
 
   StatsService({http.Client? client}) : client = client ?? http.Client();
@@ -18,7 +18,7 @@ class StatsService {
     Map<String, String>? queryParams,
   }) async {
     try {
-      final uri = Uri.parse('$_baseUrl/$endpoint');
+      final uri = Uri.parse(AppConfig.getApiUrl('stats/$endpoint'));
 
       print('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('📡 STATS API REQUEST: $endpoint');

@@ -185,16 +185,16 @@ class _PlansScreenState extends State<PlansScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '¿Deseas suscribirte al plan ${plan.title}?',
+              '¿Deseas suscribirte al plan ${plan.plan_details?.title ?? "Plan"}?',
               style: TextStyle(color: Colors.white),
             ),
             SizedBox(height: 8),
             Text(
-              'Precio: ${plan.price}',
+              'Precio: ${plan.plan_details?.price ?? "0.00"}',
               style: TextStyle(color: Colors.white70),
             ),
             Text(
-              'Duración: ${plan.days} días',
+              'Duración: ${plan.plan_details?.days ?? 30} días',
               style: TextStyle(color: Colors.white70),
             ),
           ],
@@ -340,12 +340,12 @@ class _PlansScreenState extends State<PlansScreen> {
                 child: Column(
                   children: [
                     Text(
-                      plan.title,
+                      plan.plan_details?.title ?? 'Plan',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
                     ),
                     SizedBox(height: 8),
                     Text(
-                      '${plan.price} - ${plan.days} días',
+                      '${plan.plan_details?.price ?? "0.00"} - ${plan.plan_details?.days ?? 30} días',
                       style: TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                     SizedBox(height: 12),
