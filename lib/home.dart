@@ -6,6 +6,7 @@ import 'package:genius_hormo/features/dashboard/pages/dashboard.dart';
 import 'package:genius_hormo/features/daily_questions/services/daily_questions_dialog_service.dart';
 import 'package:genius_hormo/features/settings/settings.dart';
 import 'package:genius_hormo/features/subscription/pages/subscription_required_screen.dart';
+import 'package:genius_hormo/features/subscription/widgets/subscription_required_content.dart';
 import 'package:genius_hormo/providers/subscription_provider.dart';
 import 'package:genius_hormo/services/whoop_promo_service.dart';
 import 'package:genius_hormo/services/firebase_messaging_service.dart';
@@ -157,66 +158,70 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Determinar qué mostrar en cada tab basado en el estado de setup
-    final Widget dashboardPage = !_isSetupComplete 
-        ? _buildSetupContent(context)
-        : SubscriptionGuard.requireSubscription(
-          context: context,
-          featureName: 'dashboard',
-          child: const DashboardScreen(),
-        );
-    
-    // Páginas con condicional solo para Stats
-    final List<Widget> _pages = [
-      dashboardPage,
-      !_isSetupComplete ? _buildSetupIncompleteMessage(context) : SubscriptionGuard.requireSubscription(
-        context: context,
-        featureName: 'estadísticas',
-        child: StatsScreen(),
-      ),
-      StoreScreen(), // Store siempre accesible
-      SettingsScreen(
-        onDeviceStatusChanged: () {
-          // Callback cuando cambia el estado del dispositivo
-          debugPrint('🔄 Device status changed, refreshing...');
-          _initializeData();
-        },
-        onAvatarChanged: () {
-          // Callback cuando cambia el avatar
-          debugPrint('🔄 Avatar changed, refreshing profile...');
-          _initializeData();
-        },
-      ), // Settings siempre accesible
-    ];
-
-    return ChangeNotifierProvider<LocalNotificationsService>.value(
-      value: _localNotificationsService,
-      child: Container(
-        decoration: BoxDecoration(),
-        child: Scaffold(
-          appBar: _buildAppBar(context, _localNotificationsService),
-          body: _pages[_currentIndex],
-          bottomNavigationBar: _buildBottomNavigationBar(theme),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              // Verificar si el usuario tiene plan activo para acceder al ChatBot
-              if (SubscriptionGuard.canAccess(context, 'chat con NOA')) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ChatScreen(),
-                  ),
-                );
-              }
+    // Usar ListenableBuilder para escuchar cambios en el SubscriptionProvider
+    return ListenableBuilder(
+      listenable: _subscriptionProvider,
+      builder: (context, _) {
+        // Determinar qué mostrar en cada tab basado en plan activo primero, luego setup
+        final Widget dashboardPage = !_subscriptionProvider.hasActivePlan
+            ? const SubscriptionRequiredContent(feature: 'dashboard')
+            : !_isSetupComplete 
+              ? _buildSetupContent(context)
+              : const DashboardScreen();
+        
+        // Páginas con condicionales: primero plan activo, luego setup completo
+        final List<Widget> _pages = [
+          dashboardPage,
+          !_subscriptionProvider.hasActivePlan
+            ? const SubscriptionRequiredContent(feature: 'estadísticas')
+            : !_isSetupComplete 
+              ? _buildSetupIncompleteMessage(context) 
+              : StatsScreen(),
+          StoreScreen(), // Store siempre accesible
+          SettingsScreen(
+            onDeviceStatusChanged: () {
+              // Callback cuando cambia el estado del dispositivo
+              debugPrint('🔄 Device status changed, refreshing...');
+              _initializeData();
             },
-            backgroundColor: const Color(0xFFEDE954),
-            child: const Icon(
-              Icons.chat_bubble_rounded,
-              color: Colors.black,
-              size: 28,
+            onAvatarChanged: () {
+              // Callback cuando cambia el avatar
+              debugPrint('🔄 Avatar changed, refreshing profile...');
+              _initializeData();
+            },
+          ), // Settings siempre accesible
+        ];
+
+        return ChangeNotifierProvider<LocalNotificationsService>.value(
+          value: _localNotificationsService,
+          child: Container(
+            decoration: BoxDecoration(),
+            child: Scaffold(
+              // Solo mostrar el AppBar con notificaciones si hay un plan activo
+              appBar: _buildAppBar(context, _localNotificationsService),
+              // Si no hay un plan activo, restringir contenido
+              body: _pages[_currentIndex],
+              bottomNavigationBar: _buildBottomNavigationBar(theme),
+              // Solo mostrar el botón de chat si hay un plan activo
+              floatingActionButton: _subscriptionProvider.hasActivePlan ? FloatingActionButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ChatScreen(),
+                    ),
+                  );
+                },
+                backgroundColor: const Color(0xFFEDE954),
+                child: const Icon(
+                  Icons.chat_bubble_rounded,
+                  color: Colors.black,
+                  size: 28,
+                ),
+              ) : null,
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -235,15 +240,26 @@ class _HomeScreenState extends State<HomeScreen> {
         unreadCount: notificationService.unreadCount,
         showNotifications: _subscriptionProvider.hasActivePlan, // Ocultar notificaciones si no hay plan activo
         onNotificationPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChangeNotifierProvider<LocalNotificationsService>.value(
-                value: _localNotificationsService,
-                child: const NotificationsScreen(),
+          // Solo permitir acceso a notificaciones si tiene plan activo
+          if (_subscriptionProvider.hasActivePlan) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChangeNotifierProvider<LocalNotificationsService>.value(
+                  value: _localNotificationsService,
+                  child: const NotificationsScreen(),
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            // Mostrar pantalla de suscripción requerida
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SubscriptionRequiredScreen(feature: 'notificaciones'),
+              ),
+            );
+          }
         },
       ),
     );
@@ -352,25 +368,42 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Items de configuración
                 _buildSetupItem(
                   label: AppLocalizations.of(context)!['dashboard']['device'],
-                  status: _setupStatusService.currentStatus.hasDevice ? AppLocalizations.of(context)!['dashboard']['deviceConnected'] : AppLocalizations.of(context)!['dashboard']['deviceNotConnected'],
-                  statusColor: _setupStatusService.currentStatus.hasDevice ? Colors.green : Colors.red,
-                  icon: CupertinoIcons.device_phone_portrait,
-                  isConnected: _setupStatusService.currentStatus.hasDevice,
+                  status: _subscriptionProvider.hasActivePlan 
+                    ? (_setupStatusService.currentStatus.hasDevice 
+                        ? AppLocalizations.of(context)!['dashboard']['deviceConnected'] 
+                        : AppLocalizations.of(context)!['dashboard']['deviceNotConnected'])
+                    : 'Requiere suscripción',
+                  statusColor: _subscriptionProvider.hasActivePlan
+                    ? (_setupStatusService.currentStatus.hasDevice ? Colors.green : Colors.red)
+                    : Colors.orange,
+                  icon: _subscriptionProvider.hasActivePlan 
+                    ? CupertinoIcons.device_phone_portrait
+                    : CupertinoIcons.lock_fill,
+                  isConnected: _setupStatusService.currentStatus.hasDevice && _subscriptionProvider.hasActivePlan,
                   onTap: () {
                     // Verificar si tiene plan activo antes de permitir conectar un dispositivo
-                    if (SubscriptionGuard.canAccess(context, 'conexión de dispositivos')) {
-                      setState(() => _currentIndex = 3);
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(AppLocalizations.of(context)!['dashboard']['connectDeviceSnackbar']),
-                              duration: Duration(seconds: 3),
-                            ),
-                          );
-                        }
-                      });
+                    if (!_subscriptionProvider.hasActivePlan) {
+                      // Mostrar pantalla de suscripción requerida
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SubscriptionRequiredScreen(feature: 'conexión de dispositivos'),
+                        ),
+                      );
+                      return;
                     }
+                    
+                    setState(() => _currentIndex = 3);
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(AppLocalizations.of(context)!['dashboard']['connectDeviceSnackbar']),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                    });
                   },
                 ),
                 const SizedBox(height: 16),

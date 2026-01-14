@@ -59,8 +59,14 @@ class SubscriptionProvider extends ChangeNotifier {
         debugPrint('✅ SubscriptionProvider: Plan obtenido - ${_currentPlan!.plan_details?.title ?? "Plan Desconocido"}');
       } else {
         _currentPlan = null;
-        _error = response.message;
-        debugPrint('⚠️ SubscriptionProvider: ${response.message}');
+        // Verificar si es un mensaje de 'no tiene suscripción' y tratarlo como estado normal
+        if (response.message.contains('No tienes ninguna suscripción')) {
+          _error = null; // No establecer como error
+          debugPrint('ℹ️ SubscriptionProvider: Usuario sin plan - estado normal');
+        } else {
+          _error = response.message;
+          debugPrint('⚠️ SubscriptionProvider: ${response.message}');
+        }
       }
     } catch (e) {
       _currentPlan = null;

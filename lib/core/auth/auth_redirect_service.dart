@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:genius_hormo/app/route_names.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/providers/subscription_provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,6 +16,7 @@ class AuthRedirectService {
   AuthRedirectService._internal();
 
   final UserStorageService _userStorageService = GetIt.instance<UserStorageService>();
+  final SubscriptionProvider _subscriptionProvider = GetIt.instance<SubscriptionProvider>();
 
   /// Determinar si una ruta es pública
   bool _isPublicRoute(String location) {
@@ -31,6 +33,12 @@ class AuthRedirectService {
         location == privateRoutes.stats ||
         location == privateRoutes.store ||
         location == privateRoutes.settings;
+  }
+  
+  /// Determinar si una ruta requiere suscripción activa
+  bool _requiresSubscription(String location) {
+    return location == privateRoutes.dashboard ||
+        location == privateRoutes.stats;
   }
 
   /// Lógica principal de redirect
@@ -86,6 +94,10 @@ class AuthRedirectService {
         debugPrint('✅ Usuario autenticado en ruta de auth → Redirigiendo a dashboard');
         return privateRoutes.dashboard;
       }
+      
+      // NOTA: Ya no redirigimos a Settings cuando no hay plan activo
+      // En su lugar, Dashboard y Stats muestran sus propios headers informativos
+      // cuando el usuario no tiene dispositivo conectado o plan activo
 
       // CASO 3: Usuario autenticado en la página de inicio → redirigir a dashboard
       if (hasToken && currentLocation == publicRoutes.home) {

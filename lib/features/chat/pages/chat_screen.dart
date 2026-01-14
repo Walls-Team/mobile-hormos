@@ -4,6 +4,7 @@ import 'package:genius_hormo/features/chat/services/noa_bot_service.dart';
 import 'package:get_it/get_it.dart';
 import '../models/chat_message.dart';
 import '../widgets/chat_bubble.dart';
+import '../widgets/loading_indicator.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -17,14 +18,16 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isTyping = false;
+  bool _isLoadingHistory = true;
   final NoaBotService _noaBotService = NoaBotService();
   String? _userName;
+  String? _threadId;
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
-    _addWelcomeMessage();
+    _loadChatHistory();
   }
   
   Future<void> _loadUserName() async {
@@ -42,16 +45,78 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _addWelcomeMessage() {
+    // Solo añadir mensaje de bienvenida si no hay mensajes en el historial
+    if (_messages.isEmpty) {
+      setState(() {
+        _messages.add(
+          ChatMessage(
+            id: '1',
+            text: '¡Hola! 👋 Soy Noa, tu asistente de Genius Hormo. ¿En qué puedo ayudarte hoy?',
+            isUser: false,
+            timestamp: DateTime.now(),
+          ),
+        );
+      });
+    }
+    _scrollToBottom();
+  }
+  
+  Future<void> _loadChatHistory() async {
     setState(() {
-      _messages.add(
-        ChatMessage(
-          id: '1',
-          text: '¡Hola! 👋 Soy Noa, tu asistente de Genius Hormo. ¿En qué puedo ayudarte hoy?',
-          isUser: false,
-          timestamp: DateTime.now(),
-        ),
-      );
+      _isLoadingHistory = true;
     });
+    
+    try {
+      final response = await _noaBotService.getChatHistory();
+      
+      if (!mounted) return;
+      
+      if (response.success && response.data != null) {
+        final historyMessages = response.data!;
+        
+        // Si hay mensajes en el historial, convertirlos al formato del chat
+        if (historyMessages.isNotEmpty) {
+          setState(() {
+            _messages.clear(); // Limpiar mensajes existentes
+            
+            // Convertir mensajes del historial al formato del chat
+            for (final msg in historyMessages) {
+              _messages.add(
+                ChatMessage(
+                  id: msg.id,
+                  text: msg.content,
+                  isUser: msg.isUser,
+                  timestamp: msg.createdAt,
+                ),
+              );
+            }
+            
+            // Si hay un thread_id en el primer mensaje, guardarlo
+            if (historyMessages.isNotEmpty) {
+              _threadId = historyMessages.first.id;
+            }
+          });
+        } else {
+          // Si no hay historial, mostrar mensaje de bienvenida
+          _addWelcomeMessage();
+        }
+      } else {
+        // Si hay error al cargar el historial, mostrar mensaje de bienvenida
+        _addWelcomeMessage();
+        debugPrint('Error cargando historial: ${response.message}');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _addWelcomeMessage();
+      debugPrint('Error en _loadChatHistory: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingHistory = false;
+        });
+        _scrollToBottom();
+      }
+    }
   }
 
   void _sendMessage() {
@@ -97,7 +162,17 @@ class _ChatScreenState extends State<ChatScreen> {
         message: userText,
         userName: _userName,
         type: 'text',
+        threadId: _threadId, // Usar threadId para mantener el contexto de la conversación
       );
+      
+      // Si es un nuevo thread, guardar el ID
+      if (response.success && response.data != null && _threadId == null) {
+        // En la primera respuesta, guardar threadId para futuras conversaciones
+        setState(() {
+          // El threadId se genera en el servidor, podríamos extraerlo de la respuesta si se incluye
+          _threadId = DateTime.now().millisecondsSinceEpoch.toString();
+        });
+      }
 
       if (!mounted) return;
 
@@ -223,14 +298,16 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return ChatBubble(message: _messages[index]);
-              },
-            ),
+            child: _isLoadingHistory 
+              ? const LoadingIndicator(message: 'Cargando conversación...') 
+              : ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    return ChatBubble(message: _messages[index]);
+                  },
+                ),
           ),
           Container(
             decoration: BoxDecoration(

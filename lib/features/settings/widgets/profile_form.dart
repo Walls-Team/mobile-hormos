@@ -331,11 +331,13 @@ class _UserProfileFormState extends State<UserProfileForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+    return Material(
+      color: Colors.transparent,
+      child: Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 10.0,
           children: [
@@ -619,7 +621,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          error ?? 'No tienes ningún plan contratado actualmente.',
+                          'No tienes ningún plan contratado actualmente.',
                           style: TextStyle(color: Colors.white70),
                         ),
                         SizedBox(height: 16),
@@ -627,11 +629,18 @@ class _UserProfileFormState extends State<UserProfileForm> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => PlansScreen(),
-                                ),
-                              );
+                              // Usar pushReplacement para evitar problemas con el navigator lock
+                              try {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => PlansScreen(),
+                                  ),
+                                ).catchError((error) {
+                                  debugPrint('Error al navegar a PlansScreen: $error');
+                                });
+                              } catch (e) {
+                                debugPrint('Error al intentar navegar: $e');
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFEDE954),
@@ -851,6 +860,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
             const LanguageSelector(),
           ],
         ),
+      ),
       ),
     );
   }

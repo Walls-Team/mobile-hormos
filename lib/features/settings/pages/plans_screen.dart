@@ -33,6 +33,8 @@ class _PlansScreenState extends State<PlansScreen> {
   }
   
   Future<void> _loadPlans() async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
       _error = null;
@@ -42,6 +44,7 @@ class _PlansScreenState extends State<PlansScreen> {
       final token = await _userStorageService.getJWTToken();
       
       if (token == null || token.isEmpty) {
+        if (!mounted) return;
         setState(() {
           _error = 'No se pudo obtener el token de autenticación';
           _isLoading = false;
@@ -51,6 +54,8 @@ class _PlansScreenState extends State<PlansScreen> {
       
       final response = await _plansApiService.getPlans(authToken: token);
       
+      if (!mounted) return;
+      
       if (response.success && response.data != null) {
         setState(() {
           _plans = response.data!.plans;
@@ -58,15 +63,23 @@ class _PlansScreenState extends State<PlansScreen> {
         });
       } else {
         setState(() {
-          _error = response.error ?? 'Error desconocido';
+          // Si no hay planes, mostramos un mensaje más amigable
+          if (response.message.contains('No tienes') || 
+              response.error?.contains('No tienes') == true) {
+            _error = 'No hay planes disponibles en este momento';
+          } else {
+            _error = response.error ?? 'Error desconocido';
+          }
           _isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = 'Error al cargar planes';
         _isLoading = false;
       });
+      debugPrint('Error en _loadPlans: $e');
     }
   }
   

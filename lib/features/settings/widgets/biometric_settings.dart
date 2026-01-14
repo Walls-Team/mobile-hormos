@@ -184,10 +184,13 @@ class _BiometricSettingsState extends State<BiometricSettings> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const ListTile(
-        leading: Icon(Icons.fingerprint),
-        title: Text('Cargando...'),
-        trailing: CircularProgressIndicator(),
+      return Material(
+        color: Colors.transparent,
+        child: const ListTile(
+          leading: Icon(Icons.fingerprint),
+          title: Text('Cargando...'),
+          trailing: CircularProgressIndicator(),
+        ),
       );
     }
     
@@ -195,7 +198,9 @@ class _BiometricSettingsState extends State<BiometricSettings> {
       return const SizedBox.shrink(); // No mostrar si no está disponible
     }
     
-    return SwitchListTile(
+    return Material(
+      color: Colors.transparent,
+      child: SwitchListTile(
       secondary: Icon(
         _biometricType.contains('Face') ? Icons.face : Icons.fingerprint,
         color: _isEnabled ? Colors.blue : Colors.grey,
@@ -208,6 +213,7 @@ class _BiometricSettingsState extends State<BiometricSettings> {
       ),
       value: _isEnabled,
       onChanged: _toggleBiometric,
+      ),
     );
   }
 }
