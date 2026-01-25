@@ -228,7 +228,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // El método _shouldShowAppBar ya está definido más abajo
 
   PreferredSizeWidget? _buildAppBar(BuildContext context, LocalNotificationsService notificationService) {
-    if (!_shouldShowAppBar(_currentIndex) || (!_isSetupComplete && _currentIndex != 2)) {
+    // No mostrar AppBar si no es una de las tabs que lo requieren
+    if (!_shouldShowAppBar(_currentIndex)) {
+      return null;
+    }
+
+    // Store (índice 2) siempre muestra el AppBar
+    // Dashboard (0) y Stats (1) muestran el AppBar solo si hay plan activo
+    if (_currentIndex != 2 && !_subscriptionProvider.hasActivePlan) {
       return null;
     }
 
