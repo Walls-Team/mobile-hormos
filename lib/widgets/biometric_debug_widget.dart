@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/services/biometric_auth_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Widget de debugging para verificar el estado de la biometría
@@ -39,7 +40,7 @@ class _BiometricDebugWidgetState extends State<BiometricDebugWidget> {
       final isEnabled = await _biometricService.isBiometricEnabled();
       final isAvailable = await _biometricService.isBiometricAvailable();
       final email = await _biometricService.getSavedEmail();
-      final biometricType = await _biometricService.getBiometricTypeMessage();
+      final biometricType = await _biometricService.getBiometricTypeMessage(context);
       
       setState(() {
         _debugInfo = {
@@ -90,18 +91,18 @@ class _BiometricDebugWidgetState extends State<BiometricDebugWidget> {
     return AlertDialog(
       title: Row(
         children: [
-          Icon(Icons.bug_report, color: Colors.orange),
-          SizedBox(width: 8),
-          Text('Debug: Face ID'),
+          const Icon(Icons.bug_report, color: Colors.orange),
+          const SizedBox(width: 8),
+          Text(AppLocalizations.of(context)!['debug']['title']),
         ],
       ),
       content: _isLoading
           ? Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Verificando estado...'),
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(AppLocalizations.of(context)!['debug']['verifyingStatus']),
               ],
             )
           : SingleChildScrollView(
@@ -161,13 +162,13 @@ class _BiometricDebugWidgetState extends State<BiometricDebugWidget> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cerrar'),
+          child: Text(AppLocalizations.of(context)!['debug']['close']),
         ),
         ElevatedButton(
           onPressed: () {
             _loadDebugInfo();
           },
-          child: Text('Recargar'),
+          child: Text(AppLocalizations.of(context)!['debug']['reload']),
         ),
       ],
     );

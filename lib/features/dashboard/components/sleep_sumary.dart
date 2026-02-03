@@ -32,8 +32,8 @@ class SleepSummaryChart extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  'Summary',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  localizations['dashboard']['summary'] ?? 'Summary',
+                  style: TextStyle(fontSize: MediaQuery.of(context).size.width < 360 ? 20 : 24, fontWeight: FontWeight.bold),
                 ),
 
                 Text(localizations['dashboardScreen']['sleepScoreEfficiency']),
@@ -53,9 +53,9 @@ class SleepSummaryChart extends StatelessWidget {
                       widget: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
-                            'Duration',
-                            style: TextStyle(fontSize: 12),
+                          Text(
+                            localizations['dashboard']['duration'] ?? 'Duration',
+                            style: const TextStyle(fontSize: 12),
                           ),
                           Text(
                             '${duration.toStringAsFixed(0)}h',
@@ -96,14 +96,16 @@ class SleepSummaryChart extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStatItem(
-                      'Duration',
+                      context,
+                      'duration',
                       '${duration.toStringAsFixed(1)}h',
                     ),
                     const SizedBox(height: 12),
-                    _buildStatItem('Interruptions', '$interruptions'),
+                    _buildStatItem(context, 'interruptions', '$interruptions'),
                     const SizedBox(height: 12),
                     _buildStatItem(
-                      'Efficiency',
+                      context,
+                      'efficiency',
                       '${efficiency.toStringAsFixed(0)}%',
                     ),
                     const SizedBox(height: 12),
@@ -119,9 +121,19 @@ class SleepSummaryChart extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
 
-                      child: _buildStatItem(
-                        'Sleep Score',
-                        '${sleepScore.toStringAsFixed(0)}%',
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            localizations['dashboard']['sleepScore'] ?? 'Sleep Score',
+                            style: const TextStyle(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '${sleepScore.toStringAsFixed(0)}%',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -138,11 +150,13 @@ class SleepSummaryChart extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String title, String value) {
+  Widget _buildStatItem(BuildContext context, String title, String value) {
+    final localizations = AppLocalizations.of(context)!;
+    String translatedTitle = localizations['dashboard'][title.toLowerCase()] ?? title;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(fontSize: 14)),
+        Text(translatedTitle, style: const TextStyle(fontSize: 14)),
         Text(
           value,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

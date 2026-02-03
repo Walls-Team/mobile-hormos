@@ -22,7 +22,7 @@ class RemChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'REM',
+                localizations['dashboard']['rem'] ?? 'REM',
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -69,7 +69,7 @@ class RemChart extends StatelessWidget {
                   enable: true,
                   activationMode: ActivationMode.singleTap,
                   tooltipDisplayMode: TrackballDisplayMode.nearestPoint,
-                  tooltipSettings: const InteractiveTooltip(
+                  tooltipSettings: InteractiveTooltip(
                     enable: true,
                     format: 'point.x\n REM duration: point.y',
                     color: Colors.black,

@@ -41,11 +41,18 @@ class UserProfileData {
       final username = json['username']?.toString() ?? json['name']?.toString() ?? 'unknown';
       final email = json['email']?.toString();
       
-      debugPrint('📝 Parseando height: ${json['height']} (tipo: ${json['height'].runtimeType})');
-      final height = json['height'] != null ? double.tryParse(json['height'].toString()) : null;
+      debugPrint('📝 Parseando height: ${json['height']} (tipo: ${json['height']?.runtimeType})');
+      // Altura viene como string "70.00" en PULGADAS desde el backend
+      final heightStr = json['height']?.toString();
+      // IMPORTANTE: Guardamos la altura directamente en PULGADAS
+      final height = heightStr != null ? double.tryParse(heightStr) : null;
+      debugPrint('   → Altura parseada y guardada en PULGADAS: $height');
       
-      debugPrint('📝 Parseando weight: ${json['weight']} (tipo: ${json['weight'].runtimeType})');
-      final weight = json['weight'] != null ? double.tryParse(json['weight'].toString()) : null;
+      debugPrint('📝 Parseando weight: ${json['weight']} (tipo: ${json['weight']?.runtimeType})');
+      // Peso viene como string "40.00" en libras desde el backend
+      final weightStr = json['weight']?.toString();
+      final weight = weightStr != null ? double.tryParse(weightStr) : null;
+      debugPrint('   → Peso parseado: $weight libras');
       
       final language = json['language']?.toString() ?? 'es';
       final avatar = json['avatar']?.toString();
@@ -95,12 +102,32 @@ class UserProfileData {
 
   // Método toJson para convertir la instancia a Map
   Map<String, dynamic> toJson() {
+    debugPrint('\n📦 Converting UserProfileData to JSON...');
+    debugPrint('  Height value: $height (type: ${height.runtimeType})');
+    debugPrint('  Weight value: $weight (type: ${weight.runtimeType})');
+    
+    // Backend requiere altura y peso como strings en unidades imperiales
+    // Altura en PULGADAS ("70.00") y peso en libras ("150.00")
+    
+    // IMPORTANTE: El valor de height ya viene en PULGADAS, no en pies
+    // Por lo que solo necesitamos convertirlo a string con formato
+    final heightStr = (height ?? 0.0).toStringAsFixed(2);
+    
+    // El peso ya está en libras
+    final weightStr = weight?.toStringAsFixed(2) ?? "0.00";
+    
+    debugPrint('   → Enviando altura: $height pulgadas ("$heightStr")');
+    debugPrint('   → Enviando peso: $weight libras ("$weightStr")');
+    
+    debugPrint('  Height string: $heightStr pulgadas');
+    debugPrint('  Weight string: $weightStr lbs');
+    
     return {
       'id': id,
       'username': username,
       'email': email,
-      'height': height,
-      'weight': weight,
+      'height': heightStr,
+      'weight': weightStr,
       'language': language,
       'avatar': avatar,
       'birth_date': birthDate,

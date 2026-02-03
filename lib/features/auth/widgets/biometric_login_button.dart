@@ -56,7 +56,7 @@ class _BiometricLoginButtonState extends State<BiometricLoginButton> {
     final email = await _biometricService.getSavedEmail();
     debugPrint('   Email guardado: ${email ?? "null"}');
     
-    final type = await _biometricService.getBiometricTypeMessage();
+    final type = await _biometricService.getBiometricTypeMessage(context);
     debugPrint('   Tipo de biometría: $type');
     
     final willShow = isEnabled && email != null;
@@ -78,8 +78,9 @@ class _BiometricLoginButtonState extends State<BiometricLoginButton> {
     
     try {
       // Intentar login biométrico
+      final localizations = AppLocalizations.of(context)!;
       final credentials = await _biometricService.quickLoginWithBiometric(
-        localizedReason: 'Autentíquese para iniciar sesión',
+        localizedReason: localizations['biometric']['authenticateToLogin'],
       );
       
       if (credentials == null) {
@@ -124,9 +125,10 @@ class _BiometricLoginButtonState extends State<BiometricLoginButton> {
       } else {
         debugPrint('❌ Login biométrico falló: ${loginResponse.error}');
         if (mounted) {
+          final localizations = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(loginResponse.error ?? 'Error al iniciar sesión'),
+              content: Text(loginResponse.error ?? localizations['biometric']['loginError']),
               backgroundColor: Colors.red,
             ),
           );
@@ -135,9 +137,10 @@ class _BiometricLoginButtonState extends State<BiometricLoginButton> {
     } catch (e) {
       debugPrint('❌ Error en login biométrico: $e');
       if (mounted) {
+        final localizations = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('${localizations['biometric']['error']}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -187,7 +190,7 @@ class _BiometricLoginButtonState extends State<BiometricLoginButton> {
             label: Text(
               _isLoading
                   ? 'Autenticando...'
-                  : 'Continuar con $_biometricType',
+                  : '$_biometricType',
               style: const TextStyle(fontSize: 16),
             ),
             style: OutlinedButton.styleFrom(

@@ -6,6 +6,7 @@ import 'package:genius_hormo/features/settings/models/plan.dart';
 import 'package:genius_hormo/features/settings/models/stripe_checkout_response.dart';
 import 'package:genius_hormo/features/settings/services/plans_api_service.dart';
 import 'package:genius_hormo/features/settings/services/stripe_api_service.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 
 class PlansScreen extends StatefulWidget {
@@ -192,22 +193,22 @@ class _PlansScreenState extends State<PlansScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Color(0xFF1C1D23),
-        title: Text('Confirmar suscripción', style: TextStyle(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!['plans']['confirmSubscription'], style: TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '¿Deseas suscribirte al plan ${plan.plan_details?.title ?? "Plan"}?',
+              '${AppLocalizations.of(context)!['common']['subscribe']} ${plan.plan_details?.title ?? "Plan"}?',
               style: TextStyle(color: Colors.white),
             ),
             SizedBox(height: 8),
             Text(
-              'Precio: ${plan.plan_details?.price ?? "0.00"}',
+              '${AppLocalizations.of(context)!['common']['price']}: ${plan.plan_details?.price ?? "0.00"}',
               style: TextStyle(color: Colors.white70),
             ),
             Text(
-              'Duración: ${plan.plan_details?.days ?? 30} días',
+              '${AppLocalizations.of(context)!['common']['duration']}: ${plan.plan_details?.days ?? 30} ${AppLocalizations.of(context)!['common']['days']}',
               style: TextStyle(color: Colors.white70),
             ),
           ],
@@ -215,7 +216,7 @@ class _PlansScreenState extends State<PlansScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancelar', style: TextStyle(color: Colors.grey)),
+            child: Text(AppLocalizations.of(context)!['plans']['cancel'], style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -223,7 +224,7 @@ class _PlansScreenState extends State<PlansScreen> {
               backgroundColor: Color(0xFFEDE954),
               foregroundColor: Colors.black,
             ),
-            child: Text('Confirmar'),
+            child: Text(AppLocalizations.of(context)!['plans']['confirm']),
           ),
         ],
       ),
@@ -245,7 +246,7 @@ class _PlansScreenState extends State<PlansScreen> {
               CircularProgressIndicator(color: Color(0xFFEDE954)),
               SizedBox(height: 16),
               Text(
-                'Procesando pago...',
+                AppLocalizations.of(context)!['plans']['processingPayment'],
                 style: TextStyle(color: Colors.white),
               ),
             ],
@@ -268,13 +269,13 @@ class _PlansScreenState extends State<PlansScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Color(0xFF1C1D23),
-        title: Text('Error', style: TextStyle(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!['plans']['error'], style: TextStyle(color: Colors.white)),
         content: Text(errorMessage, style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             style: TextButton.styleFrom(foregroundColor: Color(0xFFEDE954)),
-            child: Text('Aceptar'),
+            child: Text(AppLocalizations.of(context)!['plans']['accept']),
           ),
         ],
       ),
@@ -287,7 +288,7 @@ class _PlansScreenState extends State<PlansScreen> {
     return Scaffold(
       backgroundColor: Color(0xFF1C1D23),
       appBar: AppBar(
-        title: Text('Planes'),
+        title: Text(AppLocalizations.of(context)!['plans']['title']),
         backgroundColor: Color(0xFF1C1D23),
       ),
       body: _buildBody(),
@@ -322,7 +323,7 @@ class _PlansScreenState extends State<PlansScreen> {
                 backgroundColor: Color(0xFFEDE954),
                 foregroundColor: Colors.black,
               ),
-              child: Text('Reintentar'),
+              child: Text(AppLocalizations.of(context)!['plans']['retryButton']),
             ),
           ],
         ),
@@ -330,9 +331,9 @@ class _PlansScreenState extends State<PlansScreen> {
     }
     
     if (_plans == null || _plans!.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'No hay planes disponibles',
+          AppLocalizations.of(context)!['plans']['noPlansAvailable'],
           style: TextStyle(color: Colors.white),
         ),
       );
@@ -373,7 +374,7 @@ class _PlansScreenState extends State<PlansScreen> {
                         ),
                       ),
                       child: Text(
-                        'Suscribirse',
+                        AppLocalizations.of(context)!['plans']['subscribe'],
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),

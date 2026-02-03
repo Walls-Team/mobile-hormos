@@ -14,6 +14,10 @@ const Map<String, dynamic> en = {
     'cancel': 'Cancel',
     'select': 'Select',
     'close': 'Close',
+    'subscribe': 'Subscribe to',
+    'price': 'Price',
+    'duration': 'Duration',
+    'days': 'days',
   },
   'auth': {
     'login': 'Log in',
@@ -81,7 +85,8 @@ const Map<String, dynamic> en = {
       'resendSuccess': 'Code resent successfully',
       'resendError': 'Error resending code',
       'verifiedTitle': 'You\'re ready to go',
-      'verifiedMessage': 'Email successfully verified.\nYou\'re all set to continue.',
+      'verifiedMessage':
+          'Email successfully verified.\nYou\'re all set to continue.',
     },
     'resetPassword': {
       'forgotPasswordTitle': 'Forgot Password',
@@ -113,7 +118,8 @@ const Map<String, dynamic> en = {
       'resetError': 'Error resetting password',
       'resetSuccess': '🎉 Password changed successfully!',
       'successTitle': 'Password Changed!',
-      'successMessage': 'Your password has been successfully changed.\nYou can now login with your new password.',
+      'successMessage':
+          'Your password has been successfully changed.\nYou can now login with your new password.',
       'goToLogin': 'Go to Login',
     },
   },
@@ -149,6 +155,26 @@ const Map<String, dynamic> en = {
     'settings': 'Settings',
     'stats': 'Stats',
     'store': 'Store',
+    'rem': 'REM',
+    'remDuration': 'REM Duration',
+    'sleepEfficiency': 'Sleep\nEfficiency',
+    'sleepDuration': 'Sleep\nDuration',
+    'hrvRmssd': 'HRV\nRMSSD',
+    'testosteroneEstimate': 'Testosterone Estimate',
+    'lastUpdated': 'Last updated',
+    'lowestLevel': 'Lowest Level',
+    'weeklyAverage': 'Weekly Average',
+    'highestLevel': 'Highest Level',
+    'currentLevel': 'Current Level',
+    'sleepInterruptions': 'Sleep Interruptions',
+    'avg': 'Avg',
+    'interruptions': 'Interruptions',
+    'ofGoalAchieved': 'of goal achieved',
+    'summary': 'Summary',
+    'duration': 'Duration',
+    'efficiency': 'Efficiency',
+    'sleepScore': 'Sleep Score',
+    'medicalDisclaimer': 'This is not a medical diagnosis. For accurate results, please consult your doctor or a certified laboratory.',
     'configurationSetup': 'Configuration Setup',
     'completeAllSteps': 'Complete all steps to access the dashboard',
     'device': 'Device',
@@ -160,18 +186,24 @@ const Map<String, dynamic> en = {
     'labTest': 'Take a lab test',
     'selectLab': 'Select a laboratory',
     'noNotifications': 'No notifications',
-    'noNotificationsDesc': 'Notifications will appear here when there are important updates',
-    'completeProfile': 'Complete your profile to get personalized recommendations',
-    'completeProfileToSee': 'Complete your profile to see your health statistics',
+    'noNotificationsDesc':
+        'Notifications will appear here when there are important updates',
+    'completeProfile':
+        'Complete your profile to get personalized recommendations',
+    'completeProfileToSee':
+        'Complete your profile to see your health statistics',
     'setupIncomplete': 'Setup Incomplete',
-    'setupIncompleteDesc': 'Complete your profile and connect a device to access Stats',
+    'setupIncompleteDesc':
+        'Complete your profile and connect a device to access Stats',
     'backToSetup': 'Back to Setup',
     'connectDevice': 'Connect Device',
-    'connectDeviceSnackbar': '📱 Tap "Connect Device" button to link your device',
+    'connectDeviceSnackbar':
+        '📱 Tap "Connect Device" button to link your device',
     'other': 'Other',
     'loadingHealthData': 'Loading your health data...',
     'testosteroneStatus': 'Status',
-    'testosteroneInfo': 'Testosterone levels vary by age. This indicator shows your current level compared to the normal range for your age group.',
+    'testosteroneInfo':
+        'Testosterone levels vary by age. This indicator shows your current level compared to the normal range for your age group.',
     'testosteroneLevel': {
       'verylow': 'Very Low',
       'low': 'Low',
@@ -184,7 +216,8 @@ const Map<String, dynamic> en = {
   'charts': {
     'testosteroneLevels': 'Testosterone Levels',
     'testosteroneTable': 'Testosterone Reference Values',
-    'testosteroneTableNote': 'This table shows the reference values for testosterone based on your age group. Your current value is highlighted.',
+    'testosteroneTableNote':
+        'This table shows the reference values for testosterone based on your age group. Your current value is highlighted.',
     'ageRange': 'Age Range',
     'years': 'years',
     'healthStats': 'Health Statistics',
@@ -198,7 +231,8 @@ const Map<String, dynamic> en = {
     'caloriesTotal': 'Total Calories',
     'activeCalories': 'Active Calories',
     'testosterone': 'Testosterone',
-    'testosteroneAnalyzing': 'Your data is being analyzed. We will have your testosterone levels in one day.',
+    'testosteroneAnalyzing':
+        'Your data is being analyzed. We will have your testosterone levels in one day.',
     'intervals': {
       'halfDay': '12 hours',
       'day': '1 day',
@@ -229,19 +263,15 @@ const Map<String, dynamic> en = {
     'whoopConnected': 'Connected to Whoop',
     'whoopDisconnect': 'Disconnect Whoop',
     'changeDevice': 'Change or add another device',
+    'provider': 'Provider',
     'user': 'Username',
     'email': 'Email',
     'password': 'Password',
     'changePassword': 'Change Password',
     'gender': 'Gender',
     'faqs': 'FAQs',
-    'appSettings': {
-      'language': 'Language',
-    },
-    'connections': {
-      'title': 'Connections',
-      'selectDevice': 'Select a device',
-    },
+    'appSettings': {'language': 'Language'},
+    'connections': {'title': 'Connections', 'selectDevice': 'Select a device'},
     'logOut': 'Log Out',
     'logOutError': 'Failed to logout. Please try again.',
     'selectAvatar': 'Select Avatar',
@@ -269,6 +299,8 @@ const Map<String, dynamic> en = {
       'profileUpdateSuccess': 'Profile updated successfully',
       'profileUpdateError': 'Error updating profile',
       'noTokenAvailable': 'No token available',
+      'imperial': 'IMPERIAL',
+      'metric': 'METRIC',
       'pleaseComplete': 'Please complete:',
       'validationErrors': 'Validation Errors:',
       'heightRequired': 'Height is required',
@@ -283,7 +315,8 @@ const Map<String, dynamic> en = {
       'genderRequired': 'Please select a gender',
       'usernameRequired': 'Username is required',
       'completeProfileTitle': 'Complete Your Profile',
-      'completeProfileMessage': 'You need to complete your profile before connecting a device.',
+      'completeProfileMessage':
+          'You need to complete your profile before connecting a device.',
     },
     'avatarModal': {
       'title': 'Select Your Avatar',
@@ -303,7 +336,8 @@ const Map<String, dynamic> en = {
       'disconnecting': 'Disconnecting device...',
       'disconnectSuccess': 'Device disconnected successfully',
       'disconnectConfirmTitle': 'Disconnect Device',
-      'disconnectConfirmMessage': 'Are you sure you want to disconnect your device? You will need to reconnect it to sync data.',
+      'disconnectConfirmMessage':
+          'Are you sure you want to disconnect your device? You will need to reconnect it to sync data.',
       'disconnect': 'Disconnect',
       'errorDisconnecting': 'Error disconnecting device',
       'noSpikeId': 'No spike ID available',
@@ -359,68 +393,85 @@ const Map<String, dynamic> en = {
       },
       'healthConditions': {
         'title': 'Other health conditions',
-        'subtitle': 'Do you have any other conditions (e.g., diabetes, varicocele)?',
+        'subtitle':
+            'Do you have any other conditions (e.g., diabetes, varicocele)?',
       },
     },
   },
   'errors': {
     'connectionTitle': 'Connection Error',
-    'connectionMessage': 'We couldn\'t load your health data. Please try again later.',
-    'profileLoadError': 'We couldn\'t load your profile. Please try again later.',
+    'connectionMessage':
+        'We couldn\'t load your health data. Please try again later.',
+    'profileLoadError':
+        'We couldn\'t load your profile. Please try again later.',
     'retry': 'Try Again',
   },
   'loading': {
     'synchronizing': 'Synchronizing the data',
-    'preparingData': 'We are preparing all the data with your next recent statistics',
+    'preparingData':
+        'We are preparing all the data with your next recent statistics',
   },
   'device': {
     'connection': {
       'synchronizing': 'Connecting device',
-      'synchronizingDescription': 'Please wait while we establish the connection with your device. This may take a few moments.',
+      'synchronizingDescription':
+          'Please wait while we establish the connection with your device. This may take a few moments.',
       'processing': 'Processing connection',
-      'processingDescription': 'We are verifying the connection with your device.',
+      'processingDescription':
+          'We are verifying the connection with your device.',
       'success': 'Device connected successfully',
-      'successDescription': 'Your device has been connected and is ready to sync your health data.',
+      'successDescription':
+          'Your device has been connected and is ready to sync your health data.',
       'error': 'Connection failed',
       'errorDescription': 'We couldn\'t connect your device. Please try again.',
       'redirecting': 'Redirecting to dashboard...',
-      'maxRetriesReached': 'Maximum connection attempts reached. Please try again later.',
+      'maxRetriesReached':
+          'Maximum connection attempts reached. Please try again later.',
       'failed': 'Connection failed. Please try again.',
       'resultsError': 'Error retrieving connection results.',
       'statusError': 'Error checking connection status.',
       'initError': 'Error starting device connection.',
       'disconnected': 'Device disconnected successfully',
       'disconnectError': 'Could not disconnect device. Please try again.',
-      'disconnectMaxRetries': 'Could not verify disconnection after 3 attempts. Please check your connection.',
+      'disconnectMaxRetries':
+          'Could not verify disconnection after 3 attempts. Please check your connection.',
       'noDeviceConnected': 'No device connected',
-      'tryAgain': 'Please try again or contact support if the problem persists.',
+      'tryAgain':
+          'Please try again or contact support if the problem persists.',
     },
   },
   'store': {
     'title': 'Store',
     'subtitle': 'These are some of the partners we work with',
     'externalLinkTitle': 'You\'re about to leave our app.',
-    'externalLinkMessage': 'You will be redirected to an external website that we do not control. There, you can complete your purchase or learn more from our partner.',
+    'externalLinkMessage':
+        'You will be redirected to an external website that we do not control. There, you can complete your purchase or learn more from our partner.',
     'continue': 'Continue',
+    'cannotOpenLink': 'Cannot open link',
     'vitamins': {
       'title': 'Vitamins',
-      'description': 'The partner offers high-quality vitamins and supplements designed to support your daily health. From multivitamins to specialized formulas, you can better understand what your body needs and improve your overall well-being.',
+      'description':
+          'The partner offers high-quality vitamins and supplements designed to support your daily health. From multivitamins to specialized formulas, you can better understand what your body needs and improve your overall well-being.',
     },
     'whoop': {
       'title': 'Whoop',
-      'description': 'With WHOOP, you can track your heart rate, personalized for your individual baseline and goals. Understand the impact of your behaviors on your sleep and recovery. Analyze your workouts to optimize your training.',
+      'description':
+          'With WHOOP, you can track your heart rate, personalized for your individual baseline and goals. Understand the impact of your behaviors on your sleep and recovery. Analyze your workouts to optimize your training.',
     },
     'labsSorio': {
       'title': 'Labs sorio',
-      'description': 'Labs sorio offers professional lab testing to give you a clear picture of your nutritional health. With accurate, science-based results, you can better understand what your body needs and improve your overall well-being.',
+      'description':
+          'Labs sorio offers professional lab testing to give you a clear picture of your nutritional health. With accurate, science-based results, you can better understand what your body needs and improve your overall well-being.',
     },
     'muse': {
       'title': 'Muse',
-      'description': 'Muse is a brain-sensing headband that helps you meditate better throughout the day. By monitoring your mental state, Muse sends you real-time innovations. It helps you understand your self state.',
+      'description':
+          'Muse is a brain-sensing headband that helps you meditate better throughout the day. By monitoring your mental state, Muse sends you real-time innovations. It helps you understand your self state.',
     },
     'labcorp': {
       'title': 'LabCorp',
-      'description': 'LabCorp is one of the largest clinical laboratory networks in the world. Get comprehensive lab testing services including hormone panels, blood work, and health screenings with accurate, reliable results.',
+      'description':
+          'LabCorp is one of the largest clinical laboratory networks in the world. Get comprehensive lab testing services including hormone panels, blood work, and health screenings with accurate, reliable results.',
     },
   },
   'changePassword': {
@@ -435,19 +486,23 @@ const Map<String, dynamic> en = {
       'hasUppercase': 'Include at least one uppercase letter (A-Z)',
       'hasLowercase': 'Include at least one lowercase letter (a-z)',
       'hasNumber': 'Include at least one number (0-9)',
-      'hasSpecialChar': 'Include at least one special character (e.g., !, @, #, \$, %, ^, &, *)',
-      'noSpaces': 'Avoid using personal information like your name or birthdate',
+      'hasSpecialChar':
+          'Include at least one special character (e.g., !, @, #, \$, %, ^, &, *)',
+      'noSpaces':
+          'Avoid using personal information like your name or birthdate',
     },
     'change': 'Change',
     'passwordMismatch': 'Passwords do not match',
     'error': 'Error changing password',
     'successTitle': 'Password Changed Successfully',
-    'successMessage': 'Your password has been updated. You can now use it to log in securely.',
+    'successMessage':
+        'Your password has been updated. You can now use it to log in securely.',
     'continue': 'Continue',
   },
   'faqs': {
     'title': 'FAQ\'s',
-    'description': 'Here are some answers to the questions our customers ask the most. This app is not intended to provide medical advice. If you have health concerns, please consult a healthcare professional before making decisions based on the data presented here.',
+    'description':
+        'Here are some answers to the questions our customers ask the most. This app is not intended to provide medical advice. If you have health concerns, please consult a healthcare professional before making decisions based on the data presented here.',
     'questions': {
       'q1': '1. Is the app a medical tool?',
       'q2': '2. Can I use my data for medical practices?',
@@ -458,22 +513,52 @@ const Map<String, dynamic> en = {
       'q7': '7. How is my data stored and used?',
     },
     'answers': {
-      'a1': 'No, this app is not a medical tool and should not be used for diagnosis, treatment, or prevention of any health condition. It is designed for informational and tracking purposes only.',
-      'a2': 'While you can track and view your data, it should not replace professional medical advice. Always consult with a qualified healthcare provider for medical decisions.',
-      'a3': 'The measurements depend on the accuracy of your connected devices (like Whoop) and the information you provide. While we strive for accuracy, results should be considered estimates.',
-      'a4': 'This app helps you track and understand patterns in your health data. Improvements depend on your lifestyle choices, medical treatment, and other factors outside the app\'s control.',
-      'a5': 'These factors can significantly impact your testosterone levels, sleep quality, and overall health metrics. Understanding their influence helps you make informed decisions.',
-      'a6': 'Yes, you can export and share your data with healthcare professionals. However, remember that this data is for informational purposes and should complement, not replace, professional medical testing.',
-      'a7': 'Your data is encrypted and stored securely. We use it only to provide app functionality and improve your experience. We never sell your personal health information. Review our Privacy Policy for complete details.',
+      'a1':
+          'No, this app is not a medical tool and should not be used for diagnosis, treatment, or prevention of any health condition. It is designed for informational and tracking purposes only.',
+      'a2':
+          'While you can track and view your data, it should not replace professional medical advice. Always consult with a qualified healthcare provider for medical decisions.',
+      'a3':
+          'The measurements depend on the accuracy of your connected devices (like Whoop) and the information you provide. While we strive for accuracy, results should be considered estimates.',
+      'a4':
+          'This app helps you track and understand patterns in your health data. Improvements depend on your lifestyle choices, medical treatment, and other factors outside the app\'s control.',
+      'a5':
+          'These factors can significantly impact your testosterone levels, sleep quality, and overall health metrics. Understanding their influence helps you make informed decisions.',
+      'a6':
+          'Yes, you can export and share your data with healthcare professionals. However, remember that this data is for informational purposes and should complement, not replace, professional medical testing.',
+      'a7':
+          'Your data is encrypted and stored securely. We use it only to provide app functionality and improve your experience. We never sell your personal health information. Review our Privacy Policy for complete details.',
     },
   },
+  'whoop': {
+    'title': 'Whoop',
+    'description':
+        'With WHOOP, you can track your heart rate, personalized for your individual baseline and goals. Understand the impact of your behaviors on your sleep and recovery. Analyze your workouts to optimize your training.',
+  },
+  'labsSorio': {
+    'title': 'Labs sorio',
+    'description':
+        'Labs sorio offers professional lab testing to give you a clear picture of your nutritional health. With accurate, science-based results, you can better understand what your body needs and improve your overall well-being.',
+    'ngdl': 'ng/dL',
+    'remAvg': 'REM Avg',
+    'sleepScoreEfficiency': 'Sleep score and efficiency between interruption',
+  },
   'statsScreen': {
+    'recoveryNervous': 'Recov. & Nerv. System',
+    'activityContext': 'Activity & Context',
+    'sleep': 'Sleep',
+    'sleepEfficiency': 'Sleep Efficiency',
+    'sleepDuration': 'Sleep Duration',
+    'keepTesting': 'Keep testing at this intensity to maintain optimal hormonal output',
+    'hours': 'h',
+    'sleepInterruptions': 'Sleep Interruptions',
+    'spo2': 'SPO2',
+    'caloriesBurned': 'Calories Burned',
+    'kcal': 'kcal',
+    'heartrateResting': 'Heart Rate Rest.',
+    'bpm': 'bpm',
     'errorLoading': 'Error loading data',
     'retry': 'Retry',
     'couldNotLoad': 'Could not load data',
-    'sleep': 'Sleep',
-    'recoveryNervous': 'Recovery & Nervous System',
-    'activityContext': 'Activity and Context',
   },
   'dashboardScreen': {
     'errorLoading': 'Error loading data',
@@ -490,7 +575,86 @@ const Map<String, dynamic> en = {
     'description': 'when you join through our exclusive link',
     'ctaButton': 'I want my free WHOOP!',
     'notNow': 'Not now',
+    'alreadyHave': 'I already have my WHOOP',
     'linkOpening': 'Opening WHOOP link',
     'linkError': 'Cannot open link',
+  },
+  'biometric': {
+    'authenticationTitle': 'Biometric Authentication',
+    'disableTitle': 'Disable Biometrics',
+    'disableMessage': 'Are you sure you want to disable',
+    'enableTitle': 'Enable',
+    'enableMessage': 'Enter your password to enable',
+    'quickLoginEnabled': 'Quick login enabled',
+    'allowQuickLogin': 'Allow quick login',
+    'loading': 'Loading...',
+    'email': 'Email',
+    'password': 'Password',
+    'cancel': 'Cancel',
+    'continue': 'Continue',
+    'disable': 'Disable',
+    'authenticationDisabled': 'Biometric authentication disabled',
+    'enabledSuccessfully': 'enabled successfully',
+    'couldNotEnable': 'Could not enable',
+    'authenticateToLogin': 'Authenticate to login',
+    'loginError': 'Login error',
+    'faceId': 'Face ID',
+    'fingerprint': 'Fingerprint',
+    'iris': 'Iris Recognition',
+    'generic': 'Biometric Authentication',
+    'error': 'Error',
+    'enableBiometrics': 'Enable',
+    'doYouWantToEnable': 'Do you want to enable',
+    'forFasterLogin': 'for faster login in the future?',
+    'notNow': 'Not now',
+    'enable': 'Enable',
+  },
+  'notifications': {
+    'title': 'Notifications',
+    'markAllRead': 'All marked as read',
+    'deleteAll': 'Delete all',
+    'deleteAllTitle': 'Delete all',
+    'deleteAllMessage':
+        'Are you sure you want to delete all notifications? This action cannot be undone.',
+    'cancel': 'Cancel',
+    'delete': 'Delete',
+    'notificationDeleted': 'Notification deleted',
+    'allNotificationsDeleted': 'All notifications deleted',
+  },
+  'welcome': {'login': 'Log in', 'register': 'Register'},
+  'debug': {
+    'title': 'Debug: Face ID',
+    'verifyingStatus': 'Verifying status...',
+    'close': 'Close',
+    'reload': 'Reload',
+  },
+  'subscription': {'required': 'Subscription Required'},
+  'plans': {
+    'title': 'Plans',
+    'confirmSubscription': 'Confirm subscription',
+    'processingPayment': 'Processing payment...',
+    'error': 'Error',
+    'cancel': 'Cancel',
+    'confirm': 'Confirm',
+    'noPlansAvailable': 'No plans available',
+    'retryButton': 'Retry',
+    'subscribe': 'Subscribe',
+    'myPlan': 'My Plan',
+    'planFree': 'Free Plan',
+    'changePlan': 'Change Plan',
+    'daysRemaining': 'Days remaining',
+    'expires': 'Expires',
+    'active': 'ACTIVE',
+    'notActive': 'NOT ACTIVE',
+    'noPlanMessage': 'You currently have no active subscription plan.',
+    'viewPlans': 'View Plans',
+    'viewPremiumPlans': 'View Premium Plans',
+    'basicPlanDescription': 'Basic plan at no cost',
+    'loadingPlanInfo': 'Loading plan information...',
+    'accept': 'Accept',
+  },
+  'inputPlaceholders': {
+    'heightPlaceholder': "5'9\"",
+    'weightPlaceholder': '134',
   },
 };

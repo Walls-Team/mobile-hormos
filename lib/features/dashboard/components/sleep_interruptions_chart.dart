@@ -3,6 +3,7 @@ import 'package:genius_hormo/features/dashboard/components/sleep_sumary.dart';
 import 'package:genius_hormo/features/dashboard/dto/basic_metrics/sleep_record_dto.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class SleepInterruptionsChart extends StatelessWidget {
   final List<SleepRecord> data;
@@ -31,19 +32,29 @@ class SleepInterruptionsChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Sleep Interruptions',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold, // ← Texto en bold
+            Flexible(
+              flex: 3,
+              child: Text(
+                AppLocalizations.of(context)!['dashboard']['sleepInterruptions'] ?? 'Sleep Interruptions',
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width < 360 ? 16 : 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
-            Text(
-              'Avg: ${avgInterruptions.toStringAsFixed(0)}',
-
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold, // ← Texto en bold
+            const SizedBox(width: 8),
+            Flexible(
+              flex: 1,
+              child: Text(
+                '${AppLocalizations.of(context)!['dashboard']['avg'] ?? 'Avg'}: ${avgInterruptions.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],
@@ -80,9 +91,9 @@ class SleepInterruptionsChart extends StatelessWidget {
               activationMode: ActivationMode.singleTap,
               tooltipDisplayMode:
                   TrackballDisplayMode.nearestPoint, // ← Esta línea es clave
-              tooltipSettings: const InteractiveTooltip(
+              tooltipSettings: InteractiveTooltip(
                 enable: true,
-                format: 'point.x\npoint.y interruptions',
+                format: 'point.x\npoint.y ${AppLocalizations.of(context)!['dashboard']['interruptions'] ?? 'interruptions'}',
                 color: Colors.black,
                 textStyle: TextStyle(
                   color: Colors.white,

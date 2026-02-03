@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/stats/dto/dtos.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class HeartRateRestingChart extends StatelessWidget {
   final List<HeartRateRecord> data;
@@ -25,11 +26,15 @@ class HeartRateRestingChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'heartrate Resting',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                AppLocalizations.of(context)!['statsScreen']['heartrateResting'] ?? 'Heartrate Resting',
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width < 360 ? 16 : 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
             Icon(Icons.info_outline, size: 20, color: Colors.grey),
@@ -64,7 +69,7 @@ class HeartRateRestingChart extends StatelessWidget {
               enable: true,
               activationMode: ActivationMode.singleTap,
               tooltipDisplayMode: TrackballDisplayMode.nearestPoint,
-              tooltipSettings: const InteractiveTooltip(
+              tooltipSettings: InteractiveTooltip(
                 enable: true,
                 format: 'point.x\npoint.y bpm',
                 color: Colors.black,

@@ -28,6 +28,16 @@ class TestosteroneChart extends StatelessWidget {
     ];
   }
 
+  List<ChartData> _getLocalizedChartData(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    return [
+      ChartData(localizations['dashboard']['lowestLevel'] ?? 'Lowest Level', energyData.lowestLevel, Colors.green),
+      ChartData(localizations['dashboard']['weeklyAverage'] ?? 'Weekly Average', energyData.averageLevel, Colors.yellow),
+      ChartData(localizations['dashboard']['highestLevel'] ?? 'Highest Level', energyData.highestLevel, Colors.greenAccent),
+      ChartData(localizations['dashboard']['currentLevel'] ?? 'Current Level', energyData.currentLevel, Colors.cyan),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -44,17 +54,20 @@ class TestosteroneChart extends StatelessWidget {
                 Expanded(
                   flex: 3, // Ocupa 2 partes del espacio disponible
                   child: Text(
-                    'Testosterone Estimate',
+                    AppLocalizations.of(context)!['dashboard']['testosteroneEstimate'],
                     softWrap: true,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
+                      fontSize: MediaQuery.of(context).size.width < 360 ? 16 : 20,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ),
                 Expanded(
                   flex: 2, // Ocupa 1 parte del espacio disponible
                   child: Text(
-                    "Last updated:\n ${DateFormat.yMMMd().format(DateTime.parse(lastUpdated))}",
+                    "${AppLocalizations.of(context)!['dashboard']['lastUpdated']}:\n ${DateFormat.yMMMd().format(DateTime.parse(lastUpdated))}",
                     textAlign: TextAlign.right,
                     softWrap: true,
                   ),
@@ -89,7 +102,7 @@ class TestosteroneChart extends StatelessWidget {
 
                     series: <CircularSeries>[
                       RadialBarSeries<ChartData, String>(
-                        dataSource: chartData,
+                        dataSource: _getLocalizedChartData(context),
                         xValueMapper: (ChartData data, _) => data.stat,
                         yValueMapper: (ChartData data, _) => data.valor,
                         pointColorMapper: (ChartData data, _) => data.color,
@@ -105,7 +118,7 @@ class TestosteroneChart extends StatelessWidget {
                 ),
               ),
 
-              _buildChartLegend(),
+              _buildChartLegend(context),
 
               // Información flotante al lado de la barra seleccionada
             ],
@@ -114,7 +127,7 @@ class TestosteroneChart extends StatelessWidget {
           const SizedBox(height: 16),
 
           Text(
-            'This is not a medical diagnosis. For accurate results, please consult your doctor or a certified laboratory.',
+            AppLocalizations.of(context)!['dashboard']['medicalDisclaimer'],
             style: TextStyle(fontSize: 10, color: colorScheme.error),
             textAlign: TextAlign.center,
           ),
@@ -123,7 +136,8 @@ class TestosteroneChart extends StatelessWidget {
     );
   }
 
-  Widget _buildChartLegend() {
+  Widget _buildChartLegend(BuildContext context) {
+    final localizedChartData = _getLocalizedChartData(context);
     return Container(
       child: GridView.builder(
         shrinkWrap: true,
@@ -135,9 +149,9 @@ class TestosteroneChart extends StatelessWidget {
           mainAxisSpacing: 4, // Espacio vertical entre items
           childAspectRatio: 3, // Relación ancho/alto de cada item
         ),
-        itemCount: chartData.length, // Número total de items
+        itemCount: localizedChartData.length, // Número total de items
         itemBuilder: (context, index) {
-          final data = chartData[index];
+          final data = localizedChartData[index];
           return Container(
             margin: const EdgeInsets.symmetric(vertical: 2),
             child: Row(

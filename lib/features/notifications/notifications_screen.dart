@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/services/local_notifications_service.dart';
 import 'package:provider/provider.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class NotificationsScreen extends StatefulWidget {
@@ -22,7 +23,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notificaciones'),
+        title: Text(AppLocalizations.of(context)!['notifications']['title']),
         actions: [
           // Marcar todas como leídas
           Consumer<LocalNotificationsService>(
@@ -35,8 +36,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     await notificationService.markAllAsRead();
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('✅ Todas marcadas como leídas'),
+                        SnackBar(
+                          content: Text('✅ ${AppLocalizations.of(context)!['notifications']['markAllRead']}'),
                           duration: Duration(seconds: 2),
                         ),
                       );
@@ -56,13 +57,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete_all',
                 child: Row(
                   children: [
-                    Icon(Icons.delete_outline, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Eliminar todas'),
+                    const Icon(Icons.delete_outline, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)!['notifications']['deleteAll']),
                   ],
                 ),
               ),
@@ -156,9 +157,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         await service.deleteNotification(notification.id);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🗑️ Notificación eliminada'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text('🗑️ ${AppLocalizations.of(context)!['notifications']['notificationDeleted']}'),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -309,14 +310,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar todas'),
-        content: const Text(
-          '¿Estás seguro de que quieres eliminar todas las notificaciones? Esta acción no se puede deshacer.',
+        title: Text(AppLocalizations.of(context)!['notifications']['deleteAllTitle']),
+        content: Text(
+          AppLocalizations.of(context)!['notifications']['deleteAllMessage'],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text(AppLocalizations.of(context)!['notifications']['cancel']),
           ),
           TextButton(
             onPressed: () async {
@@ -328,15 +329,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               if (mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('🗑️ Todas las notificaciones eliminadas'),
-                    duration: Duration(seconds: 2),
+                  SnackBar(
+                    content: Text('🗑️ ${AppLocalizations.of(context)!['notifications']['allNotificationsDeleted']}'),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Eliminar'),
+            child: Text(AppLocalizations.of(context)!['notifications']['delete']),
           ),
         ],
       ),

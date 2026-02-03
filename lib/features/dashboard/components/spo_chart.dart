@@ -22,10 +22,7 @@ class SPO2Chart extends StatelessWidget {
                 'SPO',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              Text(
-                'Avg:',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
+              // Se eliminó el texto 'Avg:' según petición del cliente
             ],
           ),
         ),

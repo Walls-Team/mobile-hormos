@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/auth/services/biometric_auth_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class BiometricSettings extends StatefulWidget {
   final String? userEmail;
@@ -22,7 +23,7 @@ class _BiometricSettingsState extends State<BiometricSettings> {
   bool _isAvailable = false;
   bool _isEnabled = false;
   bool _isLoading = true;
-  String _biometricType = 'Autenticación biométrica';
+  String _biometricType = '';
   
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _BiometricSettingsState extends State<BiometricSettings> {
     
     final available = await _biometricService.isBiometricAvailable();
     final enabled = await _biometricService.isBiometricEnabled();
-    final type = await _biometricService.getBiometricTypeMessage();
+    final type = await _biometricService.getBiometricTypeMessage(context);
     
     if (mounted) {
       setState(() {
@@ -52,24 +53,25 @@ class _BiometricSettingsState extends State<BiometricSettings> {
   Future<void> _toggleBiometric(bool value) async {
     if (!value) {
       // Deshabilitar biometría
+      final localizations = AppLocalizations.of(context)!;
       final shouldDisable = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Deshabilitar biometría'),
+          title: Text(localizations['biometric']['disableTitle']),
           content: Text(
-            '¿Estás seguro de que deseas deshabilitar $_biometricType?',
+            '${localizations['biometric']['disableMessage']} $_biometricType?',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar'),
+              child: Text(localizations['biometric']['cancel']),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
               ),
-              child: const Text('Deshabilitar'),
+              child: Text(localizations['biometric']['disable']),
             ),
           ],
         ),
@@ -81,9 +83,10 @@ class _BiometricSettingsState extends State<BiometricSettings> {
           setState(() {
             _isEnabled = false;
           });
+          final localizations = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Autenticación biométrica deshabilitada'),
+            SnackBar(
+              content: Text(localizations['biometric']['authenticationDisabled']),
               backgroundColor: Colors.orange,
             ),
           );
@@ -97,25 +100,26 @@ class _BiometricSettingsState extends State<BiometricSettings> {
   }
   
   Future<void> _showEnableBiometricDialog() async {
+    final localizations = AppLocalizations.of(context)!;
     final emailController = TextEditingController(text: widget.userEmail ?? '');
     final passwordController = TextEditingController();
     
     final credentials = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Habilitar $_biometricType'),
+        title: Text('${localizations['biometric']['enableTitle']} $_biometricType'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Ingresa tu contraseña para habilitar $_biometricType',
+              '${localizations['biometric']['enableMessage']} $_biometricType',
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
+              decoration: InputDecoration(
+                labelText: localizations['biometric']['email'],
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
@@ -123,8 +127,8 @@ class _BiometricSettingsState extends State<BiometricSettings> {
             const SizedBox(height: 12),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Contraseña',
+              decoration: InputDecoration(
+                labelText: localizations['biometric']['password'],
                 border: OutlineInputBorder(),
               ),
               obscureText: true,
@@ -134,7 +138,7 @@ class _BiometricSettingsState extends State<BiometricSettings> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: Text(localizations['biometric']['cancel']),
           ),
           ElevatedButton(
             onPressed: () {
@@ -146,7 +150,7 @@ class _BiometricSettingsState extends State<BiometricSettings> {
                 });
               }
             },
-            child: const Text('Continuar'),
+            child: Text(localizations['biometric']['continue']),
           ),
         ],
       ),
@@ -163,16 +167,18 @@ class _BiometricSettingsState extends State<BiometricSettings> {
           setState(() {
             _isEnabled = true;
           });
+          final localizations = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ $_biometricType habilitado exitosamente'),
+              content: Text('✅ $_biometricType ${localizations['biometric']['enabledSuccessfully']}'),
               backgroundColor: Colors.green,
             ),
           );
         } else {
+          final localizations = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ No se pudo habilitar $_biometricType'),
+              content: Text('❌ ${localizations['biometric']['couldNotEnable']} $_biometricType'),
               backgroundColor: Colors.red,
             ),
           );
@@ -184,11 +190,12 @@ class _BiometricSettingsState extends State<BiometricSettings> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
+      final localizations = AppLocalizations.of(context)!;
       return Material(
         color: Colors.transparent,
-        child: const ListTile(
+        child: ListTile(
           leading: Icon(Icons.fingerprint),
-          title: Text('Cargando...'),
+          title: Text(localizations['biometric']['loading']),
           trailing: CircularProgressIndicator(),
         ),
       );
@@ -205,11 +212,11 @@ class _BiometricSettingsState extends State<BiometricSettings> {
         _biometricType.contains('Face') ? Icons.face : Icons.fingerprint,
         color: _isEnabled ? Colors.blue : Colors.grey,
       ),
-      title: Text(_biometricType),
+      title: Text(_biometricType.isEmpty ? AppLocalizations.of(context)!['biometric']['authenticationTitle'] : _biometricType),
       subtitle: Text(
         _isEnabled 
-          ? 'Inicio rápido habilitado'
-          : 'Permite iniciar sesión más rápido',
+          ? AppLocalizations.of(context)!['biometric']['quickLoginEnabled']
+          : AppLocalizations.of(context)!['biometric']['allowQuickLogin'],
       ),
       value: _isEnabled,
       onChanged: _toggleBiometric,

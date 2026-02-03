@@ -368,18 +368,44 @@ class AuthService {
       final headers = AppConfig.getCommonHeaders(withAuth: true, token: token);
       
       // Construir body con campos del perfil
+      // IMPORTANTE: La altura debe estar en formato string en PULGADAS (ej: "70.00")
+      // y el peso debe estar en formato string en LIBRAS (ej: "150.00")
+      // NOTA: El valor de height ya viene en PULGADAS, no necesitamos multiplicar
+      
+      debugPrint('\n=======================================================');
+      debugPrint('📊 AUTH SERVICE - UPDATE PROFILE - DATOS RECIBIDOS');
+      debugPrint('=======================================================');
+      debugPrint('👤 Username: ${updatedData.username} (${updatedData.username.runtimeType})');
+      debugPrint('📰 Altura original: ${updatedData.height} (${updatedData.height.runtimeType})');
+      debugPrint('⚖️ Peso original: ${updatedData.weight} (${updatedData.weight.runtimeType})');
+      debugPrint('🌐 Language: ${updatedData.language} (${updatedData.language.runtimeType})');
+      debugPrint('👫 Gender: ${updatedData.gender} (${updatedData.gender.runtimeType})');
+      debugPrint('📅 Birth Date: ${updatedData.birthDate} (${updatedData.birthDate?.runtimeType})');
+      
+      // Convertimos los valores numéricos a strings con formato específico para la API
+      final heightStr = updatedData.height != null ? updatedData.height!.toStringAsFixed(2) : "0.00";
+      final weightStr = updatedData.weight != null ? updatedData.weight!.toStringAsFixed(2) : "0.00";
+      
+      debugPrint('\n📝 CONVERSIONES PARA API:');
+      debugPrint('📰 Altura convertida: $heightStr (${heightStr.runtimeType})');
+      debugPrint('⚖️ Peso convertido: $weightStr (${weightStr.runtimeType})');
+      
       final bodyMap = {
         'username': updatedData.username,
-        'height': updatedData.height,
-        'weight': updatedData.weight,
+        'height': heightStr,  // Altura en pulgadas como string
+        'weight': weightStr,  // Peso en libras como string
         'language': updatedData.language,
         'gender': updatedData.gender,
         'birth_date': updatedData.birthDate,
       };
       
+      debugPrint('\n� BODY MAP COMPLETO:');
+      bodyMap.forEach((key, value) => debugPrint('   $key: $value (${value?.runtimeType})'));
+      debugPrint('=======================================================');
+      
       // Omitir age si es null
       if (updatedData.age != null) {
-        bodyMap['age'] = updatedData.age;
+        bodyMap['age'] = updatedData.age.toString();
       }
       
       final body = json.encode(bodyMap);
@@ -397,13 +423,25 @@ class AuthService {
           debugPrint('   $key: $value');
         }
       });
-      debugPrint('\n📦 REQUEST BODY (JSON):');
+      
+      // Mostrar exactamente el JSON serializado que se enviará
+      debugPrint('\n📦 REQUEST BODY (JSON EXACTO):');
       debugPrint(body);
-      debugPrint('\n📋 DATOS A ACTUALIZAR:');
+      
+      // Verificar integridad de JSON
+      try {
+        final decodedBody = json.decode(body);
+        debugPrint('\n✅ JSON válido. Estructura decodificada:');
+        decodedBody.forEach((key, value) => debugPrint('   $key: $value (${value?.runtimeType})'));
+      } catch (e) {
+        debugPrint('\n❌ ERROR EN JSON: $e');
+      }
+      
+      debugPrint('\n📋 RESUMEN DE DATOS A ACTUALIZAR:');
       debugPrint('   Username: ${updatedData.username}');
       debugPrint('   Email: ${updatedData.email}');
-      debugPrint('   Height: ${updatedData.height}');
-      debugPrint('   Weight: ${updatedData.weight}');
+      debugPrint('   Height: ${updatedData.height} → $heightStr pulgadas');
+      debugPrint('   Weight: ${updatedData.weight} → $weightStr libras');
       debugPrint('   Gender: ${updatedData.gender}');
       debugPrint('   BirthDate: ${updatedData.birthDate}');
       debugPrint('   Language: ${updatedData.language}');
@@ -422,8 +460,46 @@ class AuthService {
       debugPrint('📥 RESPONSE FROM updateProfile');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       debugPrint('📊 Status Code: ${response.statusCode}');
-      debugPrint('📄 Response Body:');
+      debugPrint('� Response Body (crudo):');
       debugPrint(response.body);
+      
+      // Analizar la respuesta para ver si hay errores o mensajes específicos
+      try {
+        final responseJson = json.decode(response.body);
+        debugPrint('\n📝 RESPUESTA JSON DECODIFICADA:');
+        
+        // Ver estructura general de la respuesta
+        responseJson.forEach((key, value) {
+          if (value is Map) {
+            debugPrint('   $key: {${value.keys.join(', ')}}');
+          } else if (value is List) {
+            debugPrint('   $key: [lista con ${value.length} elementos]');
+          } else {
+            debugPrint('   $key: $value (${value?.runtimeType})');
+          }
+        });
+        
+        // Verificar si hay mensajes de error
+        if (responseJson.containsKey('error')) {
+          debugPrint('\n❌ ERRORES DETECTADOS:');
+          final errorData = responseJson['error'];
+          if (errorData is Map) {
+            errorData.forEach((field, errors) {
+              debugPrint('   $field: $errors');
+            });
+          } else {
+            debugPrint('   Error general: $errorData');
+          }
+        }
+        
+        // Verificar si hay mensaje de éxito
+        if (responseJson.containsKey('message')) {
+          debugPrint('\n💬 Mensaje: ${responseJson['message']}');
+        }
+      } catch (e) {
+        debugPrint('\n❌ No se pudo decodificar la respuesta como JSON: $e');
+      }
+      
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
       final result = handleApiResponse<UserProfileData>(

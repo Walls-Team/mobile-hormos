@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/stats/dto/dtos.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class SleepEfficiencyBarChart extends StatelessWidget {
   final List<SleepEfficiencyRecord> data;
@@ -22,11 +23,15 @@ class SleepEfficiencyBarChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Sleep Efficiency',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                AppLocalizations.of(context)!['statsScreen']['sleepEfficiency'] ?? 'Sleep Efficiency',
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width < 360 ? 16 : 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
             Icon(Icons.info_outline, size: 20, color: Colors.grey),
@@ -34,11 +39,13 @@ class SleepEfficiencyBarChart extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Keep testing at this intensity to maintain optimal hormonal output',
+          AppLocalizations.of(context)!['statsScreen']['keepTesting'] ?? 'Keep testing at this intensity to maintain optimal hormonal output',
           style: TextStyle(
             fontSize: 12,
             color: Colors.grey[400],
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -68,7 +75,7 @@ class SleepEfficiencyBarChart extends StatelessWidget {
               enable: true,
               activationMode: ActivationMode.singleTap,
               tooltipDisplayMode: TrackballDisplayMode.nearestPoint,
-              tooltipSettings: const InteractiveTooltip(
+              tooltipSettings: InteractiveTooltip(
                 enable: true,
                 format: 'point.x\npoint.y%',
                 color: Colors.black,

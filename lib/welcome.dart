@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:genius_hormo/features/auth/pages/login.dart';
 import 'package:genius_hormo/features/auth/pages/register.dart';
 import 'package:go_router/go_router.dart';
@@ -72,14 +73,14 @@ class WelcomeScreen extends StatelessWidget {
             onPressed: () {
               context.goNamed('login');
             },
-            child: Text('Log in'),
+            child: Text(AppLocalizations.of(context)!['welcome']['login']),
           ),
 
           OutlinedButton(
             onPressed: () {
               context.goNamed('register');
             },
-            child: Text('Register'),
+            child: Text(AppLocalizations.of(context)!['welcome']['register']),
           ),
         ],
       ),

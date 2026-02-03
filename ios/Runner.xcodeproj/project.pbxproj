@@ -517,7 +517,7 @@
 				CODE_SIGNING_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = J44B4N22A6;
 				ENABLE_BITCODE = NO;
@@ -722,7 +722,7 @@
 				CODE_SIGNING_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = J44B4N22A6;
 				ENABLE_BITCODE = NO;
@@ -760,7 +760,7 @@
 				CODE_SIGNING_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = J44B4N22A6;
 				ENABLE_BITCODE = NO;

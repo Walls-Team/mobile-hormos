@@ -24,13 +24,7 @@ class SubscriptionRequiredContent extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF22232A),
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFEDE954).withOpacity(0.3),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
+                // Sombra eliminada
               ),
               padding: const EdgeInsets.all(30),
               child: const Icon(

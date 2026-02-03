@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:genius_hormo/theme/colors_pallete.dart';
 
 class AppConstants {
@@ -48,8 +49,9 @@ class InputDecorations {
   }
 
   static InputDecoration heightDecoration(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
     return InputDecoration(
-      hintText: "5'9\" ",
+      hintText: localizations != null ? localizations['inputPlaceholders']['heightPlaceholder'] : "5'9\"",
       labelStyle: const TextStyle(color: Colors.white70),
       filled: true,
       fillColor: neutral_600,
@@ -64,8 +66,9 @@ class InputDecorations {
   }
 
   static InputDecoration weightDecoration(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
     return InputDecoration(
-      hintText: "134",
+      hintText: localizations != null ? localizations['inputPlaceholders']['weightPlaceholder'] : "134",
       labelStyle: const TextStyle(color: Colors.white70),
       filled: true,
       fillColor: neutral_600,

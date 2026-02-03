@@ -141,7 +141,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           flex: 1,
           child: StatCard(
             duration: "${resume.sleepEfficiency}%",
-            title: "Sleep\n Efficiency",
+            title: "${AppLocalizations.of(context)!['dashboard']['sleepEfficiency'] ?? 'Sleep\n Efficiency'}",
             icon: CupertinoIcons.zzz,
           ),
         ),
@@ -150,7 +150,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           flex: 1,
           child: StatCard(
             duration: "${resume.sleepDuration.round()}h",
-            title: "Sleep\n Duration",
+            title: "${AppLocalizations.of(context)!['dashboard']['sleepDuration'] ?? 'Sleep\n Duration'}",
             icon: CupertinoIcons.moon,
           ),
         ),
@@ -158,7 +158,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           flex: 1,
           child: StatCard(
             duration: "${resume.hrvRmssd}",
-            title: "Hrv\n rmssd",
+            title: "${AppLocalizations.of(context)!['dashboard']['hrvRmssd'] ?? 'Hrv\n rmssd'}",
             icon: CupertinoIcons.heart,
           ),
         ),

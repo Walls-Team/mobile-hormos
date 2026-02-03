@@ -1,15 +1,19 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
 import 'package:genius_hormo/features/auth/services/auth_service.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/providers/lang_service.dart';
 import 'package:genius_hormo/features/settings/widgets/avatar_selector_modal.dart';
 import 'package:genius_hormo/features/settings/widgets/language_selector.dart';
 import 'package:genius_hormo/features/settings/widgets/plans_badge.dart';
 import 'package:genius_hormo/features/settings/pages/plans_screen.dart';
 import 'package:genius_hormo/providers/subscription_provider.dart';
-import 'package:get_it/get_it.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
+import 'package:genius_hormo/features/settings/widgets/height_picker.dart';
+import 'package:genius_hormo/features/settings/widgets/weight_picker.dart';
 
 class UserProfileForm extends StatefulWidget {
   final UserProfileData initialData;
@@ -29,16 +33,20 @@ class UserProfileForm extends StatefulWidget {
 
 class _UserProfileFormState extends State<UserProfileForm> {
   final _formKey = GlobalKey<FormState>();
+  final LanguageService _languageService = GetIt.instance<LanguageService>();
+  late StreamSubscription<Locale> _languageSubscription;
   final AuthService _authService = GetIt.instance<AuthService>();
   final UserStorageService _storageService = GetIt.instance<UserStorageService>();
   final SubscriptionProvider _subscriptionProvider = GetIt.instance<SubscriptionProvider>();
 
   late TextEditingController _usernameController;
-  late TextEditingController _heightController;
-  late TextEditingController _weightController;
   late TextEditingController _birthDateController;
   late String _selectedLanguage;
   late String _selectedGender;
+  
+  // For height and weight (with defaults in imperial units)
+  double _height = 67.0; // Default height in INCHES (5'7" ≈ 67 inches)
+  double _weight = 154.0; // Default weight in pounds (70kg ≈ 154 lbs)
   late int? _age;
   String? _selectedAvatar;
   
@@ -51,36 +59,62 @@ class _UserProfileFormState extends State<UserProfileForm> {
   void initState() {
     super.initState();
 
-    // Inicializar controladores con los valores del initialData
     _usernameController = TextEditingController(
       text: widget.initialData.username,
-    );
-    _heightController = TextEditingController(
-      text: widget.initialData.height?.toString() ?? '',
-    );
-    _weightController = TextEditingController(
-      text: widget.initialData.weight?.toString() ?? '',
     );
     _birthDateController = TextEditingController(
       text: widget.initialData.birthDate ?? '',
     );
-
-    _selectedLanguage = widget.initialData.language;
-    // Validate that gender is in the list, if not use 'male' as default
-    // Handle empty strings too
-    final genderValue = widget.initialData.gender.trim();
-    _selectedGender = (genderValue.isNotEmpty && _genders.contains(genderValue)) 
-        ? genderValue 
-        : 'male';
-    _age = widget.initialData.age;
+    _selectedGender = widget.initialData.gender ?? '';
+    _selectedLanguage = widget.initialData.language ?? 'es';
     _selectedAvatar = widget.initialData.avatar;
     
-    // Asegurarnos de que el plan se cargue cuando se inicia el formulario
-    _loadPlanData();
+    // Initialize height and weight from profile with defaults
+    // Backend almacena altura en PULGADAS y peso en libras
+    if (widget.initialData.height != null) {
+      // Si tenemos una altura, la usamos directamente (ya viene en pulgadas)
+      _height = widget.initialData.height!;
+      debugPrint('📝 ProfileForm - Inicializado con altura desde backend: $_height pulgadas');
+    } else {
+      // Default: 5'7" = 67 pulgadas
+      _height = 67.0;
+      debugPrint('📝 ProfileForm - Inicializado con altura predeterminada: $_height pulgadas');
+    }
+    
+    if (widget.initialData.weight != null) {
+      // Si tenemos un peso, lo usamos directamente (ya viene en libras)
+      _weight = widget.initialData.weight!;
+      debugPrint('📝 ProfileForm - Inicializado con peso desde backend: $_weight libras');
+    } else {
+      // Default: 70kg ≈ 154 libras
+      _weight = 154.0;
+      debugPrint('📝 ProfileForm - Inicializado con peso predeterminado: $_weight libras');
+    }
+    
+    // Subscribe to language changes
+    _languageSubscription = _languageService.currentLocale.listen((locale) {
+      if (mounted) {
+        // Guardamos los valores actuales antes de cambiar el idioma
+        final currentHeight = _height;
+        final currentWeight = _weight;
+        
+        setState(() {
+          _selectedLanguage = locale.languageCode;
+          // Mantenemos los mismos valores de altura y peso al cambiar de idioma
+          _height = currentHeight;
+          _weight = currentWeight;
+          debugPrint('🌐 Language changed to: ${locale.languageCode}');
+          debugPrint('📏 Manteniendo altura: $_height pulgadas');
+          debugPrint('⚖️ Manteniendo peso: $_weight lbs');
+        });
+      }
+    });
+
+    _loadPlan();
   }
   
   // Método para cargar datos del plan
-  Future<void> _loadPlanData() async {
+  Future<void> _loadPlan() async {
     // Si el plan está cargando o no está inicializado, forzar la actualización
     if (_subscriptionProvider.isLoading || !_subscriptionProvider.hasCheckedPlan) {
       debugPrint('🔄 UserProfileForm: Solicitando actualización del plan...');
@@ -91,9 +125,8 @@ class _UserProfileFormState extends State<UserProfileForm> {
   @override
   void dispose() {
     _usernameController.dispose();
-    _heightController.dispose();
-    _weightController.dispose();
     _birthDateController.dispose();
+    _languageSubscription.cancel();
     super.dispose();
   }
   
@@ -102,7 +135,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
     super.didChangeDependencies();
     // Verificar si necesitamos actualizar el plan cuando se muestra de nuevo
     if (mounted) {
-      _loadPlanData();
+      _loadPlan();
     }
   }
 
@@ -126,29 +159,46 @@ class _UserProfileFormState extends State<UserProfileForm> {
           id: widget.initialData.id,
           username: _usernameController.text,
           email: widget.initialData.email,
-          height: _heightController.text.isNotEmpty
-              ? double.tryParse(_heightController.text)
-              : null,
-          weight: _weightController.text.isNotEmpty
-              ? double.tryParse(_weightController.text)
-              : null,
+          height: _height, // En PULGADAS (ej: 67.0 pulgadas)
+          weight: _weight, // En formato de libras (150.0)
           language: _selectedLanguage,
           avatar: _selectedAvatar,
-          birthDate: _birthDateController.text.isNotEmpty
-              ? _birthDateController.text
-              : null,
-          gender: _selectedGender,
-          age: _age,
+          gender: _selectedGender ?? '',
+          birthDate: _birthDateController.text,
           isComplete: _isProfileComplete(),
           profileCompletionPercentage: _calculateCompletionPercentage(),
         );
         
-        debugPrint('💾 Actualizando perfil...');
-        debugPrint('Username: ${updatedData.username}');
-        debugPrint('Height: ${updatedData.height}');
-        debugPrint('Weight: ${updatedData.weight}');
-        debugPrint('BirthDate: ${updatedData.birthDate}');
-        debugPrint('Gender: ${updatedData.gender}');
+        debugPrint('\n💾 ACTUALIZANDO PERFIL:');
+        debugPrint('👤 Username: ${updatedData.username}');
+        debugPrint('📏 Altura: ${updatedData.height} PULGADAS');
+        debugPrint('⚖️ Peso: ${updatedData.weight} LBS');
+        debugPrint('📅 BirthDate: ${updatedData.birthDate}');
+        debugPrint('👫 Gender: ${updatedData.gender}');
+        debugPrint('🌐 Language: ${updatedData.language}');
+        
+        // LOGS DETALLADOS PARA DEPURACIÓN
+        debugPrint('\n==================================================');
+        debugPrint('🔍 DATOS ENVIADOS EN GUARDADO DE PERFIL - DETALLADO');
+        debugPrint('==================================================');
+        debugPrint('👤 ID: ${updatedData.id}');
+        debugPrint('👤 Username: ${updatedData.username}');
+        debugPrint('📧 Email: ${updatedData.email}');
+        debugPrint('📏 Altura: ${updatedData.height} pulgadas (tipo: ${updatedData.height.runtimeType})');
+        debugPrint('⚖️ Peso: ${updatedData.weight} libras (tipo: ${updatedData.weight.runtimeType})');
+        debugPrint('📅 BirthDate: ${updatedData.birthDate} (tipo: ${updatedData.birthDate.runtimeType})');
+        debugPrint('👫 Gender: ${updatedData.gender} (tipo: ${updatedData.gender.runtimeType})');
+        debugPrint('🌐 Language: ${updatedData.language} (tipo: ${updatedData.language.runtimeType})');
+        debugPrint('✅ isComplete: ${updatedData.isComplete}');
+        debugPrint('📊 completionPercentage: ${updatedData.profileCompletionPercentage}%');
+        
+        // Convertir a JSON para verificar exactamente lo que se enviará
+        final jsonData = updatedData.toJson();
+        debugPrint('\n📦 DATOS JSON QUE SE ENVIARÁN AL BACKEND:');
+        jsonData.forEach((key, value) {
+          debugPrint('   $key: $value (tipo: ${value?.runtimeType})');
+        });
+        debugPrint('==================================================');
         
         // Llamar al servicio para actualizar (retorna UserProfileData o lanza excepción)
         final result = await _authService.updateProfile(
@@ -199,12 +249,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
     if (_usernameController.text.trim().isEmpty) {
       missingFields.add(localizations['settings']['user']);
     }
-    if (_heightController.text.trim().isEmpty) {
-      missingFields.add(localizations['settings']['height']);
-    }
-    if (_weightController.text.trim().isEmpty) {
-      missingFields.add(localizations['settings']['weight']);
-    }
+    // Height and weight can't be null anymore
     if (_birthDateController.text.trim().isEmpty) {
       missingFields.add(localizations['settings']['birthDay']);
     }
@@ -310,8 +355,6 @@ class _UserProfileFormState extends State<UserProfileForm> {
 
   bool _isProfileComplete() {
     return _usernameController.text.isNotEmpty &&
-        _heightController.text.isNotEmpty &&
-        _weightController.text.isNotEmpty &&
         _birthDateController.text.isNotEmpty &&
         _selectedLanguage.isNotEmpty &&
         _selectedGender.isNotEmpty;
@@ -378,40 +421,32 @@ class _UserProfileFormState extends State<UserProfileForm> {
             Text(AppLocalizations.of(context)!['settings']['user']),
             TextFormField(controller: _usernameController),
 
-            Text(AppLocalizations.of(context)!['settings']['height']),
-            TextFormField(
-              controller: _heightController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return AppLocalizations.of(context)!['settings']['profileForm']['heightRequired'];
-                }
-                final height = double.tryParse(value);
-                if (height == null) {
-                  return AppLocalizations.of(context)!['settings']['profileForm']['heightInvalidNumber'];
-                }
-                if (height < 3.0 || height > 9.0) {
-                  return AppLocalizations.of(context)!['settings']['profileForm']['heightRange'];
-                }
-                return null;
+            
+            // Height picker
+            // IMPORTANTE: el valor de _height siempre se maneja en PULGADAS (ej: 67.0)
+            HeightPicker(
+              key: ValueKey('height_picker_${_selectedLanguage}_$_height'),
+              initialValue: _height,
+              isMetric: _selectedLanguage != 'en',
+              onChanged: (value) {
+                setState(() {
+                  _height = value;
+                  debugPrint('📏 Altura cambiada a: $value PULGADAS');
+                });
               },
             ),
-            Text(AppLocalizations.of(context)!['settings']['weight']),
-            TextFormField(
-              controller: _weightController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return AppLocalizations.of(context)!['settings']['profileForm']['weightRequired'];
-                }
-                final weight = double.tryParse(value);
-                if (weight == null) {
-                  return AppLocalizations.of(context)!['settings']['profileForm']['weightInvalidNumber'];
-                }
-                if (weight < 40.0) {
-                  return AppLocalizations.of(context)!['settings']['profileForm']['weightMin'];
-                }
-                return null;
+            
+            // Weight picker
+            // IMPORTANTE: el valor de _weight siempre se maneja en LIBRAS (ej: 150.0)
+            WeightPicker(
+              key: ValueKey('weight_picker_${_selectedLanguage}_$_weight'),
+              initialValue: _weight,
+              isMetric: _selectedLanguage != 'en',
+              onChanged: (value) {
+                setState(() {
+                  _weight = value;
+                  debugPrint('⚖️ Peso cambiado a: $value LIBRAS');
+                });
               },
             ),
 
@@ -532,7 +567,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                 // solicitamos una actualización
                 if (plan == null && !isLoading && mounted) {
                   debugPrint('🔄 Card de Plan: No hay datos de plan, solicitando actualización...');
-                  Future.microtask(() => _loadPlanData());
+                  Future.microtask(() => _loadPlan());
                 }
                 
                 if (isLoading) {
@@ -549,7 +584,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         Row(
                           children: [
                             Text(
-                              'Mi Plan',
+                              AppLocalizations.of(context)!['plans']['myPlan'],
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -571,7 +606,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          'Cargando información del plan...',
+                          AppLocalizations.of(context)!['plans']['loadingPlanInfo'],
                           style: TextStyle(color: Colors.white70),
                         ),
                       ],
@@ -594,7 +629,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         Row(
                           children: [
                             Text(
-                              'Mi Plan',
+                              AppLocalizations.of(context)!['plans']['myPlan'],
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -609,7 +644,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                'NO ACTIVO',
+                                AppLocalizations.of(context)!['plans']['notActive'],
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -621,7 +656,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          'No tienes ningún plan contratado actualmente.',
+                          AppLocalizations.of(context)!['plans']['noPlanMessage'],
                           style: TextStyle(color: Colors.white70),
                         ),
                         SizedBox(height: 16),
@@ -647,7 +682,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                               foregroundColor: Colors.black,
                             ),
                             child: Text(
-                              'Ver Planes',
+                              AppLocalizations.of(context)!['plans']['viewPlans'],
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -680,7 +715,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Mi Plan',
+                              AppLocalizations.of(context)!['plans']['myPlan'],
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -694,7 +729,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                'ACTIVO',
+                                AppLocalizations.of(context)!['plans']['active'],
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -706,7 +741,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         ),
                         SizedBox(height: 16),
                         Text(
-                          'Plan Free',
+                          AppLocalizations.of(context)!['plans']['planFree'],
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -715,7 +750,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Plan básico sin costo',
+                          AppLocalizations.of(context)!['plans']['basicPlanDescription'],
                           style: TextStyle(
                             color: Colors.black.withOpacity(0.7),
                           ),
@@ -727,7 +762,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                             onPressed: () {
                               Navigator.of(context, rootNavigator: true).push(
                                 MaterialPageRoute(
-                                  builder: (context) => const PlansScreen(),
+                                  builder: (context) => PlansScreen(),
                                 ),
                               );
                             },
@@ -735,7 +770,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                               backgroundColor: Colors.black,
                               foregroundColor: Colors.white,
                             ),
-                            child: Text('Ver Planes Premium'),
+                            child: Text(AppLocalizations.of(context)!['plans']['viewPremiumPlans']),
                           ),
                         ),
                       ],
@@ -771,7 +806,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Mi Plan',
+                            AppLocalizations.of(context)!['plans']['myPlan'] ?? 'Mi Plan',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -785,7 +820,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              'ACTIVO',
+                              AppLocalizations.of(context)!['plans']['active'] ?? 'ACTIVO',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -810,7 +845,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                           Icon(Icons.calendar_today, size: 16, color: Colors.black.withOpacity(0.7)),
                           SizedBox(width: 6),
                           Text(
-                            'Expira: $expirationDate',
+                            '${AppLocalizations.of(context)!['plans']['expires']}: $expirationDate',
                             style: TextStyle(
                               color: Colors.black.withOpacity(0.7),
                             ),
@@ -823,7 +858,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                           Icon(Icons.timelapse, size: 16, color: Colors.black.withOpacity(0.7)),
                           SizedBox(width: 6),
                           Text(
-                            'Días restantes: $daysRemaining',
+                            '${AppLocalizations.of(context)!['plans']['daysRemaining']}: $daysRemaining',
                             style: TextStyle(
                               color: Colors.black.withOpacity(0.7),
                             ),
@@ -845,7 +880,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
                             backgroundColor: Colors.black,
                             foregroundColor: Colors.white,
                           ),
-                          child: Text('Cambiar Plan'),
+                          child: Text(AppLocalizations.of(context)!['plans']['changePlan']),
                         ),
                       ),
                     ],
@@ -857,7 +892,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
             const SizedBox(height: 20),
             
             // Selector de idioma
-            const LanguageSelector(),
+            LanguageSelector(),
           ],
         ),
       ),

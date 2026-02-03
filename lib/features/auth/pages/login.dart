@@ -49,25 +49,26 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _showEnableBiometricDialog(String email, String password) async {
-    final biometricType = await _biometricService.getBiometricTypeMessage();
+    final biometricType = await _biometricService.getBiometricTypeMessage(context);
     
     if (!mounted) return;
     
+    final localizations = AppLocalizations.of(context)!;
     final shouldEnable = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('🔐 Habilitar $biometricType'),
+        title: Text('🔐 ${localizations['biometric']['enableBiometrics']} $biometricType'),
         content: Text(
-          '¿Deseas habilitar $biometricType para iniciar sesión más rápido en el futuro?',
+          '${localizations['biometric']['doYouWantToEnable']} $biometricType ${localizations['biometric']['forFasterLogin']}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Ahora no'),
+            child: Text(localizations['biometric']['notNow']),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Habilitar'),
+            child: Text(localizations['biometric']['enable']),
           ),
         ],
       ),
@@ -83,14 +84,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ $biometricType habilitado exitosamente'),
+            content: Text('✅ $biometricType ${localizations['biometric']['enabledSuccessfully']}'),
             backgroundColor: Colors.green,
           ),
         );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ No se pudo habilitar la autenticación biométrica'),
+          SnackBar(
+            content: Text('❌ ${localizations['biometric']['couldNotEnable']} $biometricType'),
             backgroundColor: Colors.orange,
           ),
         );

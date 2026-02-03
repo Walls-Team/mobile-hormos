@@ -45,7 +45,7 @@ class StoreScreen extends StatelessWidget {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Cannot open link: $url'),
+          content: Text('${AppLocalizations.of(context)!["store"]["cannotOpenLink"]}: $url'),
           backgroundColor: Colors.red,
         ),
       );

@@ -88,15 +88,19 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   String _getFilterLabel(TimeFilter filter) {
+    final locale = Localizations.localeOf(context);
+    final isEnglish = locale.languageCode == 'en';
+    final weekSymbol = isEnglish ? 'w' : 's';
+    
     switch (filter) {
       case TimeFilter.oneWeek:
-        return '1w';
+        return '1$weekSymbol';
       case TimeFilter.twoWeeks:
-        return '2w';
+        return '2$weekSymbol';
       case TimeFilter.threeWeeks:
-        return '3w';
+        return '3$weekSymbol';
       case TimeFilter.fourWeeks:
-        return '4w';
+        return '4$weekSymbol';
     }
   }
 
@@ -295,11 +299,15 @@ class _StatsScreenState extends State<StatsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              AppLocalizations.of(context)!['statsScreen']['recoveryNervous'],
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                AppLocalizations.of(context)!['statsScreen']['recoveryNervous'],
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width < 360 ? 18 : 22,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],

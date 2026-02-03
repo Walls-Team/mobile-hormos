@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:genius_hormo/theme/colors_pallete.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 
@@ -17,7 +18,7 @@ class ProgressBar extends StatelessWidget {
         ),
 
         Text(
-          'of goal achieved',
+          AppLocalizations.of(context)!['dashboard']['ofGoalAchieved'] ?? 'of goal achieved',
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
 

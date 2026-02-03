@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:genius_hormo/app/route_names.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,7 +18,7 @@ class SubscriptionRequiredScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF1C1D23),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1C1D23),
-        title: const Text('Suscripción Requerida'),
+        title: Text(AppLocalizations.of(context)!['subscription']['required']),
         automaticallyImplyLeading: false,  // Desactiva el botón de atrás
       ),
       body: SafeArea(

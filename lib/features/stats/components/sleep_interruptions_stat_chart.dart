@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_hormo/features/stats/dto/dtos.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class SleepInterruptionsStatChart extends StatelessWidget {
   final List<SleepInterruptionRecord> data;
@@ -22,11 +23,15 @@ class SleepInterruptionsStatChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Sleep Interruptions',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                AppLocalizations.of(context)!['statsScreen']['sleepInterruptions'] ?? 'Sleep Interruptions',
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width < 360 ? 16 : 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
             Icon(Icons.info_outline, size: 20, color: Colors.grey),
@@ -60,9 +65,9 @@ class SleepInterruptionsStatChart extends StatelessWidget {
               enable: true,
               activationMode: ActivationMode.singleTap,
               tooltipDisplayMode: TrackballDisplayMode.nearestPoint,
-              tooltipSettings: const InteractiveTooltip(
+              tooltipSettings: InteractiveTooltip(
                 enable: true,
-                format: 'point.x\npoint.y interruptions',
+                format: 'point.x\npoint.y ${AppLocalizations.of(context)!['dashboard']['interruptions'] ?? 'interruptions'}',
                 color: Colors.black,
                 textStyle: TextStyle(
                   color: Colors.white,

@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 /// Servicio para manejar autenticación biométrica (Face ID, Touch ID, Huella)
 class BiometricAuthService {
@@ -47,17 +49,18 @@ class BiometricAuthService {
   }
   
   /// Muestra un mensaje amigable del tipo de biometría disponible
-  Future<String> getBiometricTypeMessage() async {
+  Future<String> getBiometricTypeMessage(BuildContext context) async {
+    final localizations = AppLocalizations.of(context)!;
     final biometrics = await getAvailableBiometrics();
     
     if (biometrics.contains(BiometricType.face)) {
-      return 'Face ID';
+      return localizations['biometric']['faceId'];
     } else if (biometrics.contains(BiometricType.fingerprint)) {
-      return 'Huella digital';
+      return localizations['biometric']['fingerprint'];
     } else if (biometrics.contains(BiometricType.iris)) {
-      return 'Reconocimiento de iris';
+      return localizations['biometric']['iris'];
     } else {
-      return 'Autenticación biométrica';
+      return localizations['biometric']['generic'];
     }
   }
   
