@@ -21,78 +21,28 @@ class PlansApiService {
     int page = 1,
     int pageSize = 10,
   }) async {
+    final endpoint = 'plans/';
+    final queryParams = {
+      'page': page.toString(),
+      'page_size': pageSize.toString(),
+    };
+    final uri = Uri.parse(AppConfig.getApiUrl(endpoint)).replace(queryParameters: queryParams);
+    final headers = AppConfig.getCommonHeaders(withAuth: true, token: authToken);
+    
     try {
-      final url = AppConfig.getApiUrl('plans/');
+      // Log mínimo para depuración
+      debugPrint('� Obteniendo planes: $uri');
       
-      final queryParams = {
-        'page': page.toString(),
-        'page_size': pageSize.toString(),
-      };
+      final response = await _client.get(uri, headers: headers);
+      final statusCode = response.statusCode;
       
-      final uri = Uri.parse(url).replace(queryParameters: queryParams);
+      // Solo log relevante del status code
+      debugPrint('📊 Planes - Status Code: $statusCode');
       
-      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🛒 OBTENIENDO PLANES');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📍 URL: $uri');
-      
-      final response = await _client.get(
-        uri,
-        headers: AppConfig.getCommonHeaders(withAuth: true, token: authToken),
-      );
-      
-      debugPrint('📊 Status Code: ${response.statusCode}');
-      debugPrint('📄 Response Body: ${response.body}');
-      
-      if (response.statusCode == 200) {
-        try {
-          final jsonData = jsonDecode(response.body);
-          
-          // Para depuración
-          debugPrint('JSON recibido: $jsonData');
-          
-          // Verificar si la API devuelve datos
-          if (jsonData['data'] == null) {
-            debugPrint('🚧 Datos nulos en la respuesta de la API');
-            
-            return ApiResponse.error(
-              message: 'No se encontraron datos de planes en la respuesta',
-              error: 'data es null',
-            );
-          }
-          
-          final plansResponse = PlansResponse.fromJson(jsonData);
-          
-          return ApiResponse.success(
-            data: plansResponse,
-            message: jsonData['message'] ?? 'Planes obtenidos exitosamente',
-          );
-        } catch (e) {
-          debugPrint('❌ Error parseando respuesta JSON: $e');
-          
-          return ApiResponse.error(
-            message: 'Error al procesar los datos de planes',
-            error: e.toString(),
-          );
-        }
-      } else {
-        debugPrint('⚠️ Respuesta con error, status: ${response.statusCode}');
-        try {
-          final jsonData = jsonDecode(response.body);
-          
-          return ApiResponse.error(
-            message: jsonData['message'] ?? 'No se pudieron obtener los planes',
-            error: jsonData['error'] ?? 'Error ${response.statusCode}',
-          );
-        } catch (e) {
-          // Si no podemos parsear la respuesta de error, retornar un mensaje genérico
-          return ApiResponse.error(
-            message: 'No se pudieron obtener los planes',
-            error: 'Error ${response.statusCode}',
-          );
-        }
-      }
+      // Manejar la respuesta
+      return _handlePlansResponse(response);
     } catch (e) {
+      // Log único del error
       debugPrint('❌ Error obteniendo planes: $e');
       
       return ApiResponse.error(
@@ -101,126 +51,110 @@ class PlansApiService {
       );
     }
   }
+  
+  /// Método privado para procesar la respuesta de la lista de planes
+  ApiResponse<PlansResponse> _handlePlansResponse(http.Response response) {
+    try {
+      final jsonData = jsonDecode(response.body);
+      
+      // Si es respuesta exitosa
+      if (response.statusCode == 200) {
+        if (jsonData['data'] == null) {
+          return ApiResponse.error(
+            message: 'No se encontraron datos de planes en la respuesta',
+            error: 'Datos nulos en la respuesta',
+          );
+        }
+        
+        final plansResponse = PlansResponse.fromJson(jsonData);
+        return ApiResponse.success(
+          data: plansResponse,
+          message: jsonData['message'] ?? 'Planes obtenidos exitosamente',
+        );
+      } 
+      // Si hay error con datos en JSON
+      else {
+        return ApiResponse.error(
+          message: jsonData['message'] ?? 'No se pudieron obtener los planes',
+          error: jsonData['error'] ?? 'Error ${response.statusCode}',
+        );
+      }
+    } 
+    // Si hay error al parsear el JSON
+    catch (e) {
+      return ApiResponse.error(
+        message: 'Error al procesar los datos de planes',
+        error: 'Error ${response.statusCode}: ${e.toString()}',
+      );
+    }
+  }
 
-    /// Obtener el plan actual del usuario
+  /// Obtener el plan actual del usuario
   /// 
   /// [authToken] - JWT de autenticación del usuario
   Future<ApiResponse<Plan>> getCurrentPlan({
     required String authToken,
   }) async {
+    final endpoint = 'subscriptions/current';
+    final uri = Uri.parse(AppConfig.getApiUrl(endpoint));
+    final headers = AppConfig.getCommonHeaders(withAuth: true, token: authToken);
+    
     try {
-      // Usar el endpoint exacto que aparece en la imagen
-      final endpoint = 'subscriptions/current';
-      final url = AppConfig.getApiUrl(endpoint);
-      final uri = Uri.parse(url);
+      // Para depuración mínima
+      debugPrint('🔍 Obteniendo plan actual: $uri');
       
-      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('🔍 CONSULTANDO PLAN ACTUAL');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📍 URL: $url');
+      final response = await _client.get(uri, headers: headers);
+      final statusCode = response.statusCode;
       
-      // Realizar la petición
-      final response = await _client.get(
-        uri,
-        headers: AppConfig.getCommonHeaders(withAuth: true, token: authToken),
-      );
+      // Solo log relevante del status code
+      debugPrint('📊 Plan actual - Status Code: $statusCode');
       
-      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📊 RESPUESTA DE PLAN ACTUAL');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📊 Status Code: ${response.statusCode}');
-      
-      // Imprimir headers de la respuesta
-      debugPrint('📤 Headers Enviados:');
-      final headers = AppConfig.getCommonHeaders(withAuth: true, token: authToken);
-      headers.forEach((key, value) {
-        if (key == 'Authorization') {
-          debugPrint('   $key: Bearer ${authToken.substring(0, 20)}...');
-        } else {
-          debugPrint('   $key: $value');
-        }
-      });
-      
-      debugPrint('\n📄 RESPONSE BODY COMPLETO:');
-      debugPrint('${response.body}');
-      
-      // Intentar parsear para mostrar en formato JSON
-      try {
-        final jsonData = jsonDecode(response.body);
-        debugPrint('\n📄 RESPONSE BODY ESTRUCTURADO:');
-        debugPrint('   Mensaje: ${jsonData['message'] ?? "N/A"}');
-        debugPrint('   Error: ${jsonData['error'] ?? "Ninguno"}');
-        
-        if (jsonData['data'] != null) {
-          final data = jsonData['data'];
-          debugPrint('   Data:\n      ID: ${data['id'] ?? "N/A"}');
-          debugPrint('      Título: ${data['title'] ?? "N/A"}');
-          debugPrint('      Descripción: ${data['description'] ?? "N/A"}');
-          debugPrint('      Precio: ${data['price'] ?? "N/A"}');
-          debugPrint('      Estado: ${data['status'] ?? "N/A"}');
-          debugPrint('      Activo: ${data['active'] ?? "N/A"}');
-          if (data['features'] != null) {
-            debugPrint('      Características: ${data['features']}');
-          }
-        } else {
-          debugPrint('   Data: null');
-        }
-      } catch (e) {
-        debugPrint('❌ Error parseando JSON: $e');
-      }
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      
-      if (response.statusCode == 200) {
-        try {
-          final jsonData = jsonDecode(response.body);
-          
-          // Verificar si la API devuelve datos
-          if (jsonData['data'] == null) {
-            debugPrint('⚠️ No hay datos del plan en la respuesta');
-            
-            return ApiResponse.error(
-              message: 'No se encontraron datos del plan actual',
-              error: 'data es null',
-            );
-          }
-          
-          final plan = Plan.fromJson(jsonData['data']);
-          debugPrint('✅ Plan actual obtenido: ${plan.title} (ID: ${plan.id})');
-          
-          return ApiResponse.success(
-            data: plan,
-            message: jsonData['message'] ?? 'Plan actual obtenido exitosamente',
-          );
-        } catch (e) {
-          debugPrint('❌ Error parseando respuesta JSON: $e');
-          
-          return ApiResponse.error(
-            message: 'Error al procesar los datos del plan',
-            error: e.toString(),
-          );
-        }
-      } else {
-        debugPrint('⚠️ Respuesta con error, status: ${response.statusCode}');
-        try {
-          final jsonData = jsonDecode(response.body);
-          
-          return ApiResponse.error(
-            message: jsonData['message'] ?? 'No se pudo obtener el plan actual',
-            error: jsonData['error'] ?? 'Error ${response.statusCode}',
-          );
-        } catch (e) {
-          return ApiResponse.error(
-            message: 'No se pudo obtener el plan actual',
-            error: 'Error ${response.statusCode}',
-          );
-        }
-      }
+      // Manejar la respuesta
+      return _handleCurrentPlanResponse(response);
     } catch (e) {
+      // Log único del error
       debugPrint('❌ Error obteniendo plan actual: $e');
       
       return ApiResponse.error(
         message: 'No se pudo obtener el plan actual',
         error: e.toString(),
+      );
+    }
+  }
+  
+  /// Método privado para procesar la respuesta del plan actual
+  ApiResponse<Plan> _handleCurrentPlanResponse(http.Response response) {
+    try {
+      final jsonData = jsonDecode(response.body);
+      
+      // Si es respuesta exitosa
+      if (response.statusCode == 200) {
+        if (jsonData['data'] == null) {
+          return ApiResponse.error(
+            message: 'No se encontraron datos del plan actual',
+            error: 'Datos nulos en la respuesta',
+          );
+        }
+        
+        final plan = Plan.fromJson(jsonData['data']);
+        return ApiResponse.success(
+          data: plan,
+          message: jsonData['message'] ?? 'Plan actual obtenido exitosamente',
+        );
+      } 
+      // Si hay error con datos en JSON
+      else {
+        return ApiResponse.error(
+          message: jsonData['message'] ?? 'No se pudo obtener el plan actual',
+          error: jsonData['error'] ?? 'Error ${response.statusCode}',
+        );
+      }
+    } 
+    // Si hay error al parsear el JSON
+    catch (e) {
+      return ApiResponse.error(
+        message: 'Error al procesar los datos del plan',
+        error: 'Error ${response.statusCode}: ${e.toString()}',
       );
     }
   }

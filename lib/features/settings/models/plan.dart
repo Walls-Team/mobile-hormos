@@ -75,12 +75,31 @@ class Plan {
 
   /// Crea una instancia de Plan desde un mapa JSON
   factory Plan.fromJson(Map<String, dynamic> json) {
+    // Verificar si estamos recibiendo datos de un plan con plan_details anidado
+    // (como en getCurrentPlan) o directamente los campos (como en getPlans)
+    PlanDetails? details;
+
+    if (json.containsKey('plan_details') && json['plan_details'] != null) {
+      // Formato de getCurrentPlan: plan_details es un objeto anidado
+      details = PlanDetails.fromJson(json['plan_details'] as Map<String, dynamic>);
+    } else if (json.containsKey('title')) {
+      // Formato de getPlans: datos directamente en el objeto
+      details = PlanDetails(
+        id: json['id'] ?? 0,
+        title: json['title'] ?? '',
+        description: json['description'] ?? '',
+        price: json['price']?.toString() ?? '0.00',
+        days: json['days'] ?? 30,
+        type: json['type'],
+        typeDisplay: json['type_display'],
+        actually: json['actually'],
+      );
+    }
+    
     return Plan(
       id: json['id']?.toString() ?? '',  // Convertir a String
       plan: json['plan'],
-      plan_details: json['plan_details'] != null 
-          ? PlanDetails.fromJson(json['plan_details']) 
-          : null,
+      plan_details: details, // Asignar los detalles, que pueden ser de cualquiera de los formatos
       status: json['status'],
       statusDisplay: json['status_display'],
       currentPeriodStart: json['current_period_start'],

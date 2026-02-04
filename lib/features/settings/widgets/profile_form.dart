@@ -14,6 +14,7 @@ import 'package:genius_hormo/providers/subscription_provider.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:genius_hormo/features/settings/widgets/height_picker.dart';
 import 'package:genius_hormo/features/settings/widgets/weight_picker.dart';
+import 'package:genius_hormo/features/settings/widgets/birth_date_picker.dart';
 
 class UserProfileForm extends StatefulWidget {
   final UserProfileData initialData;
@@ -257,6 +258,14 @@ class _UserProfileFormState extends State<UserProfileForm> {
       missingFields.add(localizations['settings']['gender']);
     }
     
+    // Validar la fecha de nacimiento para cumplir con la edad mínima
+    if (_birthDateController.text.isNotEmpty) {
+      final isValidDate = _validateBirthDate(_birthDateController.text);
+      if (!isValidDate) {
+        missingFields.add('${localizations['settings']['birthDay']} (${localizations['settings']['minAge']})');
+      }
+    }
+    
     if (missingFields.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -271,6 +280,34 @@ class _UserProfileFormState extends State<UserProfileForm> {
     return true;
   }
   
+  // Validar que la fecha de nacimiento corresponda a alguien mayor de 18 años
+  bool _validateBirthDate(String dateString) {
+    try {
+      final parts = dateString.split('-');
+      if (parts.length != 3) {
+        return false;
+      }
+      
+      final year = int.parse(parts[0]);
+      final month = int.parse(parts[1]);
+      final day = int.parse(parts[2]);
+      final birthDate = DateTime(year, month, day);
+      
+      // Calcular edad
+      final today = DateTime.now();
+      var age = today.year - birthDate.year;
+      if (today.month < birthDate.month || 
+          (today.month == birthDate.month && today.day < birthDate.day)) {
+        age--;
+      }
+      
+      return age >= 18;
+    } catch (e) {
+      debugPrint('Error validando fecha de nacimiento: $e');
+      return false;
+    }
+  }
+
   void _showBackendErrors(String? error) {
     if (error == null) return;
     
@@ -450,60 +487,44 @@ class _UserProfileFormState extends State<UserProfileForm> {
               },
             ),
 
-            Text(AppLocalizations.of(context)!['settings']['birthDay']),
-            // Birth Date field
-            TextFormField(
-              controller: _birthDateController,
-              readOnly: true,
-              onTap: () async {
-                // Calculate maximum date (18 years ago from today)
-                final DateTime maxDate = DateTime.now().subtract(Duration(days: 18 * 365));
+            // Nuevo selector de fecha de nacimiento con NumberPickers verticales
+            BirthDatePicker(
+              key: ValueKey('birth_date_picker_${_birthDateController.text}'),
+              initialValue: _birthDateController.text,
+              onChanged: (date) {
+                setState(() {
+                  _birthDateController.text = date;
+                  debugPrint('📆 Fecha de nacimiento actualizada: $date');
+                });
                 
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: maxDate,
-                  firstDate: DateTime(1900),
-                  lastDate: maxDate, // Don't allow dates under 18 years old
-                  helpText: AppLocalizations.of(context)!['settings']['profileForm']['birthDateHelper'],
-                  errorFormatText: AppLocalizations.of(context)!['settings']['profileForm']['birthDateInvalid'],
-                );
-                if (date != null) {
-                  _birthDateController.text =
-                      "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-                }
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return AppLocalizations.of(context)!['settings']['profileForm']['birthDateRequired'];
-                }
-                
-                // Validate date format
+                // Validar que la fecha sea de alguien mayor de 18 años
                 try {
-                  final parts = value.split('-');
-                  if (parts.length != 3) {
-                    return AppLocalizations.of(context)!['settings']['profileForm']['birthDateInvalid'];
+                  final parts = date.split('-');
+                  if (parts.length == 3) {
+                    final year = int.parse(parts[0]);
+                    final month = int.parse(parts[1]);
+                    final day = int.parse(parts[2]);
+                    final birthDate = DateTime(year, month, day);
+                    
+                    // Calcular edad
+                    final today = DateTime.now();
+                    var age = today.year - birthDate.year;
+                    if (today.month < birthDate.month || 
+                        (today.month == birthDate.month && today.day < birthDate.day)) {
+                      age--;
+                    }
+                    
+                    if (age < 18) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(AppLocalizations.of(context)!['settings']['minAge']),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   }
-                  
-                  final year = int.parse(parts[0]);
-                  final month = int.parse(parts[1]);
-                  final day = int.parse(parts[2]);
-                  final birthDate = DateTime(year, month, day);
-                  
-                  // Calcular edad
-                  final today = DateTime.now();
-                  var age = today.year - birthDate.year;
-                  if (today.month < birthDate.month || 
-                      (today.month == birthDate.month && today.day < birthDate.day)) {
-                    age--;
-                  }
-                  
-                  if (age < 18) {
-                    return AppLocalizations.of(context)!['settings']['minAge'];
-                  }
-                  
-                  return null;
                 } catch (e) {
-                  return AppLocalizations.of(context)!['settings']['profileForm']['birthDateInvalid'];
+                  debugPrint('Error al validar la fecha: $e');
                 }
               },
             ),

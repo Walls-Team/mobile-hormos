@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_hormo/l10n/app_localizations.dart';
 
 class PlansBadge extends StatelessWidget {
   final VoidCallback onTap;
@@ -26,9 +27,9 @@ class PlansBadge extends StatelessWidget {
                 Row(
                   children: [
                     SizedBox(width: 12),
-                    const Text(
-                      "Planes",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    Text(
+                      AppLocalizations.of(context)!['plans']['title'],
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),

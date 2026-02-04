@@ -167,8 +167,15 @@ class _HeightPickerState extends State<HeightPicker> {
           ),
         ),
         const SizedBox(height: 8),
+        // Etiqueta de unidad (M)
+        Center(
+          child: Text(
+            'Mts',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ),
         Container(
-          height: 70,
+          height: 60,
           width: double.infinity, // Ocupar todo el ancho disponible
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Stack(
@@ -220,10 +227,10 @@ class _HeightPickerState extends State<HeightPicker> {
                   
                   widget.onChanged(heightInDecimalFeet);
                 },
-                // Formateador para mostrar metros con 2 decimales
+                // Formateador para mostrar metros con 2 decimales (sin unidad)
                 textMapper: (valueString) {
                   int value = int.parse(valueString);
-                  return '${(value / 100.0).toStringAsFixed(2)}m';
+                  return '${(value / 100.0).toStringAsFixed(2)}';
                 },
               ),
               

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:genius_hormo/core/api/api_response.dart';
-import 'package:genius_hormo/core/utils/url_launcher_utils.dart';
 import 'package:genius_hormo/features/auth/services/user_storage_service.dart';
+import 'package:genius_hormo/features/settings/controllers/plans_controller.dart';
 import 'package:genius_hormo/features/settings/models/plan.dart';
-import 'package:genius_hormo/features/settings/models/stripe_checkout_response.dart';
 import 'package:genius_hormo/features/settings/services/plans_api_service.dart';
 import 'package:genius_hormo/features/settings/services/stripe_api_service.dart';
+import 'package:genius_hormo/features/settings/widgets/plan_card.dart';
+import 'package:genius_hormo/features/settings/widgets/plans_dialogs.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
 import 'package:get_it/get_it.dart';
 
@@ -17,274 +17,65 @@ class PlansScreen extends StatefulWidget {
 }
 
 class _PlansScreenState extends State<PlansScreen> {
-  final PlansApiService _plansApiService = GetIt.instance<PlansApiService>();
-  final UserStorageService _userStorageService = GetIt.instance<UserStorageService>();
-  final StripeApiService _stripeApiService = GetIt.instance<StripeApiService>();
-  
-  bool _isLoading = true;
-  bool _isPurchasing = false;
-  String? _error;
-  String? _purchaseError;
-  List<Plan>? _plans;
+  late PlansController _controller;
   
   @override
   void initState() {
     super.initState();
-    _loadPlans();
+    // Inicializar el controlador con las dependencias necesarias
+    _controller = PlansController(
+      plansApiService: GetIt.instance<PlansApiService>(),
+      userStorageService: GetIt.instance<UserStorageService>(),
+      stripeApiService: GetIt.instance<StripeApiService>(),
+    );
+    
+    // Escuchar los cambios en el controlador
+    _controller.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
   
-  Future<void> _loadPlans() async {
-    if (!mounted) return;
-    
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-    
-    try {
-      final token = await _userStorageService.getJWTToken();
-      
-      if (token == null || token.isEmpty) {
-        if (!mounted) return;
-        setState(() {
-          _error = 'No se pudo obtener el token de autenticación';
-          _isLoading = false;
-        });
-        return;
-      }
-      
-      final response = await _plansApiService.getPlans(authToken: token);
-      
-      if (!mounted) return;
-      
-      if (response.success && response.data != null) {
-        setState(() {
-          _plans = response.data!.plans;
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          // Si no hay planes, mostramos un mensaje más amigable
-          if (response.message.contains('No tienes') || 
-              response.error?.contains('No tienes') == true) {
-            _error = 'No hay planes disponibles en este momento';
-          } else {
-            _error = response.error ?? 'Error desconocido';
-          }
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = 'Error al cargar planes';
-        _isLoading = false;
-      });
-      debugPrint('Error en _loadPlans: $e');
-    }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
   
-  /// Compra un plan mediante Stripe
-  Future<void> _purchasePlan(Plan plan) async {
-    setState(() {
-      _isPurchasing = true;
-      _purchaseError = null;
-    });
+  /// Maneja el proceso de suscripción a un plan
+  Future<void> _handlePlanSubscription(Plan plan) async {
+    // Mostrar diálogo de confirmación
+    final shouldProceed = await PlansDialogs.showPurchaseConfirmation(context, plan);
+    if (!shouldProceed) return;
     
-    try {
-      // Mostrar un diálogo de confirmación
-      final shouldProceed = await _showPurchaseConfirmationDialog(plan);
-      
-      if (!shouldProceed) {
-        setState(() {
-          _isPurchasing = false;
-        });
-        return;
-      }
-      
-      // Mostrar indicador de carga durante el proceso
-      _showLoadingDialog();
-      
-      // Obtener el token de autenticación
-      final token = await _userStorageService.getJWTToken();
-      
-      if (token == null || token.isEmpty) {
-        _dismissLoadingDialog();
-        setState(() {
-          _purchaseError = 'No se pudo obtener el token de autenticación';
-          _isPurchasing = false;
-        });
-        _showErrorDialog('No se pudo obtener el token de autenticación');
-        return;
-      }
-      
-      // Crear sesión de checkout con Stripe - el backend maneja los deeplinks
-      final response = await _stripeApiService.createCheckoutSession(
-        authToken: token,
-        planId: plan.id,
+    // Mostrar diálogo de carga
+    PlansDialogs.showLoadingDialog(context);
+    
+    // Procesar la compra
+    final success = await _controller.purchasePlan(
+      plan,
+      (errorMessage) {
+        PlansDialogs.dismissDialog(context);
+        PlansDialogs.showErrorDialog(context, errorMessage);
+      },
+    );
+    
+    // Si todo sale bien, cerrar el diálogo y mostrar mensaje de éxito
+    if (success) {
+      PlansDialogs.dismissDialog(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Se ha abierto la página de pago para el plan ${plan.title}'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
       );
-      
-      _dismissLoadingDialog();
-      
-      // Verificar que tengamos una URL de checkout válida
-      if (response.success && response.data != null) {
-        debugPrint('Datos de respuesta: ${response.data}');
-        debugPrint('URL de checkout: ${response.data!.checkoutUrl}');
-        
-        // Verificar que la URL no sea nula
-        if (response.data!.checkoutUrl == null) {
-          setState(() {
-            _purchaseError = 'No se encontró URL de checkout en la respuesta';
-            _isPurchasing = false;
-          });
-          _showErrorDialog(_purchaseError!);
-          return;
-        }
-        
-        final checkoutUrl = response.data!.checkoutUrl!;
-        debugPrint('💳 URL de checkout encontrada: $checkoutUrl');
-        
-        // Abrir URL de Stripe en el navegador
-        final launched = await UrlLauncherUtils.launchURL(checkoutUrl);
-        
-        if (!launched) {
-          setState(() {
-            _purchaseError = 'No se pudo abrir el enlace de pago';
-            _isPurchasing = false;
-          });
-          _showErrorDialog('No se pudo abrir el enlace de pago');
-          return;
-        }
-        
-        // Mostrar mensaje de éxito
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Se ha abierto la página de pago para el plan ${plan.title}'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-      } else {
-        setState(() {
-          _purchaseError = response.error ?? 'Error al crear la sesión de pago';
-          _isPurchasing = false;
-        });
-        _showErrorDialog(_purchaseError!);
-      }
-    } catch (e) {
-      _dismissLoadingDialog();
-      setState(() {
-        _purchaseError = e.toString();
-        _isPurchasing = false;
-      });
-      _showErrorDialog('Error: ${e.toString()}');
-    } finally {
-      setState(() {
-        _isPurchasing = false;
-      });
     }
-  }
-  
-  /// Muestra un diálogo de confirmación para la compra
-  Future<bool> _showPurchaseConfirmationDialog(Plan plan) async {
-    return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFF1C1D23),
-        title: Text(AppLocalizations.of(context)!['plans']['confirmSubscription'], style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${AppLocalizations.of(context)!['common']['subscribe']} ${plan.plan_details?.title ?? "Plan"}?',
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '${AppLocalizations.of(context)!['common']['price']}: ${plan.plan_details?.price ?? "0.00"}',
-              style: TextStyle(color: Colors.white70),
-            ),
-            Text(
-              '${AppLocalizations.of(context)!['common']['duration']}: ${plan.plan_details?.days ?? 30} ${AppLocalizations.of(context)!['common']['days']}',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppLocalizations.of(context)!['plans']['cancel'], style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFEDE954),
-              foregroundColor: Colors.black,
-            ),
-            child: Text(AppLocalizations.of(context)!['plans']['confirm']),
-          ),
-        ],
-      ),
-    ) ?? false;
-  }
-  
-  /// Muestra un diálogo de carga durante el proceso de pago
-  void _showLoadingDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => WillPopScope(
-        onWillPop: () async => false,
-        child: AlertDialog(
-          backgroundColor: Color(0xFF1C1D23),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(color: Color(0xFFEDE954)),
-              SizedBox(height: 16),
-              Text(
-                AppLocalizations.of(context)!['plans']['processingPayment'],
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  
-  /// Cierra el diálogo de carga
-  void _dismissLoadingDialog() {
-    if (mounted && Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    }
-  }
-  
-  /// Muestra un diálogo de error
-  void _showErrorDialog(String errorMessage) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFF1C1D23),
-        title: Text(AppLocalizations.of(context)!['plans']['error'], style: TextStyle(color: Colors.white)),
-        content: Text(errorMessage, style: TextStyle(color: Colors.white70)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: TextButton.styleFrom(foregroundColor: Color(0xFFEDE954)),
-            child: Text(AppLocalizations.of(context)!['plans']['accept']),
-          ),
-        ],
-      ),
-    );
   }
   
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Color(0xFF1C1D23),
       appBar: AppBar(
@@ -296,7 +87,8 @@ class _PlansScreenState extends State<PlansScreen> {
   }
   
   Widget _buildBody() {
-    if (_isLoading) {
+    // Estado de carga
+    if (_controller.isLoading) {
       return const Center(
         child: CircularProgressIndicator(
           color: Color(0xFFEDE954),
@@ -304,7 +96,8 @@ class _PlansScreenState extends State<PlansScreen> {
       );
     }
     
-    if (_error != null) {
+    // Estado de error
+    if (_controller.error != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -312,13 +105,13 @@ class _PlansScreenState extends State<PlansScreen> {
             Icon(Icons.error_outline, size: 64, color: Colors.red),
             SizedBox(height: 16),
             Text(
-              'Error: $_error',
+              'Error: ${_controller.error}',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white),
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _loadPlans,
+              onPressed: () => _controller.loadPlans(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFEDE954),
                 foregroundColor: Colors.black,
@@ -330,7 +123,9 @@ class _PlansScreenState extends State<PlansScreen> {
       );
     }
     
-    if (_plans == null || _plans!.isEmpty) {
+    // Sin planes disponibles
+    final plans = _controller.plans;
+    if (plans == null || plans.isEmpty) {
       return Center(
         child: Text(
           AppLocalizations.of(context)!['plans']['noPlansAvailable'],
@@ -339,49 +134,14 @@ class _PlansScreenState extends State<PlansScreen> {
       );
     }
     
+    // Lista de planes
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Renderizar planes de la API
-          ..._plans!.map((plan) {
-              return Container(
-                margin: EdgeInsets.all(16),
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Color(0xFFEDE954), // Amarillo de la app
-                  borderRadius: BorderRadius.circular(16), // Puntas redondeadas
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      plan.plan_details?.title ?? 'Plan',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      '${plan.plan_details?.price ?? "0.00"} - ${plan.plan_details?.days ?? 30} días',
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
-                    ),
-                    SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => _purchasePlan(plan),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black, // Botón negro
-                        foregroundColor: Color(0xFFEDE954), // Texto amarillo
-                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!['plans']['subscribe'],
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+          ...plans.map((plan) => PlanCard(
+            plan: plan,
+            onSubscribe: _handlePlanSubscription,
+          )),
         ],
       ),
     );

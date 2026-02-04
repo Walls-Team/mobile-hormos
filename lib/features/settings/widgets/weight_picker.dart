@@ -138,50 +138,62 @@ class _WeightPickerState extends State<WeightPicker> {
     // Validación simplificada - usar valor seguro
     final int safeKgValue = _selectedKg.clamp(minKg, maxKg);
     
-    return Container(
-      height: 70, // Altura del contenedor para el picker
-      width: double.infinity, // Ocupar todo el ancho disponible
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Marco decorativo para el valor seleccionado
-          Container(
-            width: 60,
-            height: 38,
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFEDE954), width: 2),
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.transparent, // Fondo transparente para que se vea el número
-            ),
+    return Column(
+      children: [
+        // Etiqueta de unidad de peso (KG)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            _getUnitLabel(true),
+            style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
-          
-          // Número picker horizontal
-          NumberPicker(
-            value: safeKgValue,
-            minValue: minKg, // Mínimo 35kg
-            maxValue: maxKg, // Máximo 150kg
-            step: 1,
-            axis: Axis.horizontal,
-            itemWidth: 60, // Ancho de cada item
-            haptics: true,
-            textStyle: const TextStyle(fontSize: 16, color: Colors.grey),
-            selectedTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-            onChanged: (value) {
-              setState(() {
-                _selectedKg = value.clamp(minKg, maxKg);
-                // Calcular el valor equivalente en libras
-                _selectedLbs = _kgToLbs(_selectedKg.toDouble()).round().clamp(minLbs, maxLbs);
-              });
+        ),
+        Container(
+          height: 60, // Altura del contenedor para el picker
+          width: double.infinity, // Ocupar todo el ancho disponible
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Marco decorativo para el valor seleccionado
+              Container(
+                width: 60,
+                height: 38,
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFEDE954), width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.transparent, // Fondo transparente para que se vea el número
+                ),
+              ),
               
-              // Convertir a libras para enviar al backend
-              final weightInLbs = _kgToLbs(_selectedKg.toDouble());
-              debugPrint('⚖️ Vista métrica: $_selectedKg kg = ${weightInLbs.toStringAsFixed(1)} lbs');
-              widget.onChanged(weightInLbs);
-            },
+              // Número picker horizontal
+              NumberPicker(
+                value: safeKgValue,
+                minValue: minKg, // Mínimo 35kg
+                maxValue: maxKg, // Máximo 150kg
+                step: 1,
+                axis: Axis.horizontal,
+                itemWidth: 60, // Ancho de cada item
+                haptics: true,
+                textStyle: const TextStyle(fontSize: 16, color: Colors.grey),
+                selectedTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedKg = value.clamp(minKg, maxKg);
+                    // Calcular el valor equivalente en libras
+                    _selectedLbs = _kgToLbs(_selectedKg.toDouble()).round().clamp(minLbs, maxLbs);
+                  });
+                  
+                  // Convertir a libras para enviar al backend
+                  final weightInLbs = _kgToLbs(_selectedKg.toDouble());
+                  debugPrint('⚖️ Vista métrica: $_selectedKg kg = ${weightInLbs.toStringAsFixed(1)} lbs');
+                  widget.onChanged(weightInLbs);
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -189,49 +201,72 @@ class _WeightPickerState extends State<WeightPicker> {
     // Validación simplificada - usar valor seguro
     final int safeLbsValue = _selectedLbs.clamp(minLbs, maxLbs);
     
-    return Container(
-      height: 70, // Altura del contenedor para el picker
-      width: double.infinity, // Ocupar todo el ancho disponible
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Marco decorativo para el valor seleccionado
-          Container(
-            width: 60,
-            height: 38,
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFEDE954), width: 2),
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.transparent, // Fondo transparente para que se vea el número
-            ),
+    return Column(
+      children: [
+        // Etiqueta de unidad de peso (LBS)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            _getUnitLabel(false),
+            style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
-          
-          // Número picker horizontal
-          NumberPicker(
-            value: safeLbsValue,
-            minValue: minLbs, // Mínimo 77lbs
-            maxValue: maxLbs, // Máximo 330lbs
-            step: 1,
-            axis: Axis.horizontal,
-            itemWidth: 60, // Ancho de cada item
-            haptics: true,
-            textStyle: const TextStyle(fontSize: 16, color: Colors.grey),
-            selectedTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-            onChanged: (value) {
-              setState(() {
-                _selectedLbs = value.clamp(minLbs, maxLbs);
-                // Calcular el valor equivalente en kg
-                _selectedKg = _lbsToKg(_selectedLbs.toDouble()).round().clamp(minKg, maxKg);
-              });
+        ),
+        Container(
+          height: 60, // Altura del contenedor para el picker
+          width: double.infinity, // Ocupar todo el ancho disponible
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Marco decorativo para el valor seleccionado
+              Container(
+                width: 60,
+                height: 38,
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFEDE954), width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.transparent, // Fondo transparente para que se vea el número
+                ),
+              ),
               
-              debugPrint('⚖️ Vista imperial: $_selectedLbs lbs = $_selectedKg kg');
-              widget.onChanged(_selectedLbs.toDouble());
-            },
+              // Número picker horizontal
+              NumberPicker(
+                value: safeLbsValue,
+                minValue: minLbs, // Mínimo 77lbs
+                maxValue: maxLbs, // Máximo 330lbs
+                step: 1,
+                axis: Axis.horizontal,
+                itemWidth: 60, // Ancho de cada item
+                haptics: true,
+                textStyle: const TextStyle(fontSize: 16, color: Colors.grey),
+                selectedTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedLbs = value.clamp(minLbs, maxLbs);
+                    // Calcular el valor equivalente en kg
+                    _selectedKg = _lbsToKg(_selectedLbs.toDouble()).round().clamp(minKg, maxKg);
+                  });
+                  
+                  debugPrint('⚖️ Vista imperial: $_selectedLbs lbs = $_selectedKg kg');
+                  widget.onChanged(_selectedLbs.toDouble());
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+  
+  // Obtener la etiqueta de unidad localizada
+  String _getUnitLabel(bool isMetric) {
+    final appLocalization = AppLocalizations.of(context);
+    
+    if (isMetric) {
+      return appLocalization?['settings']?['weightUnit']?['metric'] ?? 'KG';
+    } else {
+      return appLocalization?['settings']?['weightUnit']?['imperial'] ?? 'LBS';
+    }
   }
 
   // Funciones de conversión entre kg y lbs
