@@ -420,7 +420,7 @@ class SleepInterruptionRecord {
   factory SleepInterruptionRecord.fromJson(Map<String, dynamic> json) {
     return SleepInterruptionRecord(
       date: DateTime.parse(json['date'] as String),
-      sleepInterruptions: (json['sleep_interruptions'] as num).toInt(),
+      sleepInterruptions: json['sleep_interruptions'] != null ? (json['sleep_interruptions'] as num).toInt() : 0,
       dayIndex: json['day_index'] != null ? (json['day_index'] as num).toInt() : 0,
     );
   }

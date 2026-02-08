@@ -69,15 +69,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange),
+                      Icon(Icons.engineering, size: 64, color: Colors.orange),
                       SizedBox(height: 16),
                       Text(
                         localizations['dashboardScreen']['errorLoading'],
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'Desliza hacia abajo para reintentar',
+                        localizations['dashboardScreen']['maintenanceMessage'],
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        localizations['dashboardScreen']['pullToRetry'],
                         style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],

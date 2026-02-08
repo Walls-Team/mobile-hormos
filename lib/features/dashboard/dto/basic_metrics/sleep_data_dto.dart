@@ -39,10 +39,8 @@ class SleepData {
 
   Map<String, dynamic> toJson() {
     return {
-      'resume': resume?.toJson(),
-      'sleep_resume': sleepResume?.map((item) => item.toJson()).toList(),
-      'rem_resume': remResume?.map((item) => item.toJson()).toList(),
-      'spo_resume': spoResume?.map((item) => item.toJson()).toList(),
+      'resume': resume.toJson(),
+      'sleep_resume': sleepResume.map((item) => item.toJson()).toList(),
       'rem_resume': remResume.map((item) => item.toJson()).toList(),
       'spo_resume': spoResume.map((item) => item.toJson()).toList(),
       'dates': dates,

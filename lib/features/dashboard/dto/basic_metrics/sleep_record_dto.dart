@@ -17,11 +17,11 @@ class SleepRecord {
 
   factory SleepRecord.fromJson(Map<String, dynamic> json) {
     return SleepRecord(
-      hrvRmssd: (json['hrv_rmssd'] as num).toInt(),
-      sleepEfficiency: (json['sleep_efficiency'] as num).toInt(),
-      sleepDuration: (json['sleep_duration'] as num).toDouble(),
-      sleepInterruptions: (json['sleep_interruptions'] as num).toInt(),
-      sleepScore: (json['sleep_score'] as num).toDouble(),
+      hrvRmssd: json['hrv_rmssd'] != null ? (json['hrv_rmssd'] as num).toInt() : 0,
+      sleepEfficiency: json['sleep_efficiency'] != null ? (json['sleep_efficiency'] as num).toInt() : 0,
+      sleepDuration: json['sleep_duration'] != null ? (json['sleep_duration'] as num).toDouble() : 0.0,
+      sleepInterruptions: json['sleep_interruptions'] != null ? (json['sleep_interruptions'] as num).toInt() : 0,
+      sleepScore: json['sleep_score'] != null ? (json['sleep_score'] as num).toDouble() : 0.0,
       date: json['date'] as String,
     );
   }

@@ -537,7 +537,9 @@ const Map<String, dynamic> es = {
     },
   },
   'statsScreen': {
-    'errorLoading': 'Error al cargar los datos',
+    'errorLoading': 'Estamos en mantenimiento',
+    'maintenanceMessage': 'Volveremos pronto',
+    'pullToRetry': 'Desliza hacia abajo para reintentar',
     'retry': 'Reintentar',
     'couldNotLoad': 'No se pudieron cargar los datos',
     'sleep': 'Sueño',
@@ -555,7 +557,9 @@ const Map<String, dynamic> es = {
     'bpm': 'lpm',
   },
   'dashboardScreen': {
-    'errorLoading': 'Error al cargar los datos',
+    'errorLoading': 'Estamos en mantenimiento',
+    'maintenanceMessage': 'Volveremos pronto',
+    'pullToRetry': 'Desliza hacia abajo para reintentar',
     'retry': 'Reintentar',
     'couldNotLoad': 'No se pudieron cargar los datos',
     'current': 'Actual',
