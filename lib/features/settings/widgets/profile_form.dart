@@ -462,7 +462,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
             // Height picker
             // IMPORTANTE: el valor de _height siempre se maneja en PULGADAS (ej: 67.0)
             HeightPicker(
-              key: ValueKey('height_picker_${_selectedLanguage}_$_height'),
+              key: ValueKey('height_picker_$_selectedLanguage'),
               initialValue: _height,
               isMetric: _selectedLanguage != 'en',
               onChanged: (value) {
@@ -476,7 +476,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
             // Weight picker
             // IMPORTANTE: el valor de _weight siempre se maneja en LIBRAS (ej: 150.0)
             WeightPicker(
-              key: ValueKey('weight_picker_${_selectedLanguage}_$_weight'),
+              key: ValueKey('weight_picker_$_selectedLanguage'),
               initialValue: _weight,
               isMetric: _selectedLanguage != 'en',
               onChanged: (value) {
@@ -489,7 +489,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
 
             // Nuevo selector de fecha de nacimiento con NumberPickers verticales
             BirthDatePicker(
-              key: ValueKey('birth_date_picker_${_birthDateController.text}'),
+              key: ValueKey('birth_date_picker'),
               initialValue: _birthDateController.text,
               onChanged: (date) {
                 setState(() {

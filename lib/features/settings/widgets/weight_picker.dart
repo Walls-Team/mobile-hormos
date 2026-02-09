@@ -33,6 +33,9 @@ class _WeightPickerState extends State<WeightPicker> {
   
   // Track current measurement system
   bool _isMetric = true;
+  
+  // Flag para evitar que didUpdateWidget sobreescriba valores durante cambios internos
+  bool _isInternalChange = false;
 
   @override
   void initState() {
@@ -88,8 +91,8 @@ class _WeightPickerState extends State<WeightPicker> {
       });
     }
     
-    // Actualizar si el valor inicial cambia
-    if (oldWidget.initialValue != widget.initialValue && widget.initialValue != null) {
+    // Actualizar si el valor inicial cambia (ignorar cambios internos del picker)
+    if (oldWidget.initialValue != widget.initialValue && widget.initialValue != null && !_isInternalChange) {
       final weightInLbs = widget.initialValue!;
       
       setState(() {
@@ -178,16 +181,18 @@ class _WeightPickerState extends State<WeightPicker> {
                 textStyle: const TextStyle(fontSize: 16, color: Colors.grey),
                 selectedTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                 onChanged: (value) {
+                  _isInternalChange = true;
+                  
                   setState(() {
-                    _selectedKg = value.clamp(minKg, maxKg);
-                    // Calcular el valor equivalente en libras
-                    _selectedLbs = _kgToLbs(_selectedKg.toDouble()).round().clamp(minLbs, maxLbs);
+                    _selectedKg = value;
+                    _selectedLbs = _kgToLbs(value.toDouble()).round();
                   });
                   
-                  // Convertir a libras para enviar al backend
-                  final weightInLbs = _kgToLbs(_selectedKg.toDouble());
+                  final weightInLbs = _kgToLbs(value.toDouble());
                   debugPrint('⚖️ Vista métrica: $_selectedKg kg = ${weightInLbs.toStringAsFixed(1)} lbs');
                   widget.onChanged(weightInLbs);
+                  
+                  Future.microtask(() => _isInternalChange = false);
                 },
               ),
             ],
@@ -241,14 +246,17 @@ class _WeightPickerState extends State<WeightPicker> {
                 textStyle: const TextStyle(fontSize: 16, color: Colors.grey),
                 selectedTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                 onChanged: (value) {
+                  _isInternalChange = true;
+                  
                   setState(() {
-                    _selectedLbs = value.clamp(minLbs, maxLbs);
-                    // Calcular el valor equivalente en kg
-                    _selectedKg = _lbsToKg(_selectedLbs.toDouble()).round().clamp(minKg, maxKg);
+                    _selectedLbs = value;
+                    _selectedKg = _lbsToKg(value.toDouble()).round();
                   });
                   
                   debugPrint('⚖️ Vista imperial: $_selectedLbs lbs = $_selectedKg kg');
-                  widget.onChanged(_selectedLbs.toDouble());
+                  widget.onChanged(value.toDouble());
+                  
+                  Future.microtask(() => _isInternalChange = false);
                 },
               ),
             ],

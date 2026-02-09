@@ -29,13 +29,16 @@ class _HeightPickerState extends State<HeightPicker> {
   // Track current measurement system
   bool _isMetric = true;
   
+  // Flag para evitar que didUpdateWidget sobreescriba valores durante cambios internos
+  bool _isInternalChange = false;
+  
   // Rangos permitidos
   final int minMetersIndex = 100; // 1.00m
   final int maxMetersIndex = 250; // 2.50m - Ampliado para usuarios de habla hispana
   final int minFeet = 3;
-  final int maxFeet = 10; // Actualizado para ser compatible con la altura máxima de 2.50m (8 pies 2 pulgadas)
+  final int maxFeet = 8; // Actualizado para ser compatible con la altura máxima de 2.50m (8 pies 2 pulgadas)
   final int minInches = 0;
-  final int maxInches = 11;
+  final int maxInches = 8;
   
   // No necesitamos ScrollControllers ya que NumberPicker maneja el scroll internamente
 
@@ -59,9 +62,9 @@ class _HeightPickerState extends State<HeightPicker> {
       // Calcular pulgadas totales para conversiones internas
       final totalInches = (_selectedFeet * 12) + _selectedInches;
       
-      // Convertir a metros para la vista métrica y asegurar rango válido
+      // Convertir a metros para la vista métrica
       double metersValue = totalInches * 0.0254;
-      _selectedMeters = metersValue.clamp(1.0, 2.0);
+      _selectedMeters = metersValue.clamp(1.0, 2.5);
       
       debugPrint('📍 Extracción: $heightInDecimalFeet = $_selectedFeet pies $_selectedInches pulgadas');
       debugPrint('📍 Pulgadas totales equivalentes: $totalInches pulgadas');
@@ -91,8 +94,8 @@ class _HeightPickerState extends State<HeightPicker> {
       });
     }
     
-    // Actualizar si el valor inicial cambia
-    if (oldWidget.initialValue != widget.initialValue && widget.initialValue != null) {
+    // Actualizar si el valor inicial cambia (pero ignorar cambios internos del picker)
+    if (oldWidget.initialValue != widget.initialValue && widget.initialValue != null && !_isInternalChange) {
       // El valor ahora viene como formato decimal de pies
       final heightInDecimalFeet = widget.initialValue!;
       debugPrint('📍 Actualizando HeightPicker con altura: $heightInDecimalFeet pies en formato decimal');
@@ -125,7 +128,7 @@ class _HeightPickerState extends State<HeightPicker> {
     _isMetric = widget.isMetric;
     
     // Validar valores para evitar errores
-    _selectedMeters = _selectedMeters.clamp(1.00, 2.00);
+    _selectedMeters = _selectedMeters.clamp(1.00, 2.50);
     _selectedFeet = _selectedFeet.clamp(minFeet, maxFeet);
     _selectedInches = _selectedInches.clamp(minInches, maxInches);
     
@@ -195,37 +198,41 @@ class _HeightPickerState extends State<HeightPicker> {
               // Número picker horizontal
               NumberPicker(
                 value: selectedMetersIndex,
-                minValue: minMetersIndex, // 1.00m
-                maxValue: maxMetersIndex, // 2.00m
-                step: 1,
+                minValue: 100, // 1.00m
+                maxValue: 250, // 2.50m
                 axis: Axis.horizontal,
                 itemWidth: 70,
                 haptics: true,
                 textStyle: const TextStyle(fontSize: 16, color: Colors.grey),
                 selectedTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                 onChanged: (value) {
-                  setState(() {
-                    // Asegurar que el valor esté en el rango válido
-                    _selectedMeters = (value / 100.0).clamp(1.00, 2.00);
-                    
-                    // Actualizar vista imperial
-                    final heightInFeet = _selectedMeters / 0.3048;
-                    _selectedFeet = heightInFeet.floor().clamp(minFeet, maxFeet);
-                    _selectedInches = ((heightInFeet - _selectedFeet) * 12).round().clamp(minInches, maxInches);
-                  });
+                  // Convertir el valor del picker a metros
+                  final newMeters = value / 100.0;
                   
-                  // Convertimos metros a pies y pulgadas
-                  final heightInFeet = _selectedMeters / 0.3048;
+                  // Convertir metros a pies y pulgadas
+                  final heightInFeet = newMeters / 0.3048;
                   final feet = heightInFeet.floor();
                   final inches = ((heightInFeet - feet) * 12).round();
                   
-                  // Convertimos a formato decimal de pies
+                  // Marcar como cambio interno para que didUpdateWidget no sobreescriba
+                  _isInternalChange = true;
+                  
+                  setState(() {
+                    _selectedMeters = newMeters;
+                    _selectedFeet = feet;
+                    _selectedInches = inches;
+                  });
+                  
+                  // Formato decimal para el backend (6.1 para 6'1")
                   final heightInDecimalFeet = feet + (inches / 10.0);
                   
-                  debugPrint('📍 VISTA MÉTRICA: Seleccionado $_selectedMeters metros');
-                  debugPrint('📍 Convirtiendo: $_selectedMeters metros = $feet pies $inches pulgadas');
+                  debugPrint('📍 Altura seleccionada: $newMeters metros');
+                  debugPrint('📍 Equivalente a: $feet pies $inches pulgadas');
                   
                   widget.onChanged(heightInDecimalFeet);
+                  
+                  // Resetear flag después de notificar al padre
+                  Future.microtask(() => _isInternalChange = false);
                 },
                 // Formateador para mostrar metros con 2 decimales (sin unidad)
                 textMapper: (valueString) {
@@ -344,7 +351,7 @@ class _HeightPickerState extends State<HeightPicker> {
                           NumberPicker(
                             value: _selectedInches.clamp(minInches, maxInches),
                             minValue: minInches, // Min 0 inches
-                            maxValue: maxInches, // Max 11 inches
+                            maxValue: maxInches, // Max 8 inches
                             step: 1,
                             axis: Axis.horizontal,
                             itemWidth: 60,

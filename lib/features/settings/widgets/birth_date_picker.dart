@@ -26,6 +26,9 @@ class _BirthDatePickerState extends State<BirthDatePicker> {
   final int _minYear = 1900;
   int _maxYear = 2008; // 18 años atrás (se calcula en initState)
   
+  // Flag para evitar que didUpdateWidget sobreescriba valores durante cambios internos
+  bool _isInternalChange = false;
+  
   @override
   void initState() {
     super.initState();
@@ -108,15 +111,16 @@ class _BirthDatePickerState extends State<BirthDatePicker> {
                         ),
                       ),
                       onChanged: (value) {
+                        _isInternalChange = true;
                         setState(() {
                           _selectedYear = value;
-                          // Ajustar día máximo si es necesario (febrero en año bisiesto)
                           final maxDays = _getDaysInMonth(_selectedMonth, _selectedYear);
                           if (_selectedDay > maxDays) {
                             _selectedDay = maxDays;
                           }
                         });
                         _notifyChange();
+                        Future.microtask(() => _isInternalChange = false);
                       },
                     ),
                   ],
@@ -149,15 +153,16 @@ class _BirthDatePickerState extends State<BirthDatePicker> {
                         ),
                       ),
                       onChanged: (value) {
+                        _isInternalChange = true;
                         setState(() {
                           _selectedMonth = value;
-                          // Ajustar día máximo según el mes seleccionado
                           final maxDays = _getDaysInMonth(_selectedMonth, _selectedYear);
                           if (_selectedDay > maxDays) {
                             _selectedDay = maxDays;
                           }
                         });
                         _notifyChange();
+                        Future.microtask(() => _isInternalChange = false);
                       },
                       textMapper: (valueString) {
                         // Convertir el string a entero y luego el número del mes a su nombre corto
@@ -195,10 +200,12 @@ class _BirthDatePickerState extends State<BirthDatePicker> {
                         ),
                       ),
                       onChanged: (value) {
+                        _isInternalChange = true;
                         setState(() {
                           _selectedDay = value;
                         });
                         _notifyChange();
+                        Future.microtask(() => _isInternalChange = false);
                       },
                     ),
                   ],
