@@ -9,4 +9,15 @@ class HealthData {
     required this.energy,
     required this.sleep,
   });
+
+  bool get isSynchronizing {
+    return sleep.dates.isEmpty && sleep.sleepResume.isEmpty;
+  }
+
+  factory HealthData.empty() {
+    return HealthData(
+      energy: EnergyData.empty(),
+      sleep: SleepData.empty(),
+    );
+  }
 }

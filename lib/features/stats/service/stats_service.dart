@@ -55,10 +55,15 @@ class StatsService {
         print('✅ Successfully parsed $endpoint\n');
         
         return result;
+      } else if (response.statusCode == 404) {
+        print('⚠️ Data not found (404): ${response.body}\n');
+        throw _NoDataException('HTTP 404: ${response.body}');
       } else {
         print('❌ Error ${response.statusCode}: ${response.body}\n');
         throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
+    } on _NoDataException {
+      rethrow;
     } catch (e, stackTrace) {
       print('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('💥 ERROR in $endpoint');
@@ -184,26 +189,31 @@ class StatsService {
     String? startDate,
     String? endDate,
   }) async {
-    try {
-      final results = await Future.wait([
-        getSleepEfficiency(token: token, startDate: startDate, endDate: endDate),
-        getSleepDuration(token: token, startDate: startDate, endDate: endDate),
-        getHeartRate(token: token, startDate: startDate, endDate: endDate),
-        getSpo2(token: token, startDate: startDate, endDate: endDate),
-        getCalories(token: token, startDate: startDate, endDate: endDate),
-        getSleepInterruptions(token: token, startDate: startDate, endDate: endDate),
-      ]);
+    final results = await Future.wait([
+      _safeGet(() => getSleepEfficiency(token: token, startDate: startDate, endDate: endDate), SleepEfficiencyData.empty()),
+      _safeGet(() => getSleepDuration(token: token, startDate: startDate, endDate: endDate), SleepDurationData.empty()),
+      _safeGet(() => getHeartRate(token: token, startDate: startDate, endDate: endDate), HeartRateData.empty()),
+      _safeGet(() => getSpo2(token: token, startDate: startDate, endDate: endDate), Spo2Data.empty()),
+      _safeGet(() => getCalories(token: token, startDate: startDate, endDate: endDate), CaloriesData.empty()),
+      _safeGet(() => getSleepInterruptions(token: token, startDate: startDate, endDate: endDate), SleepInterruptionsData.empty()),
+    ]);
 
-      return AllStats(
-        sleepEfficiency: results[0] as SleepEfficiencyData,
-        sleepDuration: results[1] as SleepDurationData,
-        heartRate: results[2] as HeartRateData,
-        spo2: results[3] as Spo2Data,
-        calories: results[4] as CaloriesData,
-        sleepInterruptions: results[5] as SleepInterruptionsData,
-      );
+    return AllStats(
+      sleepEfficiency: results[0] as SleepEfficiencyData,
+      sleepDuration: results[1] as SleepDurationData,
+      heartRate: results[2] as HeartRateData,
+      spo2: results[3] as Spo2Data,
+      calories: results[4] as CaloriesData,
+      sleepInterruptions: results[5] as SleepInterruptionsData,
+    );
+  }
+
+  Future<T> _safeGet<T>(Future<T> Function() getter, T fallback) async {
+    try {
+      return await getter();
     } catch (e) {
-      throw Exception('Error al obtener todas las estadísticas: $e');
+      print('⚠️ Fallback a datos vacíos: $e');
+      return fallback;
     }
   }
 
@@ -278,4 +288,11 @@ class StatsService {
   void close() {
     client.close();
   }
+}
+
+class _NoDataException implements Exception {
+  final String message;
+  _NoDataException(this.message);
+  @override
+  String toString() => message;
 }

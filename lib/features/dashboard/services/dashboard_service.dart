@@ -64,16 +64,23 @@ class DashBoardService {
   Future<HealthData> getHealthData({required String token}) async {
     try {
       final results = await Future.wait([
-        getBasicMetrics(token: token),
-        getEnergyLevels(token: token),
+        getBasicMetrics(token: token).catchError((e) {
+          debugPrint('⚠️ Error en basic-metrics, usando datos vacíos: $e');
+          return SleepData.empty();
+        }),
+        getEnergyLevels(token: token).catchError((e) {
+          debugPrint('⚠️ Error en energy-levels, usando datos vacíos: $e');
+          return EnergyData.empty();
+        }),
       ]);
 
       return HealthData(
-        energy: results[1] as EnergyData,
         sleep: results[0] as SleepData,
+        energy: results[1] as EnergyData,
       );
     } catch (e) {
-      throw Exception('error al obtener los datos');
+      debugPrint('❌ Error general en getHealthData: $e');
+      return HealthData.empty();
     }
   }
 

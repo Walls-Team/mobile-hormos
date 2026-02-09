@@ -11,6 +11,15 @@ class SleepSummary {
     required this.date,
   });
 
+  factory SleepSummary.empty() {
+    return SleepSummary(
+      hrvRmssd: 0,
+      sleepEfficiency: 0,
+      sleepDuration: 0.0,
+      date: DateTime.now().toIso8601String().substring(0, 10),
+    );
+  }
+
   factory SleepSummary.fromJson(Map<String, dynamic> json) {
     return SleepSummary(
       hrvRmssd: (json['hrv_rmssd'] as num).toInt(),

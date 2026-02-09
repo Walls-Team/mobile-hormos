@@ -6,6 +6,7 @@ import 'package:genius_hormo/features/stats/components/sleep_interruptions_stat_
 import 'package:genius_hormo/features/stats/components/heart_rate_resting_chart.dart';
 import 'package:genius_hormo/features/stats/components/spo2_chart.dart';
 import 'package:genius_hormo/features/stats/components/calories_burned_chart.dart';
+import 'package:genius_hormo/features/stats/components/data_sync_warning.dart';
 import 'package:genius_hormo/features/stats/dto/dtos.dart';
 import 'package:genius_hormo/features/stats/service/stats_service.dart';
 import 'package:get_it/get_it.dart';
@@ -179,6 +180,10 @@ class _StatsScreenState extends State<StatsScreen> {
     return ListView(
       padding: EdgeInsets.all(16),
       children: [
+        if (allStats.isSynchronizing)
+          DataSyncWarning(
+            customMessage: AppLocalizations.of(context)!['common']?['dataSyncStats'],
+          ),
         // Header con filtros
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

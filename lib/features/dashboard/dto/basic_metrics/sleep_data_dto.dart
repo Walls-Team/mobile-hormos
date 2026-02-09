@@ -18,6 +18,16 @@ class SleepData {
     required this.dates,
   });
 
+  factory SleepData.empty() {
+    return SleepData(
+      resume: SleepSummary.empty(),
+      sleepResume: [],
+      remResume: [],
+      spoResume: [],
+      dates: [],
+    );
+  }
+
   factory SleepData.fromJson(Map<String, dynamic> json) {
     return SleepData(
       resume: SleepSummary.fromJson(json['resume'] as Map<String, dynamic>),

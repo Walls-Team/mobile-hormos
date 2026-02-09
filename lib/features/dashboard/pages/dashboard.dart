@@ -13,6 +13,7 @@ import 'package:genius_hormo/features/dashboard/dto/basic_metrics/spo2_record_dt
 import 'package:genius_hormo/features/dashboard/dto/energy_levels/energy_stats.dart';
 import 'package:genius_hormo/features/dashboard/dto/health_data.dart';
 import 'package:genius_hormo/features/dashboard/services/dashboard_service.dart';
+import 'package:genius_hormo/features/stats/components/data_sync_warning.dart';
 import 'package:get_it/get_it.dart';
 import 'package:genius_hormo/l10n/app_localizations.dart';
 
@@ -109,9 +110,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return ListView(
       padding: EdgeInsets.all(12),
       children: [
+        if (metrics.isSynchronizing)
+          DataSyncWarning(
+            customMessage: AppLocalizations.of(context)!['common']?['dataSyncDashboard'],
+          ),
         _buildTestosteroneChart(
           stats: metrics.energy.stats,
-          lastUpdated: metrics.sleep.dates.first,
+          lastUpdated: metrics.sleep.dates.isNotEmpty
+              ? metrics.sleep.dates.first
+              : DateTime.now().toIso8601String().substring(0, 10),
         ),
         _buildStatsCards(resume: metrics.sleep.resume),
         _buildRemChart(remData: metrics.sleep.remResume),

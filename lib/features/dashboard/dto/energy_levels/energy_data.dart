@@ -10,6 +10,13 @@ class EnergyData {
     required this.history,
   });
 
+  factory EnergyData.empty() {
+    return EnergyData(
+      stats: EnergyStats.empty(),
+      history: [],
+    );
+  }
+
   factory EnergyData.fromJson(Map<String, dynamic> json) {
     return EnergyData(
       stats: EnergyStats.fromJson(json['stats'] as Map<String, dynamic>),

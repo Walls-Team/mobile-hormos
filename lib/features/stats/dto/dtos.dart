@@ -7,6 +7,10 @@ class SleepEfficiencyData {
 
   SleepEfficiencyData({required this.records});
 
+  factory SleepEfficiencyData.empty() {
+    return SleepEfficiencyData(records: []);
+  }
+
   factory SleepEfficiencyData.fromJson(dynamic json) {
     if (json is List) {
       print('soy list');
@@ -73,6 +77,10 @@ class SleepDurationData {
   final List<SleepDurationRecord> records;
 
   SleepDurationData({required this.records});
+
+  factory SleepDurationData.empty() {
+    return SleepDurationData(records: []);
+  }
 
   factory SleepDurationData.fromJson(dynamic json) {
     if (json is List) {
@@ -157,6 +165,10 @@ class HeartRateData {
   final List<HeartRateRecord> records;
 
   HeartRateData({required this.records});
+
+  factory HeartRateData.empty() {
+    return HeartRateData(records: []);
+  }
 
   factory HeartRateData.fromJson(dynamic json) {
     if (json is List) {
@@ -250,6 +262,10 @@ class Spo2Data {
 
   Spo2Data({required this.records});
 
+  factory Spo2Data.empty() {
+    return Spo2Data(records: []);
+  }
+
   factory Spo2Data.fromJson(dynamic json) {
     if (json is List) {
       return Spo2Data(
@@ -325,6 +341,10 @@ class CaloriesData {
 
   CaloriesData({required this.records});
 
+  factory CaloriesData.empty() {
+    return CaloriesData(records: []);
+  }
+
   factory CaloriesData.fromJson(dynamic json) {
     if (json is List) {
       return CaloriesData(
@@ -394,6 +414,10 @@ class SleepInterruptionsData {
   final List<SleepInterruptionRecord> records;
 
   SleepInterruptionsData({required this.records});
+
+  factory SleepInterruptionsData.empty() {
+    return SleepInterruptionsData(records: []);
+  }
 
   factory SleepInterruptionsData.fromJson(dynamic json) {
     if (json is List) {
@@ -477,6 +501,25 @@ class AllStats {
   final Spo2Data spo2;
   final CaloriesData calories;
   final SleepInterruptionsData sleepInterruptions;
+
+  bool get isSynchronizing =>
+      sleepEfficiency.records.isEmpty &&
+      sleepDuration.records.isEmpty &&
+      heartRate.records.isEmpty &&
+      spo2.records.isEmpty &&
+      calories.records.isEmpty &&
+      sleepInterruptions.records.isEmpty;
+
+  factory AllStats.empty() {
+    return AllStats(
+      sleepEfficiency: SleepEfficiencyData.empty(),
+      sleepDuration: SleepDurationData.empty(),
+      heartRate: HeartRateData.empty(),
+      spo2: Spo2Data.empty(),
+      calories: CaloriesData.empty(),
+      sleepInterruptions: SleepInterruptionsData.empty(),
+    );
+  }
 
   AllStats({
     required this.sleepEfficiency,

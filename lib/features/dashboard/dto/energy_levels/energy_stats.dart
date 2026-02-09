@@ -11,6 +11,15 @@ class EnergyStats {
     required this.averageLevel,
   });
 
+  factory EnergyStats.empty() {
+    return EnergyStats(
+      currentLevel: 0.0,
+      highestLevel: 0.0,
+      lowestLevel: 0.0,
+      averageLevel: 0.0,
+    );
+  }
+
   factory EnergyStats.fromJson(Map<String, dynamic> json) {
     return EnergyStats(
       currentLevel: (json['current_level'] as num).toDouble(),
