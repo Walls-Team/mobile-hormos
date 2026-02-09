@@ -34,10 +34,6 @@ cd ios && pod install && cd ..
 # 4. Ejecutar en modo debug
 flutter run --debug
 
-# 5. O usar el script del simulador
-chmod +x run_simulator.sh
-./run_simulator.sh
-```
 
 ### Comandos útiles
 
