@@ -6,14 +6,41 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:genius_hormo/core/api/api_response.dart';
+import 'package:genius_hormo/core/api/token_interceptor.dart';
 import 'package:http/http.dart' as http;
 
+/// Ejecuta una solicitud HTTP sin autenticación
 Future<ApiResponse<T>> executeRequest<T>({
   required Future<http.Response> request,
   required T Function(Map<String, dynamic>) fromJson,
 }) async {
   try {
     final response = await request;
+    return handleApiResponse(response, fromJson);
+  } on SocketException catch (e) {
+    debugPrint('❌ SOCKET ERROR: $e');
+    return ApiResponse.error(message: 'Error de conexión: $e');
+  } on TimeoutException catch (e) {
+    debugPrint('❌ TIMEOUT ERROR: $e');
+    return ApiResponse.error(message: 'Tiempo de espera agotado');
+  } on FormatException catch (e) {
+    debugPrint('❌ FORMAT ERROR: $e');
+    return ApiResponse.error(message: 'Error en el formato de respuesta: $e');
+  } catch (e) {
+    debugPrint('❌ UNEXPECTED ERROR: $e');
+    return ApiResponse.error(message: 'Error inesperado: $e');
+  }
+}
+
+/// Ejecuta una solicitud HTTP con autenticación y manejo automático de token expirado
+/// Si se recibe un error 401, intenta refrescar el token y reintenta la solicitud
+Future<ApiResponse<T>> executeAuthenticatedRequest<T>({
+  required Future<http.Response> Function(String token) requestWithToken,
+  required T Function(Map<String, dynamic>) fromJson,
+}) async {
+  try {
+    // Usar el interceptor para manejar el refresh token automáticamente
+    final response = await TokenInterceptor.executeWithTokenRefresh(requestWithToken);
     return handleApiResponse(response, fromJson);
   } on SocketException catch (e) {
     debugPrint('❌ SOCKET ERROR: $e');

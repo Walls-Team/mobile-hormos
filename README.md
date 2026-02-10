@@ -1,239 +1,239 @@
 # Genius Hormo - Mobile App
 
-Aplicación móvil multiplataforma desarrollada en **Flutter** para el monitoreo de salud hormonal. Integra datos de dispositivos wearables (Whoop) para estimar niveles de testosterona y mostrar métricas de sueño, frecuencia cardíaca, SpO2 y calorías.
+Cross-platform mobile application developed in **Flutter** for hormone health monitoring. It integrates data from wearable devices (Whoop) to estimate testosterone levels and display metrics for sleep, heart rate, SpO2, and calories.
 
-- **Versión:** `1.0.9+3`
+- **Version:** `1.0.10+4`
 - **SDK:** Flutter `^3.9.2`
 - **Package name:** `genius_hormo`
 
 ---
 
-## Requisitos previos
+## Prerequisites
 
 - **Flutter SDK** `>=3.9.2`
-- **Dart SDK** (incluido con Flutter)
-- **Xcode** (para iOS) con CocoaPods instalado
-- **Android Studio** (para Android) con SDK configurado
-- **Firebase CLI** (para notificaciones push)
+- **Dart SDK** (included with Flutter)
+- **Xcode** (for iOS) with CocoaPods installed
+- **Android Studio** (for Android) with SDK configured
+- **Firebase CLI** (for push notifications)
 
 ---
 
-## Instalación y ejecución
+## Installation and Execution
 
 ```bash
-# 1. Clonar el repositorio
+# 1. Clone the repository
 git clone <repo-url>
 cd mobile-hormos
 
-# 2. Instalar dependencias
+# 2. Install dependencies
 flutter pub get
 
-# 3. Instalar pods de iOS (solo macOS)
+# 3. Install iOS pods (macOS only)
 cd ios && pod install && cd ..
 
-# 4. Ejecutar en modo debug
+# 4. Run in debug mode
 flutter run --debug
+```
 
-
-### Comandos útiles
+### Useful Commands
 
 ```bash
-# Analizar código
+# Analyze code
 flutter analyze
 
-# Ejecutar tests
+# Run tests
 flutter test
 
-# Build para iOS
+# Build for iOS
 flutter build ios --release
 
-# Build para Android
+# Build for Android
 flutter build apk --release
 
-# Limpiar proyecto
+# Clean project
 flutter clean && flutter pub get
 ```
 
 ---
 
-## Configuración de entornos
+## Environment Configuration
 
-La configuración de URLs y entornos se maneja en:
+URL and environment configuration is managed in:
 
 **`lib/core/config/app_config.dart`**
 
 ```dart
-// Staging (actual)
+// Staging (current)
 static const String baseUrl = 'http://api-staging.geniushpro.com';
 
-// Producción
+// Production
 // static const String baseUrl = 'https://main.geniushpro.com';
 ```
 
-| Variable | Descripción |
+| Variable | Description |
 |---|---|
-| `baseUrl` | URL base del API backend |
-| `loginBaseUrl` | URL base para autenticación |
-| `spikeApiUrl` | URL del API de Spike (wearables) |
-| `apiVersion` | Versión del API (`v1`) |
-| `defaultTimeout` | Timeout por defecto (30s) |
+| `baseUrl` | Backend API base URL |
+| `loginBaseUrl` | Authentication base URL |
+| `spikeApiUrl` | Spike API URL (wearables) |
+| `apiVersion` | API version (`v1`) |
+| `defaultTimeout` | Default timeout (30s) |
 
 ---
 
-## Arquitectura del proyecto
+## Project Architecture
 
 ```
 lib/
-├── main.dart                    # Entry point de la app
-├── home.dart                    # Pantalla principal con bottom navigation
-├── welcome.dart                 # Pantalla de bienvenida (landing)
+├── main.dart                    # App entry point
+├── home.dart                    # Main screen with bottom navigation
+├── welcome.dart                 # Welcome screen (landing)
 │
-├── app/                         # Configuración de la aplicación
-│   ├── app.dart                 # Widget raíz (MaterialApp + GoRouter)
-│   ├── routes.dart              # Definición de todas las rutas
-│   ├── route_names.dart         # Constantes de nombres de rutas
-│   ├── safe_navigation.dart     # Navegación segura (evita locks)
-│   └── hot_restart_wrapper.dart # Wrapper para hot restart limpio
+├── app/                         # Application configuration
+│   ├── app.dart                 # Root widget (MaterialApp + GoRouter)
+│   ├── routes.dart              # Route definitions
+│   ├── route_names.dart         # Route name constants
+│   ├── safe_navigation.dart     # Safe navigation (avoids locks)
+│   └── hot_restart_wrapper.dart # Clean hot restart wrapper
 │
-├── core/                        # Capa core (infraestructura)
+├── core/                        # Core layer (infrastructure)
 │   ├── api/
-│   │   ├── api_helpers.dart     # Helper para ejecutar requests HTTP
-│   │   └── api_response.dart    # Modelo genérico de respuesta API
+│   │   ├── api_helpers.dart     # Helper for executing HTTP requests
+│   │   └── api_response.dart    # Generic API response model
 │   ├── auth/
-│   │   ├── auth_state_provider.dart   # Estado global de autenticación
-│   │   └── auth_redirect_service.dart # Redirección según auth
+│   │   ├── auth_state_provider.dart   # Global authentication state
+│   │   └── auth_redirect_service.dart # Redirection based on auth
 │   ├── config/
-│   │   └── app_config.dart      # Configuración centralizada (URLs, keys)
-│   ├── deep_link/               # Manejo de deep links
+│   │   └── app_config.dart      # Centralized configuration (URLs, keys)
+│   ├── deep_link/               # Deep link handling
 │   ├── di/
-│   │   └── dependency_injection.dart  # Registro de dependencias (GetIt)
+│   │   └── dependency_injection.dart  # Dependency registration (GetIt)
 │   ├── guards/
-│   │   └── subscription_guard.dart    # Guard de suscripción
+│   │   └── subscription_guard.dart    # Subscription guard
 │   ├── navigation/
-│   │   └── navigation_service.dart    # Servicio de navegación global
-│   └── utils/                   # Utilidades core
+│   │   └── navigation_service.dart    # Global navigation service
+│   └── utils/                   # Core utilities
 │
-├── features/                    # Módulos de funcionalidad (feature-based)
-│   ├── auth/                    # Autenticación
-│   ├── dashboard/               # Dashboard principal
-│   ├── stats/                   # Estadísticas detalladas
-│   ├── settings/                # Configuración de usuario
-│   ├── store/                   # Tienda de productos
-│   ├── chat/                    # Chat con IA
-│   ├── daily_questions/         # Cuestionario diario
-│   ├── notifications/           # Centro de notificaciones
-│   ├── payments/                # Pagos con Stripe
-│   ├── subscription/            # Gestión de suscripción
-│   ├── spike/                   # Integración con Spike API (wearables)
-│   ├── acceptdevice/            # Aceptar dispositivo wearable
-│   ├── setup/                   # Setup inicial del usuario
-│   ├── faqs/                    # Preguntas frecuentes
-│   └── terms_and_conditions/    # Términos y condiciones
+├── features/                    # Feature modules (feature-based)
+│   ├── auth/                    # Authentication
+│   ├── dashboard/               # Main dashboard
+│   ├── stats/                   # Detailed statistics
+│   ├── settings/                # User configuration
+│   ├── store/                   # Product store
+│   ├── chat/                    # AI Chat
+│   ├── daily_questions/         # Daily questionnaire
+│   ├── notifications/           # Notification center
+│   ├── payments/                # Stripe payments
+│   ├── subscription/            # Subscription management
+│   ├── spike/                   # Spike API integration (wearables)
+│   ├── acceptdevice/            # Accept wearable device
+│   ├── setup/                   # User initial setup
+│   ├── faqs/                    # FAQs
+│   └── terms_and_conditions/    # Terms and conditions
 │
-├── l10n/                        # Internacionalización
-│   ├── app_localizations.dart   # Clase principal de traducciones
-│   ├── app_localizations_en.dart # Traducciones en inglés
-│   ├── app_localizations_es.dart # Traducciones en español
-│   └── l10n.dart                # Exportaciones
+├── l10n/                        # Internationalization
+│   ├── app_localizations.dart   # Main translations class
+│   ├── app_localizations_en.dart # English translations
+│   ├── app_localizations_es.dart # Spanish translations
+│   └── l10n.dart                # Exports
 │
-├── models/                      # Modelos globales
-├── providers/                   # Providers globales
-│   ├── lang_service.dart        # Servicio de idioma
-│   └── subscription_provider.dart # Provider de suscripción
+├── models/                      # Global models
+├── providers/                   # Global providers
+│   ├── lang_service.dart        # Language service
+│   └── subscription_provider.dart # Subscription provider
 │
-├── services/                    # Servicios globales
-│   ├── firebase_messaging_service.dart  # Notificaciones push
-│   ├── local_notifications_service.dart # Notificaciones locales
-│   ├── notification_api_service.dart    # API de notificaciones
-│   ├── profile_service.dart             # Servicio de perfil
-│   └── whoop_promo_service.dart         # Promoción Whoop
+├── services/                    # Global services
+│   ├── firebase_messaging_service.dart  # Push notifications
+│   ├── local_notifications_service.dart # Local notifications
+│   ├── notification_api_service.dart    # Notification API
+│   ├── profile_service.dart             # Profile service
+│   └── whoop_promo_service.dart         # Whoop promotion
 │
-├── theme/                       # Tema visual
-│   ├── theme.dart               # Definición del tema (dark/light)
-│   └── colors_pallete.dart      # Paleta de colores
+├── theme/                       # Visual theme
+│   ├── theme.dart               # Theme definition (dark/light)
+│   └── colors_pallete.dart      # Color palette
 │
-├── utils/                       # Utilidades generales
-└── widgets/                     # Widgets reutilizables globales
+├── utils/                       # General utilities
+└── widgets/                     # Reusable global widgets
 ```
 
 ---
 
-## Estructura de cada feature
+## Feature Structure
 
-Cada feature sigue una estructura consistente:
+Each feature follows a consistent structure:
 
 ```
-features/<nombre>/
-├── pages/           # Pantallas (widgets de nivel superior)
-├── components/      # Widgets específicos del feature
-├── dto/             # Data Transfer Objects (modelos de datos)
-├── services/        # Servicios (llamadas API)
-├── models/          # Modelos de dominio
-├── controllers/     # Controladores de lógica
-├── widgets/         # Widgets reutilizables del feature
-└── utils/           # Utilidades del feature
+features/<name>/
+├── pages/           # Screens (top-level widgets)
+├── components/      # Feature-specific widgets
+├── dto/             # Data Transfer Objects (data models)
+├── services/        # Services (API calls)
+├── models/          # Domain models
+├── controllers/     # Logic controllers
+├── widgets/         # Reusable feature widgets
+└── utils/           # Feature utilities
 ```
 
 ---
 
-## Features principales
+## Main Features
 
 ### Auth (`features/auth/`)
 
-Maneja registro, login, verificación de email, recuperación de contraseña y autenticación biométrica.
+Handles registration, login, email verification, password recovery, and biometric authentication.
 
-| Archivo | Descripción |
+| File | Description |
 |---|---|
-| `pages/login.dart` | Pantalla de inicio de sesión |
-| `pages/register.dart` | Pantalla de registro |
-| `pages/email_verification/` | Verificación de email con código |
-| `pages/reset_password/` | Flujo de recuperación de contraseña |
-| `services/auth_service.dart` | Llamadas API de autenticación |
-| `services/user_storage_service.dart` | Almacenamiento seguro de tokens y perfil |
-| `services/biometric_auth_service.dart` | Autenticación biométrica (Face ID / Touch ID) |
-| `dto/user_profile_dto.dart` | DTO del perfil de usuario |
+| `pages/login.dart` | Login screen |
+| `pages/register.dart` | Registration screen |
+| `pages/email_verification/` | Email verification with code |
+| `pages/reset_password/` | Password recovery flow |
+| `services/auth_service.dart` | Authentication API calls |
+| `services/user_storage_service.dart` | Secure token and profile storage |
+| `services/biometric_auth_service.dart` | Biometric authentication (Face ID / Touch ID) |
+| `dto/user_profile_dto.dart` | User profile DTO |
 
 ### Dashboard (`features/dashboard/`)
 
-Pantalla principal que muestra las métricas de salud del usuario.
+Main screen that displays user health metrics.
 
-| Archivo | Descripción |
+| File | Description |
 |---|---|
-| `pages/dashboard.dart` | Pantalla principal del dashboard |
-| `components/testosterone_chart.dart` | Gráfico radial de testosterona estimada |
-| `components/rem_chart.dart` | Gráfico de sueño REM |
-| `components/sleep_interruptions_chart.dart` | Gráfico de interrupciones de sueño |
-| `components/spo_chart.dart` | Gráfico de SpO2 |
-| `components/stats.dart` | Tarjetas de estadísticas (eficiencia, duración, HRV) |
-| `services/dashboard_service.dart` | Servicio API del dashboard |
-| `dto/health_data.dart` | DTO principal (contiene EnergyData + SleepData) |
-| `dto/basic_metrics/sleep_data_dto.dart` | DTO de datos de sueño |
-| `dto/basic_metrics/sleep_summary_dto.dart` | DTO de resumen de sueño |
-| `dto/energy_levels/energy_data.dart` | DTO de niveles de energía |
-| `dto/energy_levels/energy_stats.dart` | DTO de estadísticas de energía |
+| `pages/dashboard.dart` | Main dashboard screen |
+| `components/testosterone_chart.dart` | Radial chart of estimated testosterone |
+| `components/rem_chart.dart` | REM sleep chart |
+| `components/sleep_interruptions_chart.dart` | Sleep interruptions chart |
+| `components/spo_chart.dart` | SpO2 chart |
+| `components/stats.dart` | Stats cards (efficiency, duration, HRV) |
+| `services/dashboard_service.dart` | Dashboard API service |
+| `dto/health_data.dart` | Main DTO (contains EnergyData + SleepData) |
+| `dto/basic_metrics/sleep_data_dto.dart` | Sleep data DTO |
+| `dto/basic_metrics/sleep_summary_dto.dart` | Sleep summary DTO |
+| `dto/energy_levels/energy_data.dart` | Energy level data DTO |
+| `dto/energy_levels/energy_stats.dart` | Energy statistics DTO |
 
-**Endpoints del Dashboard:**
-- `GET /v1/api/home/basic-metrics` → Métricas básicas de sueño
-- `GET /v1/api/home/energy-levels` → Niveles de energía/testosterona
+**Dashboard Endpoints:**
+- `GET /v1/api/home/basic-metrics` → Basic sleep metrics
+- `GET /v1/api/home/energy-levels` → Energy/testosterone levels
 
 ### Stats (`features/stats/`)
 
-Pantalla de estadísticas detalladas con filtros por semanas.
+Detailed statistics screen with weekly filters.
 
-| Archivo | Descripción |
+| File | Description |
 |---|---|
-| `stats.dart` | Pantalla principal de estadísticas |
-| `components/sleep_efficiency_bar_chart.dart` | Gráfico de eficiencia de sueño |
-| `components/sleep_duration_chart.dart` | Gráfico de duración de sueño |
-| `components/heart_rate_resting_chart.dart` | Gráfico de frecuencia cardíaca |
-| `components/spo2_chart.dart` | Gráfico de SpO2 |
-| `components/calories_burned_chart.dart` | Gráfico de calorías |
-| `components/sleep_interruptions_stat_chart.dart` | Gráfico de interrupciones |
-| `components/data_sync_warning.dart` | Widget de advertencia de sincronización |
-| `service/stats_service.dart` | Servicio API de estadísticas |
-| `dto/dtos.dart` | Todos los DTOs de estadísticas |
+| `stats.dart` | Main statistics screen |
+| `components/sleep_efficiency_bar_chart.dart` | Sleep efficiency chart |
+| `components/sleep_duration_chart.dart` | Sleep duration chart |
+| `components/heart_rate_resting_chart.dart` | Heart rate chart |
+| `components/spo2_chart.dart` | SpO2 chart |
+| `components/calories_burned_chart.dart` | Calories chart |
+| `components/sleep_interruptions_stat_chart.dart` | Interruptions chart |
+| `components/data_sync_warning.dart` | Synchronization warning widget |
+| `service/stats_service.dart` | Statistics API service |
+| `dto/dtos.dart` | All statistics DTOs |
 
-**Endpoints de Stats:**
+**Stats Endpoints:**
 - `GET /v1/api/stats/sleep-efficiency`
 - `GET /v1/api/stats/sleep-duration`
 - `GET /v1/api/stats/heartrate`
@@ -241,198 +241,198 @@ Pantalla de estadísticas detalladas con filtros por semanas.
 - `GET /v1/api/stats/calories`
 - `GET /v1/api/stats/sleep-interruptions`
 
-**Filtros de tiempo:** 1 semana, 2 semanas, 3 semanas, 4 semanas.
+**Time Filters:** 1 week, 2 weeks, 3 weeks, 4 weeks.
 
 ### Settings (`features/settings/`)
 
-Configuración del perfil del usuario, dispositivos, idioma y cuenta.
+User profile configuration, devices, language, and account settings.
 
-| Archivo | Descripción |
+| File | Description |
 |---|---|
-| `settings.dart` | Pantalla principal de ajustes |
-| `widgets/profile_form.dart` | Formulario de perfil |
-| `widgets/height_picker.dart` | Selector de altura (métrico/imperial) |
-| `widgets/weight_picker.dart` | Selector de peso |
-| `widgets/birth_date_picker.dart` | Selector de fecha de nacimiento |
-| `services/plans_api_service.dart` | Servicio de planes/suscripciones |
-| `services/stripe_api_service.dart` | Servicio de pagos Stripe |
+| `settings.dart` | Main settings screen |
+| `widgets/profile_form.dart` | Profile form |
+| `widgets/height_picker.dart` | Height selector (metric/imperial) |
+| `widgets/weight_picker.dart` | Weight selector |
+| `widgets/birth_date_picker.dart` | Birth date selector |
+| `services/plans_api_service.dart` | Plans/subscriptions service |
+| `services/stripe_api_service.dart` | Stripe payments service |
 
 ### Chat (`features/chat/`)
 
-Chat con asistente de IA para consultas de salud.
+AI assistant chat for health consultations.
 
 ### Store (`features/store/`)
 
-Tienda con productos recomendados (vitaminas, dispositivos, laboratorios).
+Store with recommended products (vitamins, devices, laboratories).
 
 ### Spike (`features/spike/`)
 
-Integración con Spike API para conectar dispositivos wearables (Whoop).
+Integration with Spike API to connect wearable devices (Whoop).
 
 ---
 
-## Inyección de dependencias
+## Dependency Injection
 
-Se usa **GetIt** como service locator. Todas las dependencias se registran en:
+**GetIt** is used as a service locator. All dependencies are registered in:
 
 **`lib/core/di/dependency_injection.dart`**
 
-Servicios registrados:
-- `AuthService` — Autenticación
-- `UserStorageService` — Almacenamiento seguro
-- `BiometricAuthService` — Biometría
+Registered services:
+- `AuthService` — Authentication
+- `UserStorageService` — Secure storage
+- `BiometricAuthService` — Biometrics
 - `DashBoardService` — Dashboard API
-- `StatsService` — Estadísticas API
+- `StatsService` — Statistics API
 - `SpikeApiService` — Wearables API
-- `PlansApiService` — Planes/suscripciones
-- `StripeApiService` — Pagos Stripe
+- `PlansApiService` — Plans/subscriptions
+- `StripeApiService` — Stripe payments
 - `FirebaseMessagingService` — Push notifications
-- `LocalNotificationsService` — Notificaciones locales
-- `NotificationApiService` — API de notificaciones
-- `LanguageService` — Idioma
-- `WhoopPromoService` — Promoción Whoop
-- `SetupStatusService` — Estado del setup
-- `SubscriptionProvider` — Suscripción
-- `NavigationService` — Navegación global
+- `LocalNotificationsService` — Local notifications
+- `NotificationApiService` — Notifications API
+- `LanguageService` — Language
+- `WhoopPromoService` — Whoop promotion
+- `SetupStatusService` — Setup state
+- `SubscriptionProvider` — Subscription
+- `NavigationService` — Global navigation
 - `GeniusHormoDeepLinkService` — Deep links
 
 ---
 
-## Navegación
+## Navigation
 
-Se usa **GoRouter** para la navegación declarativa.
+**GoRouter** is used for declarative navigation.
 
-### Rutas públicas (sin autenticación)
+### Public routes (no authentication)
 
-| Ruta | Pantalla |
+| Route | Screen |
 |---|---|
 | `/` | Welcome (landing) |
 | `/auth/login` | Login |
-| `/auth/register` | Registro |
-| `/auth/forgot_password` | Recuperar contraseña |
+| `/auth/register` | Register |
+| `/auth/forgot_password` | Password recovery |
 
-### Rutas privadas (requieren autenticación)
+### Private routes (authentication required)
 
-| Ruta | Pantalla |
+| Route | Screen |
 |---|---|
-| `/dashboard` | Home (con bottom nav) |
-| `/stats` | Estadísticas |
-| `/store` | Tienda |
-| `/settings` | Ajustes |
-| `/auth/spike/acceptdevice` | Aceptar dispositivo |
-| `/stripe/success` | Pago exitoso |
-| `/stripe/cancel` | Pago cancelado |
+| `/dashboard` | Home (with bottom nav) |
+| `/stats` | Statistics |
+| `/store` | Store |
+| `/settings` | Settings |
+| `/auth/spike/acceptdevice` | Accept device |
+| `/stripe/success` | Payment successful |
+| `/stripe/cancel` | Payment canceled |
 
-La autenticación se valida automáticamente en el `redirect` de GoRouter usando `AuthRedirectService`.
+Authentication is automatically validated in GoRouter's `redirect` using `AuthRedirectService`.
 
 ---
 
-## Internacionalización (i18n)
+## Internationalization (i18n)
 
-Idiomas soportados: **Español** (`es`) e **Inglés** (`en`).
+Supported languages: **Spanish** (`es`) and **English** (`en`).
 
-Los archivos de traducción están en `lib/l10n/`:
-- `app_localizations_es.dart` — Traducciones en español
-- `app_localizations_en.dart` — Traducciones en inglés
+Translation files are located in `lib/l10n/`:
+- `app_localizations_es.dart` — Spanish translations
+- `app_localizations_en.dart` — English translations
 
-### Uso en código
+### Usage in code
 
 ```dart
-// Acceso por operador []
+// Access via [] operator
 final localizations = AppLocalizations.of(context)!;
 localizations['dashboard']['sleepEfficiency']
 
-// Acceso por getters tipados
+// Access via typed getters
 localizations.dashboardOverview
 localizations.settingsPersonalData
 ```
 
 ---
 
-## Manejo de errores 404 (sin datos)
+## 404 Error Handling (No Data)
 
-Cuando el backend responde con **HTTP 404** indicando que no hay datos disponibles (usuario nuevo o Whoop no sincronizado), la app:
+When the backend responds with **HTTP 404** indicating that no data is available (new user or Whoop not synchronized), the app:
 
-1. **No muestra error** — En lugar de crashear, retorna DTOs vacíos
-2. **Muestra gráficos en cero** — Todos los charts se renderizan con valores 0
-3. **Muestra advertencia** — Widget `DataSyncWarning` indica al usuario que debe esperar 24h para sincronizar
+1. **Shows no error** — Instead of crashing, it returns empty DTOs
+2. **Shows graphs with zero values** — All charts render with zero values
+3. **Shows warning** — `DataSyncWarning` widget informs the user to wait 24h for synchronization
 
-### Archivos involucrados
+### Files involved
 
-- `lib/features/stats/service/stats_service.dart` — `_safeGet()` fallback por endpoint
-- `lib/features/dashboard/services/dashboard_service.dart` — `.catchError()` en cada future
-- `lib/features/stats/components/data_sync_warning.dart` — Widget de advertencia
-- Todos los DTOs tienen factory `empty()` para crear instancias vacías
-- `AllStats.isSynchronizing` y `HealthData.isSynchronizing` detectan estado vacío
+- `lib/features/stats/service/stats_service.dart` — `_safeGet()` fallback per endpoint
+- `lib/features/dashboard/services/dashboard_service.dart` — `.catchError()` for each future
+- `lib/features/stats/components/data_sync_warning.dart` — Warning widget
+- All DTOs have `empty()` factory to create empty instances
+- `AllStats.isSynchronizing` and `HealthData.isSynchronizing` detect empty state
 
 ---
 
-## Notificaciones push
+## Push Notifications
 
-Se usa **Firebase Cloud Messaging (FCM)** para notificaciones push.
+**Firebase Cloud Messaging (FCM)** is used for push notifications.
 
-- `lib/services/firebase_messaging_service.dart` — Configuración de FCM
-- `lib/services/local_notifications_service.dart` — Notificaciones locales
-- `lib/services/notification_api_service.dart` — API de notificaciones
-- `lib/features/notifications/notifications_screen.dart` — Centro de notificaciones
+- `lib/services/firebase_messaging_service.dart` — FCM configuration
+- `lib/services/local_notifications_service.dart` — Local notifications
+- `lib/services/notification_api_service.dart` — Notification API
+- `lib/features/notifications/notifications_screen.dart` — Notification center
 
-### Configuración Firebase
+### Firebase Configuration
 
 - **Android:** `android/app/google-services.json`
 - **iOS:** `ios/Runner/GoogleService-Info.plist`
 
 ---
 
-## Tema y estilos
+## Theme and Styles
 
-El tema se define en `lib/theme/`:
+The theme is defined in `lib/theme/`:
 
-- `theme.dart` — Tema principal (soporta dark mode)
-- `colors_pallete.dart` — Paleta de colores personalizada
+- `theme.dart` — Main theme (supports dark mode)
+- `colors_pallete.dart` — Custom color palette
 
-Se usan gráficos de **Syncfusion Flutter Charts** (`syncfusion_flutter_charts`).
+**Syncfusion Flutter Charts** (`syncfusion_flutter_charts`) are used for graphs.
 
 ---
 
-## Dependencias principales
+## Main Dependencies
 
-| Paquete | Uso |
+| Package | Usage |
 |---|---|
-| `go_router` | Navegación declarativa |
-| `get_it` | Inyección de dependencias |
+| `go_router` | Declarative navigation |
+| `get_it` | Dependency injection |
 | `provider` | State management |
-| `http` | Cliente HTTP |
+| `http` | HTTP client |
 | `firebase_core` | Firebase base |
 | `firebase_messaging` | Push notifications |
-| `syncfusion_flutter_charts` | Gráficos de datos |
-| `flutter_secure_storage` | Almacenamiento seguro |
-| `shared_preferences` | Preferencias locales |
-| `local_auth` | Autenticación biométrica |
-| `flutter_localization` | Internacionalización |
-| `intl` | Formateo de fechas/números |
+| `syncfusion_flutter_charts` | Data charts |
+| `flutter_secure_storage` | Secure storage |
+| `shared_preferences` | Local preferences |
+| `local_auth` | Biometric authentication |
+| `flutter_localization` | Internationalization |
+| `intl` | Date/number formatting |
 | `app_links` | Deep links |
-| `url_launcher` | Abrir URLs externas |
-| `glassmorphism` | Efectos de vidrio en UI |
-| `equatable` | Comparación de objetos |
-| `flutter_svg` | Soporte SVG |
-| `timeago` | Fechas relativas |
-| `numberpicker` | Selector numérico |
-| `percent_indicator` | Indicadores de porcentaje |
-| `dartz` | Programación funcional |
+| `url_launcher` | Open external URLs |
+| `glassmorphism` | Glass UI effects |
+| `equatable` | Object comparison |
+| `flutter_svg` | SVG support |
+| `timeago` | Relative dates |
+| `numberpicker` | Numeric selector |
+| `percent_indicator` | Percentage indicators |
+| `dartz` | Functional programming |
 
 ---
 
-## Flujo de la aplicación
+## Application Flow
 
 ```
 main.dart
   ├── Firebase.initializeApp()
   ├── setupDependencies()          (GetIt)
-  ├── AuthStateProvider.init()     (verificar sesión)
+  ├── AuthStateProvider.init()     (verify session)
   └── runApp(GeniusHormoApp)
         └── GoRouter redirect
-              ├── Sin sesión → WelcomeScreen → Login/Register
-              └── Con sesión → HomeScreen (bottom nav)
+              ├── No session → WelcomeScreen → Login/Register
+              └── With session → HomeScreen (bottom nav)
                     ├── Tab 0: DashboardScreen
                     ├── Tab 1: StatsScreen
                     ├── Tab 2: StoreScreen
@@ -441,25 +441,25 @@ main.dart
 
 ---
 
-## Estructura de assets
+## Asset Structure
 
 ```
 assets/
 └── images/
-    ├── icon.jpg          # Icono de la app
-    ├── logo.png          # Logo principal
-    ├── logo_2.png        # Logo alternativo
-    └── splashicon.png    # Icono de splash screen
+    ├── icon.jpg          # App icon
+    ├── logo.png          # Main logo
+    ├── logo_2.png        # Alternative logo
+    └── splashicon.png    # Splash screen icon
 ```
 
 ---
 
-## Plataformas soportadas
+## Supported Platforms
 
-| Plataforma | Estado |
+| Platform | Status |
 |---|---|
-| iOS | ✅ Principal |
-| Android | ✅ Principal |
+| iOS | ✅ Primary |
+| Android | ✅ Primary |
 | Web | ⚠️ Experimental |
 | macOS | ⚠️ Experimental |
 | Linux | ⚠️ Experimental |

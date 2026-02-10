@@ -7,6 +7,7 @@ import 'package:genius_hormo/core/api/api_response.dart';
 import 'package:genius_hormo/core/config/app_config.dart';
 import 'package:genius_hormo/features/auth/dto/login_dto.dart';
 import 'package:genius_hormo/features/auth/dto/register_dto.dart';
+import 'package:genius_hormo/features/auth/dto/refresh_token_dto.dart';
 import 'package:genius_hormo/features/auth/dto/resend_otp.dart';
 import 'package:genius_hormo/features/auth/dto/reset_password_dto.dart';
 import 'package:genius_hormo/features/auth/dto/user_profile_dto.dart';
@@ -356,6 +357,78 @@ class AuthService {
 
   /// Limpiar almacenamiento (delegado al storage service)
   Future<void> clearAllStorage() => _storageService.clearAllStorage();
+
+  /// Refresca el token de acceso usando el refresh token
+  /// Endpoint: POST /token/refresh/
+  Future<ApiResponse<RefreshTokenResponse>> refreshToken() async {
+    try {
+      // Obtener el refresh token almacenado
+      final refreshToken = await _storageService.getRefreshToken();
+      
+      if (refreshToken == null || refreshToken.isEmpty) {
+        debugPrint('❌ No hay refresh token disponible');
+        return ApiResponse.error(message: 'No hay refresh token disponible');
+      }
+      
+      final url = AppConfig.getApiUrl('token/refresh/');
+      final body = json.encode({
+        'refresh_token': refreshToken,
+      });
+      
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🔄 REFRESH TOKEN REQUEST');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📍 ENDPOINT: token/refresh/');
+      debugPrint('🌐 FULL URL: $url');
+      debugPrint('📦 Body: $body');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      final response = await _client
+          .post(
+            Uri.parse(url),
+            headers: AppConfig.getCommonHeaders(),
+            body: body,
+          )
+          .timeout(AppConfig.defaultTimeout);
+      
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📥 RESPONSE FROM refreshToken');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint('📄 Response Body:');
+      debugPrint(response.body);
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      
+      if (response.statusCode == 200) {
+        final responseData = RefreshTokenResponse.fromJson(json.decode(response.body));
+        
+        // Guardar los nuevos tokens
+        await _storageService.saveJWTToken(responseData.accessToken);
+        await _storageService.saveRefreshToken(responseData.refreshToken);
+        
+        debugPrint('✅ Tokens refrescados exitosamente');
+        return ApiResponse.success(
+          message: 'Tokens refrescados exitosamente',
+          data: responseData,
+        );
+      } else if (response.statusCode == 401) {
+        debugPrint('❌ Refresh token expirado o inválido');
+        return ApiResponse.error(message: 'Refresh token expirado o inválido');
+      } else {
+        final errorMessage = 'Error al refrescar el token: ${response.statusCode}';
+        debugPrint('❌ $errorMessage');
+        return ApiResponse.error(message: errorMessage);
+      }
+    } catch (e, stackTrace) {
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('💥 ERROR EN refreshToken');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ Error: $e');
+      debugPrint('📍 StackTrace: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      return ApiResponse.error(message: 'Error al refrescar el token: $e');
+    }
+  }
 
   /// Actualizar perfil del usuario
   /// Endpoint: POST /v1/api/me/update/
